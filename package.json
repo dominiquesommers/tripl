@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "deploy": "ng build --configuration production --base-href /triple/ && npx angular-cli-ghpages --dir dist/triple/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:triple": "node dist/triple/server/server.mjs"
@@ -44,6 +45,7 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
+    "angular-cli-ghpages": "^2.0.3",
     "jsdom": "^27.1.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.12",
