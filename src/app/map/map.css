@@ -1,0 +1,31 @@
+#map-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+.toolbar {
+  background-color: rgb(35 55 75 / 90%);
+  color: #fff;
+  padding: 6px 12px;
+  font-family: monospace;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 12px;
+  border-radius: 4px;
+}
+
+.reset-button {
+  background-color: rgb(35 55 75 / 90%);
+  color: #fff;
+  position: absolute;
+  top: 45px;
+  z-index: 1;
+  left: 11px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
