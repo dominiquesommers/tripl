@@ -1,0 +1,104 @@
+.auth-wrapper {
+  font-family: 'Inter', sans-serif;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 2000; /* Must be higher than Mapbox */
+}
+
+.profile-trigger {
+  width: 46px;
+  height: 46px;
+  cursor: pointer;
+
+  /* Conic gradient creates the 'four-slice' pie look */
+  background: linear-gradient(white, white) padding-box,
+              conic-gradient(
+                #4285F4 0deg 90deg,
+                #EA4335 90deg 180deg,
+                #FBBC05 180deg 270deg,
+                #34A853 270deg 360deg) border-box;
+
+  border: 3px solid transparent;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.profile-trigger:hover, .google-signin-btn:hover {
+  transform: scale(1.05);
+}
+
+.avatar { width: 100%; height: 100%; border-radius: 50%; }
+
+/* 3. The Menu Dropdown - adding a colorful top accent */
+.menu-card {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  width: 260px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  padding: 16px;
+
+  /* A subtle color stripe at the very top of the menu */
+  border-top: 4px solid #4285F4;
+  overflow: hidden;
+}
+
+.menu-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.avatar-large { width: 48px; height: 48px; border-radius: 50%; }
+.name { font-weight: bold; display: block; font-size: 14px; }
+.email { font-size: 12px; color: #666; }
+
+.menu-divider { height: 1px; background: #eee; margin: 12px 0; }
+
+.menu-item {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: #f1f3f4; /* Subtle grey */
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #3c4043;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.menu-item:hover {
+  background: #e8f0fe; /* Very light Google Blue */
+  color: #1967d2;      /* Deep Google Blue */
+}
+
+.google-icon {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0; /* Prevents the logo from distorting */
+  display: block;
+}
+
+.google-signin-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500;
+
+  /* Hard stops create the block effect */
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(to right,
+                #4285F4 0% 25%,
+                #EA4335 25% 50%,
+                #FBBC05 50% 75%,
+                #34A853 75% 100%) border-box;
+
+  border: 3px solid transparent; /* Slightly thicker to see the blocks clearly */
+  border-radius: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}

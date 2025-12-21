@@ -1,0 +1,29 @@
+<div class="auth-wrapper">
+  <ng-container *ngIf="authService.user$ | async as user; else loggedOut">
+    <div class="profile-trigger" (click)="toggleMenu($event)" [class.active]="showMenu">
+      <img [src]="user.photoURL" (error)="handleImageError($event, user)" class="avatar">
+    </div>
+
+    <div class="menu-card" *ngIf="showMenu">
+      <div class="menu-header">
+        <img [src]="user.photoURL" alt="Profile" class="avatar-large">
+        <div class="user-details">
+          <span class="name">{{ user.displayName }}</span>
+          <span class="email">{{ user.email }}</span>
+        </div>
+      </div>
+      <div class="menu-divider"></div>
+      <button class="menu-item" (click)="authService.logout()">
+        Sign out
+      </button>
+    </div>
+  </ng-container>
+
+  <ng-template #loggedOut>
+    <button class="google-signin-btn" (click)="handleLogin()">
+<!--    <button class="google-signin-btn" (click)="authService.login()">-->
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" class="google-icon">
+      <span>Sign in</span>
+    </button>
+  </ng-template>
+</div>
