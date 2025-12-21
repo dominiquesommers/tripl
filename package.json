@@ -1,14 +1,14 @@
 {
-  "name": "triple",
+  "name": "tripl",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "deploy": "ng build --configuration production --base-href /triple/ && npx angular-cli-ghpages --dir dist/triple/browser",
+    "deploy": "ng build --configuration production --base-href /tripl/ && npx angular-cli-ghpages --dir dist/tripl/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:triple": "node dist/triple/server/server.mjs"
+    "serve:ssr:tripl": "node dist/tripl/server/server.mjs"
   },
   "prettier": {
     "printWidth": 100,

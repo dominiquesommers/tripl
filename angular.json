@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "triple": {
+    "tripl": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -62,10 +62,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "triple:build:production"
+              "buildTarget": "tripl:build:production"
             },
             "development": {
-              "buildTarget": "triple:build:development"
+              "buildTarget": "tripl:build:development"
             }
           },
           "defaultConfiguration": "development"

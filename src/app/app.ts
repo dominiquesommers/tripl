@@ -9,5 +9,5 @@ import { Map } from './map/map';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('triple');
+  protected readonly title = signal('tripl');
 }
