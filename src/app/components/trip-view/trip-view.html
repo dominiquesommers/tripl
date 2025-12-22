@@ -1,0 +1,35 @@
+<div class="viewport-container">
+  <app-loading-spinner *ngIf="tripService.loading$ | async"></app-loading-spinner>
+
+  <app-side-panel *ngIf="(tripService.activeTrip$ && tripService.activePlan$) | async"></app-side-panel>
+
+  <app-map></app-map>
+
+  <div class="ui-overlay">
+    <app-trip-bubble></app-trip-bubble>
+
+<!--    <div class="selection-card" *ngIf="(authService.user$ | async) && !(tripService.activeTrip$ | async) && !(tripService.loading$ | async)">-->
+<!--      <h2>Your Journeys</h2>-->
+<!--      <p>Select a trip to view your plans and pins.</p>-->
+
+<!--      <div class="trip-grid">-->
+<!--        <div class="trip-item"-->
+<!--             *ngFor="let trip of tripService.userTrips$ | async"-->
+<!--             (click)="openTrip(trip.id)">-->
+<!--          <div class="trip-icon">🗺️</div>-->
+<!--          <div class="trip-details">-->
+<!--            <span class="trip-name">{{ trip.name }}</span>-->
+<!--            <span class="trip-meta">View plans</span>-->
+<!--          </div>-->
+<!--          <div class="arrow">→</div>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <button class="btn-create">-->
+<!--        <span class="plus">+</span> Start a New Trip-->
+<!--      </button>-->
+<!--    </div>-->
+
+    <app-auth-widget></app-auth-widget>
+  </div>
+</div>

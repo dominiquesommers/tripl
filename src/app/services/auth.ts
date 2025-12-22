@@ -31,7 +31,6 @@ export class AuthService {
       }
       this.userSubject.next(user);
     });
-
   }
 
   async login() {
@@ -40,5 +39,9 @@ export class AuthService {
 
   async logout() {
     return signOut(this.auth);
+  }
+
+  getCurrentUserValue() {
+    return this.userSubject.value;
   }
 }

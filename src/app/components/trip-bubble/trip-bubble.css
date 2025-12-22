@@ -1,0 +1,109 @@
+:host {
+  display: block;
+  margin-top: 12px;
+}
+
+.bubble-pill {
+  display: flex;
+  align-items: center;
+  border-radius: 50px;
+  padding: 6px 0px;
+  cursor: default;
+  position: relative;
+  max-width: calc(100vw - 120px);
+  z-index: 1001;
+
+  background: rgba(30, 30, 35, 0.7);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+  /* Consistent Border (Thin and slightly bright) */
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.trip-info, .plan-info {
+  display: flex;
+  flex-direction: column;
+  padding: 0 15px;
+}
+
+.label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 1px;
+}
+
+.value {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.plan-info {
+  cursor: pointer;
+}
+
+.plan-dropdown {
+  position: absolute;
+  top: 55px;
+  left: 50%;
+  z-index: 1002;
+  transform: translateX(-50%);
+
+  /* Match the Pill styling */
+  background: rgba(45, 45, 50, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+
+  border-radius: 16px;
+  width: 220px;
+  padding: 6px;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+}
+
+.plan-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: transparent;
+  margin-bottom: 2px;
+  border: none;
+  color: white;
+  transition: background 0.2s ease;
+}
+
+.plan-item:hover {
+  background: rgba(255, 255, 255, 0.1); /* Subtle hover highlight */
+}
+
+.plan-item:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.drag-handle {
+  cursor: grab;
+  margin-right: 12px;
+  color: rgba(255, 255, 255, 0.3); /* Dimmed handle */
+}
+
+/* Dragging Preview */
+.cdk-drag-preview {
+  background: rgba(60, 60, 65, 0.9) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-radius: 10px;
+  color: white;
+  padding: 10px 12px;
+  border: 0.5px solid rgba(255,255,255,0.2);
+}

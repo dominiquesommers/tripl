@@ -1,29 +1,26 @@
 .auth-wrapper {
   font-family: 'Inter', sans-serif;
   position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 2000; /* Must be higher than Mapbox */
+  right: 0px;
+  z-index: 2000;
 }
 
 .profile-trigger {
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
-
-  /* Conic gradient creates the 'four-slice' pie look */
-  background: linear-gradient(white, white) padding-box,
-              conic-gradient(
-                #4285F4 0deg 90deg,
-                #EA4335 90deg 180deg,
-                #FBBC05 180deg 270deg,
-                #34A853 270deg 360deg) border-box;
-
-  border: 3px solid transparent;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 3px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              conic-gradient(
+                #EA4335 0deg 45deg,
+                #4285F4 45deg 135deg,
+                #34A853 135deg 235deg,
+                #FBBC05 235deg 305deg,
+                #EA4335 305deg 360deg) border-box;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
@@ -45,7 +42,7 @@
   padding: 16px;
 
   /* A subtle color stripe at the very top of the menu */
-  border-top: 4px solid #4285F4;
+  /*border-top: 4px solid #4285F4;*/
   overflow: hidden;
 }
 
@@ -57,8 +54,11 @@
 .menu-divider { height: 1px; background: #eee; margin: 12px 0; }
 
 .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 8px 16px;
   width: 100%;
-  padding: 12px;
   border: none;
   background: #f1f3f4; /* Subtle grey */
   border-radius: 8px;
@@ -74,30 +74,37 @@
   color: #1967d2;      /* Deep Google Blue */
 }
 
+.icon-left {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .google-icon {
   width: 25px;
   height: 25px;
-  flex-shrink: 0; /* Prevents the logo from distorting */
+  flex-shrink: 0;
   display: block;
 }
 
 .google-signin-btn {
+  height: 40px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 16px;
+  white-space: nowrap;
+  width: max-content;
+  padding: 8px 8px 8px 5px;
   cursor: pointer;
   font-weight: 500;
-
-  /* Hard stops create the block effect */
+  border: 3px solid transparent;
   background: linear-gradient(white, white) padding-box,
-              linear-gradient(to right,
-                #4285F4 0% 25%,
-                #EA4335 25% 50%,
-                #FBBC05 50% 75%,
-                #34A853 75% 100%) border-box;
-
-  border: 3px solid transparent; /* Slightly thicker to see the blocks clearly */
+              conic-gradient(
+                #EA4335 0deg 45deg,
+                #4285F4 45deg 135deg,
+                #34A853 135deg 235deg,
+                #FBBC05 235deg 305deg,
+                #EA4335 305deg 360deg) border-box;
   border-radius: 24px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: transform 0.2s;

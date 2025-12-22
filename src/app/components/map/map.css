@@ -3,6 +3,17 @@
   top: 0;
   bottom: 0;
   width: 100%;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+  background-color: #1a1a1a;
+}
+
+#map-container.visible {
+  opacity: 1;
+}
+
+.map-loading {
+  opacity: 0.5;
 }
 
 .toolbar {

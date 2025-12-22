@@ -1,0 +1,36 @@
+<div class="panel-container"
+     [class.desktop-sidebar]="!(tripService.isMobile$ | async)"
+     [class.mobile-sheet]="tripService.isMobile$ | async"
+     [class.closed]="!(tripService.sidebarOpen$ | async) && !(tripService.isMobile$ | async)"
+     [class.sheet-open]="sheetState === 'open' && (tripService.isMobile$ | async)"
+     [class.sheet-peek]="sheetState === 'peek' && (tripService.isMobile$ | async)"
+     cdkDrag
+     cdkDragLockAxis="y"
+     [cdkDragDisabled]="!(tripService.isMobile$ | async)"
+     (cdkDragEnded)="onDragEnd($event)">
+
+  <div class="drag-handle"
+       *ngIf="tripService.isMobile$ | async"
+       (click)="toggleMobileSheet()"></div>
+
+  <div class="header-actions" *ngIf="!(tripService.isMobile$ | async)">
+    <button class="toggle-btn" (click)="tripService.toggleSidebar()" title="Toggle Sidebar">
+      <div class="icon-box">
+        <div class="sidebar-icon-bar"></div>
+      </div>
+    </button>
+  </div>
+
+  <div class="content">
+    <h2>Trip Details</h2>
+    <p>This is where your itinerary, notes, and local info will live.</p>
+  </div>
+</div>
+
+<button class="floating-open-btn"
+        *ngIf="!(tripService.sidebarOpen$ | async) && !(tripService.isMobile$ | async)"
+        (click)="tripService.toggleSidebar()">
+  <div class="icon-box">
+     <div class="sidebar-icon-bar"></div>
+  </div>
+</button>

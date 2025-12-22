@@ -1,16 +1,18 @@
 import { Component, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
+import { LucideAngularModule, LogOut } from 'lucide-angular';
 
 @Component({
   selector: 'app-auth-widget',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './auth-widget.html',
   styleUrls: ['./auth-widget.css']
 })
-export class AuthWidgetComponent {
+export class AuthWidget {
   showMenu = false;
+  readonly LogOut = LogOut;
 
   constructor(public authService: AuthService, private eRef: ElementRef) {}
 
