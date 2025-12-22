@@ -12,5 +12,5 @@ export const routes: Routes = [
   { path: 'trip/:tripId/:planId', component: TripView },
 
   // Fallback
-  { path: '**', redirectTo: 'select' }
+  // { path: '**', redirectTo: 'select' }
 ];
