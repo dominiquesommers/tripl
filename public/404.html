@@ -16,13 +16,15 @@
        */
 
       const repoBase = '/tripl';
-      const pathAfterRepo = location.pathname.startsWith(repoBase)
-        ? location.pathname.slice(repoBase.length)
-        : location.pathname;
+      let path = location.pathname;
+      if (path.startsWith(repoBase)) {
+        path = path.slice(repoBase.length);
+      }
+      if (!path.startsWith('/index.html')) {
+        path = '/index.html' + path;
+      }
 
-      location.replace(
-        repoBase + '/index.html' + pathAfterRepo + location.search + location.hash
-      );
+      location.replace(repoBase + path + location.search + location.hash);
     </script>
   </body>
 </html>
