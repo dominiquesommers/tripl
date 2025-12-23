@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withRouterConfig, withHashLocation } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
@@ -10,7 +10,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes,
       withComponentInputBinding(),
-      withRouterConfig({ paramsInheritanceStrategy: 'always' })
+      withRouterConfig({ paramsInheritanceStrategy: 'always' }),
+      withHashLocation()
     ),
     provideClientHydration(withEventReplay()),
     provideHttpClient()
