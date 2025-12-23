@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "deploy": "ng build --configuration production --base-href /tripl/ && cp dist/tripl/browser/index.html dist/tripl/browser/404.html && npx angular-cli-ghpages --dir dist/tripl/browser",
+    "deploy": "ng build --configuration production --base-href /tripl/ && npx angular-cli-ghpages --dir dist/tripl/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:tripl": "node dist/tripl/server/server.mjs"
