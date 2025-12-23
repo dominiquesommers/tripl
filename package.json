@@ -1,5 +1,6 @@
 {
   "name": "tripl",
+  "homepage": "https://dominiquesommers.github.io/tripl/",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
