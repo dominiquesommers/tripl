@@ -1,6 +1,7 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withRouterConfig, withHashLocation } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
+
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -11,8 +12,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
-      withRouterConfig({ paramsInheritanceStrategy: 'always' }),
-      withHashLocation()
+      withRouterConfig({ onSameUrlNavigation: 'ignore', paramsInheritanceStrategy: 'always' }),
+      ...(isDevMode() ? [] : [withHashLocation()])
     ),
     provideClientHydration(withEventReplay()),
     provideHttpClient()

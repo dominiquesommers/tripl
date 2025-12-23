@@ -29,7 +29,7 @@ export class TripBubble {
     this.showPlanMenu = false; // Close the menu after selecting
     const currentTrip = this.tripService.getCurrentTripValue();
     if (currentTrip) {
-      this.router.navigate(['trip', currentTrip.id, plan.id]);
+      // this.router.navigate(['trip', currentTrip.id, plan.id]);
     }
   }
 
