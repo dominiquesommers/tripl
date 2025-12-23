@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tripl</title>
+    <base href="/tripl/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <script>
+      /**
+       * GitHub Pages SPA fallback
+       * - Preserve the path after /tripl
+       * - Load index.html
+       * - Let Angular Router handle routing
+       */
+
+      const repoBase = '/tripl';
+      const pathAfterRepo = location.pathname.startsWith(repoBase)
+        ? location.pathname.slice(repoBase.length)
+        : location.pathname;
+
+      location.replace(
+        repoBase + '/index.html' + pathAfterRepo + location.search + location.hash
+      );
+    </script>
+  </body>
+</html>
