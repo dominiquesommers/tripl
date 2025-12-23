@@ -31,7 +31,7 @@ export class TripView {
     private router: Router
   ) {}
 
-  openTrip(tripId: string) {
-    this.router.navigate(['trip', tripId]);
-  }
+  // openTrip(tripId: string) {
+  //   this.router.navigate(['trip', tripId]);
+  // }
 }

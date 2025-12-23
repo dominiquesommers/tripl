@@ -38,13 +38,11 @@ export class TripService {
       const params = this.getParams(this.route.root);
       const tripId = params['tripId'];
       const planId = params['planId'];
+      console.log('url params', params);
       if (user) {
         if (tripId) {
-          // User is logged in AND looking at a specific trip
           this.fetchUserDataAndContext(user.uid, tripId, planId);
         } else {
-          // User is logged in BUT at /select or /
-          // We still need to call the backend to get the list of "userTrips"
           this.fetchUserDataAndContext(user.uid);
         }
       } else {
