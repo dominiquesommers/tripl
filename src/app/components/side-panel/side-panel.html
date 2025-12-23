@@ -1,7 +1,7 @@
 <div class="panel-container"
      [class.desktop-sidebar]="!(tripService.isMobile$ | async)"
      [class.mobile-sheet]="tripService.isMobile$ | async"
-     [class.closed]="!(tripService.sidebarOpen$ | async) && !(tripService.isMobile$ | async)"
+     [class.closed]="!(tripService.isSideBarOpen | async) && !(tripService.isMobile$ | async)"
      [class.sheet-open]="sheetState === 'open' && (tripService.isMobile$ | async)"
      [class.sheet-peek]="sheetState === 'peek' && (tripService.isMobile$ | async)"
      cdkDrag
@@ -28,7 +28,7 @@
 </div>
 
 <button class="floating-open-btn"
-        *ngIf="!(tripService.sidebarOpen$ | async) && !(tripService.isMobile$ | async)"
+        *ngIf="!(tripService.isSideBarOpen | async) && !(tripService.isMobile$ | async)"
         (click)="tripService.toggleSidebar()">
   <div class="icon-box">
      <div class="sidebar-icon-bar"></div>

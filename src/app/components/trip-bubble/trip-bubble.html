@@ -1,6 +1,6 @@
-<div class="bubble-pill" *ngIf="tripService.activeTrip$ | async as trip">
-  <div class="trip-info">
-    <span class="value">{{ trip.name }}</span>
+<div class="bubble-pill" *ngIf="tripService.userTrips$ | async">
+  <div class="trip-info" (click)="toggleTripMenu()">
+    <span class="value">{{ (tripService.activeTrip$ | async)?.name || 'Select Trip' }}</span>
   </div>
 
   <div class="divider"></div>
@@ -9,15 +9,28 @@
     <span class="value">{{ (tripService.activePlan$ | async)?.name || 'Select Plan' }}</span>
   </div>
 
-  <div class="plan-dropdown" *ngIf="showPlanMenu"
-       cdkDropList
-       (cdkDropListDropped)="drop($event, trip.plans)">
+<!--  <div class="trip-dropdown" *ngIf="showTripMenu" //TODO
+<!--       cdkDropList-->
+<!--       (cdkDropListDropped)="drop($event, trip.plans)">-->
 
-    <div class="plan-item"
-         *ngFor="let plan of trip.plans"
-         cdkDrag
-         (click)="selectPlan(plan)"> <div class="drag-handle" cdkDragHandle>...</div>
-      <span class="plan-name">{{ plan.name }}</span>
-    </div>
-  </div>
+<!--    <div class="plan-item"-->
+<!--         *ngFor="let plan of trip.plans"-->
+<!--         cdkDrag-->
+<!--         (click)="selectPlan(plan)"> <div class="drag-handle" cdkDragHandle>...</div>-->
+<!--      <span class="plan-name">{{ plan.name }}</span>-->
+<!--    </div>-->
+<!--  </div>-->
+
+
+<!--  <div class="plan-dropdown" *ngIf="showPlanMenu"-->
+<!--       cdkDropList-->
+<!--       (cdkDropListDropped)="drop($event, trip.plans)">-->
+
+<!--    <div class="plan-item"-->
+<!--         *ngFor="let plan of trip.plans"-->
+<!--         cdkDrag-->
+<!--         (click)="selectPlan(plan)"> <div class="drag-handle" cdkDragHandle>...</div>-->
+<!--      <span class="plan-name">{{ plan.name }}</span>-->
+<!--    </div>-->
+<!--  </div>-->
 </div>

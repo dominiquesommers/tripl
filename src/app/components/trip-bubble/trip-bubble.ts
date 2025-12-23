@@ -13,6 +13,7 @@ import { TripService } from '../../services/trip';
 })
 export class TripBubble {
   showPlanMenu = false;
+  showTripMenu = false;
 
   constructor(
     public tripService: TripService,
@@ -23,11 +24,15 @@ export class TripBubble {
     this.showPlanMenu = !this.showPlanMenu;
   }
 
+  toggleTripMenu() {
+    this.showTripMenu = !this.showTripMenu;
+  }
+
   selectPlan(plan: any) {
     console.log(plan)
     this.tripService.setActivePlan(plan);
     this.showPlanMenu = false; // Close the menu after selecting
-    const currentTrip = this.tripService.getCurrentTripValue();
+    const currentTrip = this.tripService.getActiveTrip();
     if (currentTrip) {
       // this.router.navigate(['trip', currentTrip.id, plan.id]);
     }
@@ -36,6 +41,6 @@ export class TripBubble {
   // Update your drop method to use the service
   drop(event: CdkDragDrop<any[]>, plans: any[]) {
     moveItemInArray(plans, event.previousIndex, event.currentIndex);
-    this.tripService.updatePlanPriorities(plans);
+    // this.tripService.updatePlanPriorities(plans);
   }
 }
