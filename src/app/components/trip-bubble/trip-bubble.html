@@ -1,36 +1,159 @@
-<div class="bubble-pill" *ngIf="tripService.userTrips$ | async">
-  <div class="trip-info" (click)="toggleTripMenu()">
-    <span class="value">{{ (tripService.activeTrip$ | async)?.name || 'Select Trip' }}</span>
+@if (tripService.trips()) {
+  <div class="bubble-pill-container">
+    <div class="bubble-pill">
+      <div class="pill-segment" [class.active]="showTripMenu" (click)="toggleTripMenu($event)">
+        <span class="value">{{ tripService.trip()?.name || 'Select Trip' }}</span>
+      </div>
+
+      @if (!!tripService.trip()) {
+        <div class="pill-divider"></div>
+        <div class="pill-segment" [class.active]="showPlanMenu" (click)="togglePlanMenu($event)">
+          <span class="value">{{ tripService.plan()?.name || 'Select Plan' }}</span>
+        </div>
+      }
+    </div>
+
+    @if (showTripMenu) {
+      <div class="bubble-dropdown shadow-lg">
+        <div class="dropdown-header">My Trips</div>
+        <div class="drag-list" #listBoundary cdkDropList (cdkDropListDropped)="dropTrip($event)" [cdkDropListConnectedTo]="[]">
+          @for (t of tripService.trips(); track t.id) {
+            <div class="drag-item" cdkDrag cdkDragLockAxis="y" [cdkDragBoundary]="listBoundary" [class.selected]="t.id === tripService.trip()?.id">
+              <div class="drag-placeholder" *cdkDragPlaceholder></div>
+              <div class="drag-handle" cdkDragHandle>⋮⋮</div>
+              <input type="text"
+                     #tripInput
+                     class="edit-input"
+                     [value]="t.name"
+                     (change)="renameTrip(t, $any($event.target).value)"
+                     (keydown.enter)="tripInput.blur()"
+                     (keydown.escape)="tripInput.value = t.name; tripInput.blur()"
+                     (focus)="$any($event.target).select()"/>
+              <button class="select-btn" (click)="selectTrip(t)">➔</button>
+            </div>
+          }
+        </div>
+        <button class="add-btn" (click)="addTrip()">
+          <span class="plus">+</span> Add New Trip
+        </button>
+      </div>
+    }
+
+    @if (showPlanMenu && tripService.trip()) {
+      <div class="bubble-dropdown shadow-lg">
+        <div class="dropdown-header">Plans for {{ tripService.trip()?.name }}</div>
+        <div class="drag-list" #listBoundary cdkDropList (cdkDropListDropped)="dropPlan($event)">
+          @for (p of tripService.plans(); track p.id) {
+            <div class="drag-item"
+                 cdkDrag
+                 cdkDragLockAxis="y"
+                 [cdkDragBoundary]="listBoundary"
+                 [class.selected]="p.id === tripService.plan()?.id"
+                 (click)="selectPlan(p)">
+
+              <div class="drag-placeholder" *cdkDragPlaceholder></div>
+
+              <div class="drag-indicator">⋮⋮</div>
+
+              <input type="text"
+                     #planInput
+                     class="edit-input"
+                     [value]="p.name"
+                     (click)="$event.stopPropagation()"
+                     (change)="renamePlan(p, planInput.value)"
+                     (keydown.enter)="planInput.blur()" />
+
+              <div class="item-actions" (click)="$event.stopPropagation()">
+                <button class="action-trigger" (click)="toggleItemMenu(p, $event)">⋯</button>
+              </div>
+            </div>
+          }
+        </div>
+
+<!--        <div class="drag-list" #listBoundary cdkDropList (cdkDropListDropped)="dropPlan($event)" [cdkDropListConnectedTo]="[]">-->
+<!--          @for (p of tripService.plans(); track p.id) {-->
+<!--            <div class="drag-item" cdkDrag cdkDragLockAxis="y" [cdkDragBoundary]="listBoundary" [class.selected]="p.id === tripService.plan()?.id">-->
+<!--              <div class="drag-placeholder" *cdkDragPlaceholder></div>-->
+<!--              <div class="drag-handle" cdkDragHandle>⋮⋮</div>-->
+<!--              <input type="text"-->
+<!--                     #planInput-->
+<!--                     class="edit-input"-->
+<!--                     [value]="p.name"-->
+<!--                     (change)="renamePlan(p, $any($event.target).value)"-->
+<!--                     (keydown.enter)="planInput.blur()"-->
+<!--                     (keydown.escape)="planInput.value = p.name; planInput.blur()"-->
+<!--                     (focus)="$any($event.target).select()"/>-->
+<!--              <div class="item-actions">-->
+<!--                <button class="icon-btn" (click)="copyPlan(p, $event)" title="Copy Plan">ContentCopy</button>-->
+<!--                <button class="select-btn" (click)="selectPlan(p)">➔</button>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          }-->
+<!--        </div>-->
+        <button class="add-btn" (click)="addPlan()">
+          <span class="plus">+</span> Add New Plan
+        </button>
+      </div>
+    }
   </div>
+}
 
-  <div class="divider"></div>
 
-  <div class="plan-info" (click)="togglePlanMenu()">
-    <span class="value">{{ (tripService.activePlan$ | async)?.name || 'Select Plan' }}</span>
-  </div>
 
-<!--  <div class="trip-dropdown" *ngIf="showTripMenu" //TODO
-<!--       cdkDropList-->
-<!--       (cdkDropListDropped)="drop($event, trip.plans)">-->
-
-<!--    <div class="plan-item"-->
-<!--         *ngFor="let plan of trip.plans"-->
-<!--         cdkDrag-->
-<!--         (click)="selectPlan(plan)"> <div class="drag-handle" cdkDragHandle>...</div>-->
-<!--      <span class="plan-name">{{ plan.name }}</span>-->
+<!--@if (tripService.trips()) {-->
+<!--  <div class="bubble-pill-container">-->
+<!--    <div class="bubble-pill">-->
+<!--      <div class="pill-segment" (click)="toggleTripMenu()" [class.active]="showTripMenu">-->
+<!--&lt;!&ndash;        <span class="label">Trip</span>&ndash;&gt;-->
+<!--        <span class="value">{{ tripService.trip()?.name || 'Select trip' }}</span>-->
+<!--      </div>-->
+<!--      <div class="pill-divider"></div>-->
+<!--      <div class="pill-segment" (click)="togglePlanMenu()" [class.active]="showPlanMenu">-->
+<!--&lt;!&ndash;        <span class="label">Plan</span>&ndash;&gt;-->
+<!--        <span class="value">{{ tripService.plan()?.name || 'Select plan' }}</span>-->
+<!--      </div>-->
 <!--    </div>-->
+
+<!--    @if (showTripMenu) {-->
+<!--      <div class="bubble-dropdown shadow-lg">-->
+<!--        <div class="dropdown-header">My Trips</div>-->
+<!--        <div class="drag-list">-->
+<!--          @for (t of tripService.trips(); track t.id) {-->
+<!--            <div class="drag-item" [class.selected]="t.id === tripService.trip()?.id">-->
+<!--              <div class="drag-handle">⋮⋮</div>-->
+<!--              <input type="text"-->
+<!--                     [value]="t.name"-->
+<!--                     (change)="updateTripName(t, $any($event.target).value)"-->
+<!--                     class="edit-input" />-->
+<!--              <button class="select-btn" (click)="selectTrip(t)">➔</button>-->
+<!--            </div>-->
+<!--          }-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    }-->
+
+<!--    @if (showPlanMenu && tripService.trip()) {-->
+<!--      <div class="bubble-dropdown shadow-lg">-->
+<!--        <div class="dropdown-header">Plans for {{ tripService.trip()?.name }}</div>-->
+<!--        <div class="drag-list"-->
+<!--             cdkDropList-->
+<!--             (cdkDropListDropped)="dropPlan($event)">-->
+<!--          @for (p of tripService.plans(); track p.id) {-->
+<!--            <div class="drag-item"-->
+<!--                 cdkDrag-->
+<!--                 [class.selected]="p.id === tripService.plan()?.id">-->
+<!--              <div class="drag-placeholder" *cdkDragPlaceholder></div>-->
+
+<!--              <div class="drag-handle" cdkDragHandle>⋮⋮</div>-->
+<!--              <input type="text"-->
+<!--                     [value]="p.name"-->
+<!--                     (change)="updatePlanName(p, $any($event.target).value)"-->
+<!--                     class="edit-input" />-->
+<!--              <button class="select-btn" (click)="selectPlan(p)">➔</button>-->
+<!--            </div>-->
+<!--          }-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    }-->
 <!--  </div>-->
-
-
-<!--  <div class="plan-dropdown" *ngIf="showPlanMenu"-->
-<!--       cdkDropList-->
-<!--       (cdkDropListDropped)="drop($event, trip.plans)">-->
-
-<!--    <div class="plan-item"-->
-<!--         *ngFor="let plan of trip.plans"-->
-<!--         cdkDrag-->
-<!--         (click)="selectPlan(plan)"> <div class="drag-handle" cdkDragHandle>...</div>-->
-<!--      <span class="plan-name">{{ plan.name }}</span>-->
-<!--    </div>-->
-<!--  </div>-->
-</div>
+<!--}-->

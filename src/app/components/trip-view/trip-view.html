@@ -1,12 +1,18 @@
 <div class="viewport-container">
-  <app-loading-spinner *ngIf="tripService.loading$ | async"></app-loading-spinner>
+  @if (uiService.isLoading()) {
+    <app-loading-spinner></app-loading-spinner>
+  }
 
-  <app-side-panel *ngIf="(tripService.activeTrip$ && tripService.activePlan$) | async"></app-side-panel>
+  @if (tripService.trip() && tripService.plan()) {
+    <app-side-panel></app-side-panel>
+  }
 
   <app-map></app-map>
 
   <div class="ui-overlay">
-    <app-trip-bubble></app-trip-bubble>
+    @if (tripService.trips()) {
+      <app-trip-bubble></app-trip-bubble>
+    }
 
 <!--    <div class="selection-card" *ngIf="(authService.user$ | async) && !(tripService.activeTrip$ | async) && !(tripService.loading$ | async)">-->
 <!--      <h2>Your Journeys</h2>-->

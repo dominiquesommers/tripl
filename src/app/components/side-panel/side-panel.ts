@@ -1,10 +1,10 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CdkDragEnd } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Import this!
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TripService } from '../../services/trip';
+import { UiService } from '../../services/ui';
 
 @Component({
   selector: 'app-side-panel',
@@ -14,15 +14,14 @@ import { TripService } from '../../services/trip';
   styleUrls: ['./side-panel.css']
 })
 export class SidePanel implements OnInit, OnDestroy {
-  isMobile = false;
+  tripService = inject(TripService);
+  uiService = inject(UiService);
+
   private destroy$ = new Subject<void>();
 
-  public tripService = inject(TripService);
   sheetState: 'open' | 'peek' = 'peek';
 
-  constructor(
-    private breakpointObserver: BreakpointObserver
-  ) {}
+  constructor() {}
 
   onDragEnd(event: CdkDragEnd) {
     const offset = event.distance.y;
@@ -39,12 +38,6 @@ export class SidePanel implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.breakpointObserver
-      .observe([Breakpoints.Handset])
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        this.isMobile = result.matches;
-      });
   }
 
   ngOnDestroy(): void {

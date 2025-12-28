@@ -1,36 +1,36 @@
+@if (!uiService.isSidebarOpen() && !uiService.isMobile()) {
+  <button class="floating-open-btn" (click)="uiService.toggleSidebar()">
+    <div class="icon-box">
+       <div class="sidebar-icon-bar"></div>
+    </div>
+  </button>
+}
+
 <div class="panel-container"
-     [class.desktop-sidebar]="!(tripService.isMobile$ | async)"
-     [class.mobile-sheet]="tripService.isMobile$ | async"
-     [class.closed]="!(tripService.isSideBarOpen | async) && !(tripService.isMobile$ | async)"
-     [class.sheet-open]="sheetState === 'open' && (tripService.isMobile$ | async)"
-     [class.sheet-peek]="sheetState === 'peek' && (tripService.isMobile$ | async)"
+     [class.desktop-sidebar]="!uiService.isMobile()"
+     [class.mobile-sheet]="uiService.isMobile()"
+     [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()"
+     [class.sheet-open]="sheetState === 'open' && uiService.isMobile()"
+     [class.sheet-peek]="sheetState === 'peek' && uiService.isMobile()"
      cdkDrag
      cdkDragLockAxis="y"
-     [cdkDragDisabled]="!(tripService.isMobile$ | async)"
+     [cdkDragDisabled]="!uiService.isMobile()"
      (cdkDragEnded)="onDragEnd($event)">
 
-  <div class="drag-handle"
-       *ngIf="tripService.isMobile$ | async"
-       (click)="toggleMobileSheet()"></div>
-
-  <div class="header-actions" *ngIf="!(tripService.isMobile$ | async)">
-    <button class="toggle-btn" (click)="tripService.toggleSidebar()" title="Toggle Sidebar">
-      <div class="icon-box">
-        <div class="sidebar-icon-bar"></div>
-      </div>
-    </button>
-  </div>
+  @if (uiService.isMobile()) {
+    <div class="drag-handle" (click)="toggleMobileSheet()"></div>
+  } @else {
+    <div class="header-actions">
+      <button class="toggle-btn" (click)="uiService.toggleSidebar()" title="Toggle Sidebar">
+        <div class="icon-box">
+          <div class="sidebar-icon-bar"></div>
+        </div>
+      </button>
+    </div>
+  }
 
   <div class="content">
     <h2>Trip Details</h2>
     <p>This is where your itinerary, notes, and local info will live.</p>
   </div>
 </div>
-
-<button class="floating-open-btn"
-        *ngIf="!(tripService.isSideBarOpen | async) && !(tripService.isMobile$ | async)"
-        (click)="tripService.toggleSidebar()">
-  <div class="icon-box">
-     <div class="sidebar-icon-bar"></div>
-  </div>
-</button>

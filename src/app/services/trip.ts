@@ -1,7 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import {BehaviorSubject, Observable, tap, forkJoin, switchMap} from 'rxjs';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { map, shareReplay } from 'rxjs/operators';
+import {Injectable, inject, signal, WritableSignal, effect, computed} from '@angular/core';
+import { Observable, tap, forkJoin, switchMap} from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from './api';
 import { IUserTrip } from '../models/user';
 import { Trip } from '../models/trip';
@@ -10,48 +9,57 @@ import { Country } from '../models/country';
 import { Season } from '../models/season';
 import { Place } from '../models/place';
 import { Visit } from '../models/visit';
+import { AuthService } from './auth';
 
 @Injectable({ providedIn: 'root' })
 export class TripService {
-  private _userTrips = new BehaviorSubject<IUserTrip[] | null>(null);
-  private _activeTrip = new BehaviorSubject<Trip | null>(null);
-  private _activePlan = new BehaviorSubject<Plan | null>(null);
+  apiService = inject(ApiService);
+  authService = inject(AuthService);
 
-  private _loading = new BehaviorSubject<boolean>(false);
-  private _isSidebarOpen = new BehaviorSubject<boolean>(true);
-  private breakpointObserver = inject(BreakpointObserver);
+  readonly trips: WritableSignal<IUserTrip[] | null> = signal(null);
+  readonly trip: WritableSignal<Trip | null> = signal(null);
+  readonly plan: WritableSignal<Plan | null> = signal(null);
 
-  readonly userTrips$ = this._userTrips.asObservable();
-  readonly activeTrip$ = this._activeTrip.asObservable();
-  readonly activePlan$ = this._activePlan.asObservable();
+  plans = computed(() => {
+    const plans = this.trips()?.find(trip => trip.id === this.trip()?.id)?.plans;
+    return plans ?? [];
+  })
 
-  readonly loading$ = this._loading.asObservable();
-  readonly isSideBarOpen = this._isSidebarOpen.asObservable();
-  readonly isMobile$ = this.breakpointObserver
-    .observe([Breakpoints.Handset])
-    .pipe(map(result => result.matches), shareReplay(1));
-
-  constructor(
-    private api: ApiService
-  ) { }
-
-  clearAllState() {
-    this._userTrips.next(null);
-    this._activeTrip.next(null);
-    this._activePlan.next(null);
+  constructor() {
+    effect(() => {
+      const userId = this.authService.user()?.uid;
+      this.clearTrips();
+      if (userId) {
+        this.loadTrips();
+      }
+    });
   }
 
-  get hasUserIndex(): boolean {
-    return this._userTrips.value !== null;
+  clearTrips() {
+    this.trips.set(null);
+    this.clearTrip();
   }
 
-  get hasActivePlan(): boolean {
-    return this._activePlan.value !== null;
+  clearTrip() {
+    this.trip.set(null);
+    this.clearPlan();
   }
 
-  loadUserIndex() {
+  clearPlan() {
+    this.plan.set(null);
+  }
+
+  getPlans() {
+    if (!this.trip()) {
+      return [];
+    }
+    const plans = this.trips()?.find(trip => trip.id === this.trip()?.id)?.plans;
+    return (!plans) ? [] : plans;
+  }
+
+  loadTrips() {
     // Assuming your API returns a joined structure or you fetch it here
-    this.api.getUserTrips().pipe(
+    this.apiService.getUserTrips().pipe(
       map(rawTrips => {
         // Transform raw DB rows into our IUserTrip / IUserPlan hierarchy
         return rawTrips.map(trip => ({
@@ -66,20 +74,18 @@ export class TripService {
         }));
       })
     ).subscribe(userTrips => {
-      this._userTrips.next(userTrips);
+      this.trips.set(userTrips);
     });
   }
 
   loadTrip(tripId: string): Observable<Trip> {
-    // Clear current state to prevent "ghost" data from showing
-    this._activeTrip.next(null);
-    this._activePlan.next(null);
+    this.clearTrip();
 
     return forkJoin({
-      t: this.api.getTrip(tripId),
-      p: this.api.getPlaces(tripId),
-      c: this.api.getCountries(), // Reference data (ideally cached)
-      s: this.api.getSeasons()
+      t: this.apiService.getTrip(tripId),
+      p: this.apiService.getPlaces(tripId),
+      c: this.apiService.getCountries(), // Reference data (ideally cached)
+      s: this.apiService.getSeasons()
     }).pipe(
       map(data => {
         const trip = new Trip(data.t);
@@ -96,23 +102,22 @@ export class TripService {
 
         return trip;
       }),
-      tap(trip => this._activeTrip.next(trip))
+      tap(trip => this.trip.set(trip))
     );
   }
 
   loadPlan(planId: string) {
-    // Only clear the plan, keep the trip/places in memory!
-    this._activePlan.next(null);
+    this.clearPlan();
 
-    this.api.getPlan(planId).pipe(
+    this.apiService.getPlan(planId).pipe(
       switchMap(rawPlan => {
         const plan = new Plan(rawPlan);
-        return this.api.getVisits(planId).pipe(
+        return this.apiService.getVisits(planId).pipe(
           map(rawVisits => {
             const visits = rawVisits.map(v => new Visit(v));
 
             // Stitch Visits to the Places already in the Active Trip
-            const currentPlaces = this._activeTrip.value?.places || [];
+            const currentPlaces = this.trip()?.places || [];
             visits.forEach(v => {
               v.place = currentPlaces.find(p => p.id === v.place_id);
             });
@@ -122,8 +127,9 @@ export class TripService {
           })
         );
       })
-    ).subscribe(plan => this._activePlan.next(plan));
+    ).subscribe(plan => this.plan.set(plan));
   }
+}
 
 
 
@@ -134,64 +140,63 @@ export class TripService {
 
 
 
+  // private async fetchUserDataAndContext(userId: string, tripId?: string, planId?: string) {
+  //   console.log(`Fetching data for User: ${userId}. Requested Trip: ${tripId} and Plan: ${planId}`);
+  //   this._loading.next(true);
+  //
+  //   this.api.getSyncData(userId, tripId, planId).subscribe({
+  //     next: (response: any) => {
+  //       // Always update the list of trips for the menu
+  //       this._userTrips.next(response.userTrips || []);
+  //
+  //       console.log('response', response);
+  //       if (response.activeTrip) {
+  //         this._activeTrip.next(response.activeTrip);
+  //         if (response.activePlan) {
+  //           this._activePlan.next(response.activePlan);
+  //         }
+  //       } else {
+  //         this._activeTrip.next(null);
+  //       }
+  //       this._loading.next(false);
+  //     },
+  //     error: (err) => {
+  //       console.error("Sync failed", err);
+  //       this.clearActiveTrip();
+  //       this._loading.next(false);
+  //     }
+  //   });
+  // }
 
-  private async fetchUserDataAndContext(userId: string, tripId?: string, planId?: string) {
-    console.log(`Fetching data for User: ${userId}. Requested Trip: ${tripId} and Plan: ${planId}`);
-    this._loading.next(true);
+  // clearActiveTrip() {
+  //   this._activeTrip.next(null);
+  //   this._activePlan.next(null);
+  //   console.log("TripService: State cleared (User logged out or returned to home)");
+  // }
 
-    this.api.getSyncData(userId, tripId, planId).subscribe({
-      next: (response: any) => {
-        // Always update the list of trips for the menu
-        this._userTrips.next(response.userTrips || []);
+  // toggleSidebar() {
+  //   this._isSidebarOpen.next(!this._isSidebarOpen.value);
+  // }
 
-        console.log('response', response);
-        if (response.activeTrip) {
-          this._activeTrip.next(response.activeTrip);
-          if (response.activePlan) {
-            this._activePlan.next(response.activePlan);
-          }
-        } else {
-          this._activeTrip.next(null);
-        }
-        this._loading.next(false);
-      },
-      error: (err) => {
-        console.error("Sync failed", err);
-        this.clearActiveTrip();
-        this._loading.next(false);
-      }
-    });
-  }
+  // get isSidebarOpen() {
+  //   return this._isSidebarOpen.value;
+  // }
 
-  clearActiveTrip() {
-    this._activeTrip.next(null);
-    this._activePlan.next(null);
-    console.log("TripService: State cleared (User logged out or returned to home)");
-  }
+  // get isMobile(): boolean {
+  //   return this.breakpointObserver.isMatched(Breakpoints.Handset);
+  // }
 
-  toggleSidebar() {
-    this._isSidebarOpen.next(!this._isSidebarOpen.value);
-  }
-
-  get isSidebarOpen() {
-    return this._isSidebarOpen.value;
-  }
-
-  get isMobile(): boolean {
-    return this.breakpointObserver.isMatched(Breakpoints.Handset);
-  }
-
-  getActiveTrip() {
-    return this._activeTrip.value;
-  }
-
-  getCurrentPlanValue() {
-    return this._activePlan.value;
-  }
-
-  setActivePlan(plan: any) {
-    this._activePlan.next(plan);
-  }
+  // getActiveTrip() {
+  //   return this._activeTrip.value;
+  // }
+  //
+  // getCurrentPlanValue() {
+  //   return this._activePlan.value;
+  // }
+  //
+  // setActivePlan(plan: any) {
+  //   this._activePlan.next(plan);
+  // }
 
   // updatePlanPriorities(plans: any[]) {
   //   // Update the 'priority' property based on the new array index
@@ -211,4 +216,4 @@ export class TripService {
   //   console.log('Priorities updated in Service:', updatedPlans);
   // }
 
-}
+// }

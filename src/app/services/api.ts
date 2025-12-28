@@ -22,18 +22,18 @@ export class ApiService {
 
   // 1. User Index (Navigation)
   getUserTrips() {
-    const userId: string | undefined = this.authService.getCurrentUserValue()?.uid;
+    const userId: string | undefined = this.authService.user()?.uid;
     const mock = [
       {
-        id: 't1', name: 'Summer in Europe',
+        id: 'wereldreis', name: 'Wereldreis',
         plans: [
-          { id: 'p1', name: 'Budget Backpacking', priority: 1 },
-          { id: 'p2', name: 'Luxury Route', priority: 2 }
+          { id: 'v1', name: 'v1', priority: 1 },
+          { id: 'v2', name: 'v2', priority: 2 }
         ]
       },
       {
-        id: 't2', name: 'Japan Explorer',
-        plans: [{ id: 'p3', name: 'Standard Plan', priority: 1 }]
+        id: 'test', name: 'Test',
+        plans: [{ id: 'v1', name: 'v1t', priority: 1 }]
       }
     ];
     return of(mock).pipe(delay(this.d));
@@ -41,7 +41,7 @@ export class ApiService {
 
   // 2. Trip Metadata
   getTrip(id: string) {
-    const mock = { id, name: id === 't1' ? 'Summer in Europe' : 'Japan Explorer' };
+    const mock = { id, name: (id === 'wereldreis') ? 'Wereldreis' : 'Test' };
     return of(mock).pipe(delay(this.d));
   }
 
@@ -57,7 +57,7 @@ export class ApiService {
 
   // 4. Plan Metadata
   getPlan(id: string) {
-    const mock = { id, name: 'Selected Plan', lat: 48.0, lng: 10.0, zoom: 4, start_date: '2026-05-23', note: '', priority: 1, trip_id: 't1' };
+    const mock = { id, name: id, lat: 48.0, lng: 10.0, zoom: 4, start_date: '2026-05-23', note: '', priority: 1, trip_id: 'wereldreis' };
     return of(mock).pipe(delay(this.d));
   }
 

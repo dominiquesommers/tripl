@@ -1,9 +1,10 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, effect} from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
-import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { PLATFORM_ID } from '@angular/core';
 import { AuthService } from '../../services/auth';
 import { TripService } from '../../services/trip';
+import { UiService } from '../../services/ui';
 import { Place } from '../../models/place';
 
 const INITIAL_CENTER: [number, number] = [-98.54818, 40.00811];
@@ -23,14 +24,46 @@ const MAP_STYLES = {
   styleUrls: ['./map.css']
 })
 export class Map implements OnInit, OnDestroy {
+  authService = inject(AuthService);
+  tripService = inject(TripService);
+  uiService = inject(UiService);
   private destroy$ = new Subject<void>();
   private currentStyle = '';
-  isMapVisible = false;
+  isMapVisible = signal(false);
 
-  constructor(
-    private authService: AuthService,
-    private tripService: TripService
-  ) {}
+  constructor() {
+    effect(() => {
+      const user = this.authService.user();
+      const plan = this.tripService.plan();
+      this.updateStyle(user, plan);
+    });
+
+    effect(() => {
+      const trip = this.tripService.trip();
+      if (!!trip) {
+        // this.renderAllTripPlaces(trip.places);
+      } else {
+        // this.clearPlaceMarkers();
+      }
+    });
+
+    effect(() => {
+      const plan = this.tripService.plan();
+      this.applyPadding();
+      if (plan) {
+        // this.renderItinerary(plan.visits);
+        // this.flyToSavedView(plan.lat, plan.lng, plan.zoom);
+      } else {
+        // this.clearItinerary();
+      }
+    });
+
+    effect(() => {
+      const isMobile = this.uiService.isMobile();
+      const isSidebarOpen = this.uiService.isSidebarOpen();
+      this.applyPadding();
+    });
+  }
 
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   map: any;
@@ -42,39 +75,6 @@ export class Map implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.initializeMap();
-
-    combineLatest({
-      user: this.authService.user$,
-      plan: this.tripService.activePlan$
-    }).pipe(takeUntil(this.destroy$)).subscribe(({ user, plan }) => {
-      this.updateStyle(user, plan);
-    });
-
-    this.tripService.activeTrip$.pipe(takeUntil(this.destroy$)).subscribe(trip => {
-      if (trip) {
-        // this.renderAllTripPlaces(trip.places);
-      } else {
-        // this.clearPlaceMarkers();
-      }
-    });
-
-    this.tripService.activePlan$.pipe(takeUntil(this.destroy$)).subscribe(plan => {
-      this.applyPadding();
-      if (plan) {
-        // this.renderItinerary(plan.visits);
-        // this.flyToSavedView(plan.lat, plan.lng, plan.zoom);
-      } else {
-        // this.clearItinerary();
-      }
-    });
-
-    this.tripService.isMobile$.pipe(takeUntil(this.destroy$)).subscribe(_ => {
-      this.applyPadding();
-    });
-
-    this.tripService.isSideBarOpen.pipe(takeUntil(this.destroy$)).subscribe(_ => {
-      this.applyPadding();
-    });
   }
 
   clearMap() {
@@ -85,8 +85,8 @@ export class Map implements OnInit, OnDestroy {
   async initializeMap() {
     if (isPlatformBrowser(this.platformId)) {
       const mapboxgl = (await import('mapbox-gl')).default;
-      const user = this.authService.getCurrentUserValue();
-      const plan = this.tripService.getCurrentPlanValue();
+      const user = this.authService.user();
+      const plan = this.tripService.plan();
       this.map = new mapboxgl.Map({
         accessToken: 'pk.eyJ1IjoiZG9taW5pcXVlc29tbWVycyIsImEiOiJjbWNoeHNnZG4wMHk1MmtzOGtodnluZHJzIn0.j0bybMxwa2BK4UgPIhxpQw',
         container: this.mapContainer.nativeElement,
@@ -97,7 +97,7 @@ export class Map implements OnInit, OnDestroy {
       });
 
       this.map.once('load', () => {
-        this.isMapVisible = true;
+        this.isMapVisible.set(true);
       });
 
       this.map.on('load', () => {
@@ -119,7 +119,7 @@ export class Map implements OnInit, OnDestroy {
 
   private applyPadding() {
     if (!this.map) return;
-    const leftPadding = (this.tripService.isMobile || !this.tripService.hasActivePlan || !this.tripService.isSidebarOpen) ? 0 : 450
+    const leftPadding = (this.uiService.isMobile() || !this.tripService.plan() || !this.uiService.isSidebarOpen()) ? 0 : 445
     this.map.easeTo({ padding: { left: leftPadding }, duration: 1000 })
   }
 

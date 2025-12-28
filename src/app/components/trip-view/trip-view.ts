@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Component, computed, effect, inject, input, OnInit, untracked} from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { combineLatest } from 'rxjs';
-import { AuthService } from '../../services/auth';
 import { TripService } from '../../services/trip';
+import { UiService } from '../../services/ui';
 import { Map } from '../map/map';
 import { TripBubble } from '../trip-bubble/trip-bubble';
 import { AuthWidget } from '../auth-widget/auth-widget';
@@ -26,51 +25,48 @@ import { LoadingSpinner } from '../loading-spinner/loading-spinner';
   styleUrl: './trip-view.css',
 })
 export class TripView implements OnInit {
-  private lastUserId: string | null = null;
-  private lastTripId: string | null = null;
-  private lastPlanId: string | null = null;
+  tripService = inject(TripService);
+  uiService = inject(UiService);
+  router = inject(Router);
 
-  constructor(
-    private route: ActivatedRoute,
-    private authService: AuthService,
-    public tripService: TripService
-  ) {}
+  tripId = input<string>();
+  planId = input<string>();
 
-  ngOnInit(): void {
-    combineLatest({
-      user: this.authService.user$,
-      params: this.route.paramMap
-    }).subscribe(({ user, params }) => {
-      const tripId = params.get('tripId');
-      const planId = params.get('planId');
 
-      if (user?.uid !== this.lastUserId) {
-        this.tripService.clearAllState();
-        this.lastTripId = null;
-        this.lastPlanId = null;
-        this.lastUserId = user?.uid ?? null;
+  constructor() {
+    effect(() => this.syncStateWithUrl());
+  }
+
+
+  syncStateWithUrl() {
+    const tripId = this.tripId();
+    const planId = this.planId();
+    const availableTrips = this.tripService.trips();
+
+    untracked(() => {
+      if (!tripId) {
+        this.tripService.clearTrip();
+        return;
       }
-
-      if (!user) return;
-
-      if (!this.tripService.hasUserIndex) {
-        this.tripService.loadUserIndex();
+      const currentTrip = this.tripService.trip();
+      if (currentTrip?.id !== tripId) {
+        this.tripService.loadTrip(tripId).subscribe();
       }
-
-      if (tripId && tripId !== this.lastTripId) {
-        this.lastTripId = tripId;
-        this.lastPlanId = planId;
-        this.tripService.loadTrip(tripId).subscribe(() => {
-          if (planId) this.tripService.loadPlan(planId);
-        });
-      } else if (planId && planId !== this.lastPlanId) {
-        this.lastPlanId = planId;
-        this.tripService.loadPlan(planId);
+      if (availableTrips && !planId) {
+        const firstPlanId = availableTrips.find(t => t.id === tripId)?.plans[0]?.id;
+        if (firstPlanId) {
+          this.router.navigate(['trip', tripId, firstPlanId], { replaceUrl: true });
+          return
+        }
+      }
+      if (planId && this.tripService.plan()?.id !== planId) {
+        if (currentTrip?.id === tripId) {
+          this.tripService.loadPlan(planId);
+        }
       }
     });
   }
 
-  // openTrip(tripId: string) {
-  //   this.router.navigate(['trip', tripId]);
-  // }
+  ngOnInit(): void {
+  }
 }

@@ -1,15 +1,14 @@
-import { Injectable } from '@angular/core';
+import {Injectable, signal, WritableSignal} from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private auth;
-  private userSubject = new BehaviorSubject<User | null>(null);
-  user$ = this.userSubject.asObservable();
+
+  readonly user: WritableSignal<User | null> = signal(null);
 
   constructor() {
     const firebaseConfig = {
@@ -29,7 +28,7 @@ export class AuthService {
         const cleanUrl = user.photoURL.replace('=s96-c', '=s128-c');
         Object.defineProperty(user, 'photoURL', { value: cleanUrl, writable: true });
       }
-      this.userSubject.next(user);
+      this.user.set(user);
     });
   }
 
@@ -39,9 +38,5 @@ export class AuthService {
 
   async logout() {
     return signOut(this.auth);
-  }
-
-  getCurrentUserValue() {
-    return this.userSubject.value;
   }
 }
