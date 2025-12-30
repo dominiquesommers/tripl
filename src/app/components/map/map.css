@@ -40,3 +40,146 @@
   border-radius: 10px;
   cursor: pointer;
 }
+
+/* Container for the glass effect */
+::ng-deep .mapboxgl-popup-content {
+  background: rgba(30, 30, 35, 0.7) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px !important;
+  padding: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+::ng-deep .apple-glass-popup .mapboxgl-popup-content {
+  padding: 0 !important; /* Let the Angular component handle its own padding */
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Tip (the little arrow at the bottom) */
+::ng-deep .mapboxgl-popup-tip {
+  border-top-color: rgba(30, 30, 35, 0.7) !important;
+  backdrop-filter: blur(30px);
+}
+
+.apple-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.popup-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  padding: 6px 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.popup-input:focus {
+  border-color: rgba(0, 122, 255, 0.5); /* Apple Blue focus */
+}
+
+.save-btn {
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.save-btn:hover {
+  opacity: 0.8;
+}
+
+/* 1. THE OUTER PILL CONTAINER */
+.search-container {
+  position: absolute;
+  bottom: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  height: 37px; /* Forced height */
+  width: 37px;  /* Starts as a circle */
+  background: rgba(45, 45, 50, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18.5px; /* Perfect circle half of 37px */
+  overflow: visible !important; /* Required to see the search results dropdown */
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), left 0.3s ease;
+  cursor: pointer;
+}
+
+/* Expanded State for the Container */
+.search-container.expanded {
+  width: 300px;
+  background: rgba(30, 30, 35, 0.9);
+}
+
+/* 2. THE LUCIDE ICON BUTTON */
+.search-toggle-btn {
+  min-width: 37px;
+  height: 37px;
+  background: none;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+}
+
+/* 3. THE INPUT WRAPPER (Clips width during animation) */
+.search-input-wrapper {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.search-container.expanded .search-input-wrapper {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::ng-deep .hover-tooltip .mapboxgl-popup-content {
+  background-color: rgba(30, 30, 35, 0.9) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 6px 12px !important;
+  pointer-events: none !important;
+  animation: tooltipFadeIn 0.2s ease-out forwards;
+}
+
+::ng-deep .hover-tooltip .mapboxgl-popup-tip {
+  border-top-color: rgba(30, 30, 35, 0.9) !important;
+  animation: tooltipFadeIn 0.2s ease-out forwards;
+}

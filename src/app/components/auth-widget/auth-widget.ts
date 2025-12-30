@@ -32,7 +32,6 @@ export class AuthWidget {
 
   @HostListener('document:click', ['$event'])
   clickout(event: any) {
-    // If the menu is open and we click outside, close it
     if (this.showMenu && !this.eRef.nativeElement.contains(event.target)) {
       this.showMenu = false;
     }
@@ -40,6 +39,6 @@ export class AuthWidget {
 
   handleImageError(event: any, user: any) {
     const name = user.displayName || 'User';
-    event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4285F4&color=fff`;
+    event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=555&color=fff`;
   }
 }

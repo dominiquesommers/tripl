@@ -1,0 +1,8 @@
+<div class="marker-pill">
+  @for (visit of visits(); track $index) {
+    <span class="night-count">{{ visit.nights }}</span>
+    @if (!$last) {
+      <div class="marker-divider"></div>
+    }
+  }
+</div>

@@ -30,6 +30,7 @@ export class Place implements IPlace {
 
   country?: Country;
   season?: Season;
+  visits: any[] = [{nights: 2}, {nights: 3}];
 
   constructor(data: IPlace) {
     this.id = data.id;

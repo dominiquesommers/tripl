@@ -1,0 +1,57 @@
+/* place-popup.component.css */
+.apple-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  min-width: 200px;
+  /* The glass background is handled by the Mapbox container styling,
+     but we can add a subtle internal glow here */
+}
+
+.popup-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.popup-input:focus {
+  border-color: #007aff;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-btn {
+  flex: 2;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  flex: 1;
+  background: rgba(255, 69, 58, 0.15);
+  color: #ff453a;
+  border: 1px solid rgba(255, 69, 58, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.save-btn:hover { background: #0063cc; }
+.delete-btn:hover { background: rgba(255, 69, 58, 0.25); }

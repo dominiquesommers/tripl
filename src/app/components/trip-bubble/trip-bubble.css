@@ -28,15 +28,6 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.pill-segment {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 15px; /* Added vertical padding for a larger hit area */
-  cursor: pointer;
-  border-radius: 40px; /* High radius for the 'pill' look */
-  transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
 .pill-segment:hover {
   /* Matches your .toggle-btn:hover style exactly */
   background: rgba(255, 255, 255, 0.1);
@@ -54,6 +45,7 @@
   padding: 0 8px;
   margin: 0 7px;
   cursor: pointer;
+  border-radius: 40px;
   transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
