@@ -49,58 +49,42 @@ export class TripService {
     this.plan.set(null);
   }
 
-  getPlans() {
-    if (!this.trip()) {
-      return [];
-    }
-    const plans = this.trips()?.find(trip => trip.id === this.trip()?.id)?.plans;
-    return (!plans) ? [] : plans;
-  }
-
   loadTrips() {
-    // Assuming your API returns a joined structure or you fetch it here
     this.apiService.getUserTrips().pipe(
-      map(rawTrips => {
-        // Transform raw DB rows into our IUserTrip / IUserPlan hierarchy
-        return rawTrips.map(trip => ({
-          id: trip.id,
-          name: trip.name,
-          // Ensure plans are sorted by priority immediately
-          plans: (trip.plans || []).map(plan => ({
-            id: plan.id,
-            name: plan.name,
-            priority: plan.priority
-          })).sort((a, b) => a.priority - b.priority)
-        }));
-      })
+      map(rawTrips => rawTrips.map(trip => this.createUserTrip(trip)))
     ).subscribe(userTrips => {
       this.trips.set(userTrips);
     });
   }
 
+  private createUserTrip(raw: any): IUserTrip {
+    return {
+      id: raw.id,
+      name: raw.name,
+      plans: (raw.plans || [])
+        .map((p: any) => ({ id: p.id, name: p.name, priority: p.priority }))
+        .sort((a: any, b: any) => a.priority - b.priority)
+    };
+  }
+
   loadTrip(tripId: string): Observable<Trip> {
     this.clearTrip();
-
     return forkJoin({
       t: this.apiService.getTrip(tripId),
       p: this.apiService.getPlaces(tripId),
-      c: this.apiService.getCountries(), // Reference data (ideally cached)
+      c: this.apiService.getCountries(),
       s: this.apiService.getSeasons()
     }).pipe(
       map(data => {
-        const trip = new Trip(data.t);
         const countries = data.c.map(x => new Country(x));
         const seasons = data.s.map(x => new Season(x));
-
-        // Map and Stitch Places to their static references
-        trip.places = data.p.map(rawPlace => {
-          const p = new Place(rawPlace);
+        const places = data.p.map(rawPlace => {
+          const p = new Place(rawPlace, this);
           p.country = countries.find(c => c.id === p.country_id);
           p.season = seasons.find(s => s.id === p.season_id);
           return p;
         });
-
-        return trip;
+        return new Trip(data.t, places);
       }),
       tap(trip => this.trip.set(trip))
     );
@@ -108,22 +92,17 @@ export class TripService {
 
   loadPlan(planId: string) {
     this.clearPlan();
-
     this.apiService.getPlan(planId).pipe(
       switchMap(rawPlan => {
-        const plan = new Plan(rawPlan);
         return this.apiService.getVisits(planId).pipe(
           map(rawVisits => {
-            const visits = rawVisits.map(v => new Visit(v));
-
-            // Stitch Visits to the Places already in the Active Trip
-            const currentPlaces = this.trip()?.places || [];
-            visits.forEach(v => {
-              v.place = currentPlaces.find(p => p.id === v.place_id);
+            const currentPlaces = this.trip()?.places() || [];
+            const visits = rawVisits.map(v => {
+              const visit = new Visit(v);
+              visit.place = currentPlaces.find(p => p.id === visit.place_id);
+              return visit;
             });
-
-            plan.visits = visits;
-            return plan;
+            return new Plan(rawPlan, visits);
           })
         );
       })

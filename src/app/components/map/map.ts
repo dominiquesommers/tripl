@@ -78,7 +78,7 @@ export class Map implements OnInit, OnDestroy {
     effect(() => {
       const trip = this.tripService.trip();
       if (!!trip) {
-        setTimeout(() => this.renderAllTripPlaces(trip.places), 0);
+        setTimeout(() => this.renderAllTripPlaces(trip.places()), 0);
         // this.renderAllTripPlaces(trip.places);
       } else {
         // this.clearPlaceMarkers();
@@ -250,34 +250,15 @@ export class Map implements OnInit, OnDestroy {
     if (!this.map || !this.mapbox) return;
     this.cdr.detectChanges();
     const markerElements = this.markerElements.toArray();
+    console.log(this.tripService.trip()?.places()[0].visits());
     console.log(markerElements);
 
     places.forEach((place, index) => {
+      if (markerElements.length <= index) return;
       const markerElement = markerElements[index].nativeElement;
       const marker = new this.mapbox.Marker({ element: markerElement, anchor: 'center' })
         .setLngLat([place.lng, place.lat])
         .addTo(this.map);
-
-      // markerElement.addEventListener('mouseenter', () => {
-      //   if (this.selectedPlace()?.id === place.id) return;
-      //
-      //   this.hoverPopup = new this.mapbox.Popup({
-      //     closeButton: false,
-      //     closeOnClick: false,
-      //     offset: 15,
-      //     className: 'hover-tooltip'
-      //   })
-      //   .setLngLat([place.lng, place.lat])
-      //   .setHTML(`<span class="tooltip-text">${place.name}</span>`)
-      //   .addTo(this.map);
-      // });
-      //
-      // markerElement.addEventListener('mouseleave', () => {
-      //   if (this.hoverPopup) {
-      //     this.hoverPopup.remove();
-      //     this.hoverPopup = null;
-      //   }
-      // });
 
       markerElement.addEventListener('click', (e: Event) => {
         e.stopPropagation();

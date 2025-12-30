@@ -43,11 +43,13 @@
 </div>
 
 <div style="position: absolute; left: -9999px;">
-  @for (place of tripService.trip()?.places; track place.id) {
-    <div #markerElement
-         (mouseenter)="onMouseEnter(place)"
-         (mouseleave)="onMouseLeave()">
-      <app-place-marker [visits]="place.visits"></app-place-marker>
-    </div>
+  @if (!!tripService.trip()) {
+    @for (place of tripService.trip()?.places(); track place.id) {
+      <div #markerElement
+           (mouseenter)="onMouseEnter(place)"
+           (mouseleave)="onMouseLeave()">
+        <app-place-marker [visits]="place.visits()"></app-place-marker>
+      </div>
+    }
   }
 </div>

@@ -1,5 +1,7 @@
 import { Country } from './country';
 import { Season } from './season';
+import {TripService} from '../services/trip';
+import {computed} from '@angular/core';
 
 
 export interface IPlace {
@@ -30,9 +32,15 @@ export class Place implements IPlace {
 
   country?: Country;
   season?: Season;
-  visits: any[] = [{nights: 2}, {nights: 3}];
 
-  constructor(data: IPlace) {
+  readonly visits = computed(() =>
+    this.tripService.plan()?.visits().filter(v => v.place_id === this.id) ?? []
+  );
+
+  constructor(
+    data: IPlace,
+    private tripService: TripService
+  ) {
     this.id = data.id;
     this.name = data.name;
     this.lat = data.lat;
@@ -49,7 +57,6 @@ export class Place implements IPlace {
     return this.accommodation_cost + this.food_cost + this.miscellaneous_cost;
   }
 
-  // Example helper
   getGoogleMapsLink(): string {
     return `https://www.google.com/maps?q=${this.lat},${this.lng}`;
   }
