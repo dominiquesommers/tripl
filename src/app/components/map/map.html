@@ -48,7 +48,7 @@
       <div #markerElement
            (mouseenter)="onMouseEnter(place)"
            (mouseleave)="onMouseLeave()">
-        <app-place-marker [visits]="place.visits()"></app-place-marker>
+        <app-place-marker [visits]="place.visits()" [zoom]="zoom"></app-place-marker>
       </div>
     }
   }

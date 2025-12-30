@@ -165,6 +165,12 @@ export class Map implements OnInit, OnDestroy {
           this.isSearchExpanded.set(false);
         }
       });
+
+      this.map.on('move', () => {
+        const newCenter = this.map.getCenter();
+        this.center.set([newCenter.lng, newCenter.lat]);
+        this.zoom.set(this.map.getZoom());
+      });
     }
   }
 
@@ -250,8 +256,6 @@ export class Map implements OnInit, OnDestroy {
     if (!this.map || !this.mapbox) return;
     this.cdr.detectChanges();
     const markerElements = this.markerElements.toArray();
-    console.log(this.tripService.trip()?.places()[0].visits());
-    console.log(markerElements);
 
     places.forEach((place, index) => {
       if (markerElements.length <= index) return;

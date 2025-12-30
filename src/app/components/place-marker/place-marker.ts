@@ -1,4 +1,5 @@
-import {Component, input} from '@angular/core';
+import { Component, computed, Input, Signal } from '@angular/core';
+import { Visit } from '../../models/visit';
 
 @Component({
   selector: 'app-place-marker',
@@ -7,5 +8,7 @@ import {Component, input} from '@angular/core';
   styleUrl: './place-marker.css',
 })
 export class PlaceMarker {
-  visits = input.required<{nights: number}[]>();
+  @Input() visits!: Visit[];
+  @Input() zoom!: Signal<number>;
+  readonly isZoomLow = computed(() => (this.zoom?.() ?? 0) < 3);
 }
