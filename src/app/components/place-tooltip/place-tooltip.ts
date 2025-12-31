@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import {Component, Input, input, Signal} from '@angular/core';
 
 @Component({
   selector: 'app-place-tooltip',
@@ -8,5 +8,6 @@ import { Component, input } from '@angular/core';
   styleUrl: './place-tooltip.css',
 })
 export class PlaceTooltip {
-  name = input.required<string | undefined>();
+  @Input() name!: Signal<string>;
+  // name = input.required<string | undefined>();
 }

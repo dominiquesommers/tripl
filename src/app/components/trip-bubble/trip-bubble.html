@@ -2,13 +2,13 @@
   <div class="bubble-pill-container">
     <div class="bubble-pill">
       <div class="pill-segment" [class.active]="showTripMenu" (click)="toggleTripMenu($event)">
-        <span class="value">{{ tripService.trip()?.name || 'Select Trip' }}</span>
+        <span class="value">{{ tripService.trip()?.name() || 'Select Trip' }}</span>
       </div>
 
       @if (!!tripService.trip()) {
         <div class="pill-divider"></div>
         <div class="pill-segment" [class.active]="showPlanMenu" (click)="togglePlanMenu($event)">
-          <span class="value">{{ tripService.plan()?.name || 'Select Plan' }}</span>
+          <span class="value">{{ tripService.plan()?.name() || 'Select Plan' }}</span>
         </div>
       }
     </div>
@@ -41,7 +41,7 @@
 
     @if (showPlanMenu && tripService.trip()) {
       <div class="bubble-dropdown shadow-lg">
-        <div class="dropdown-header">Plans for {{ tripService.trip()?.name }}</div>
+        <div class="dropdown-header">Plans for {{ tripService.trip()?.name() }}</div>
         <div class="drag-list" #listBoundary cdkDropList (cdkDropListDropped)="dropPlan($event)">
           @for (p of tripService.plans(); track p.id) {
             <div class="drag-item"

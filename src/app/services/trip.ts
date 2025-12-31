@@ -7,9 +7,11 @@ import { Trip } from '../models/trip';
 import { Plan } from '../models/plan';
 import { Country } from '../models/country';
 import { Season } from '../models/season';
-import { Place } from '../models/place';
+import {Place, NewPlace, UpdatePlace, IPlace, IPlaceWithCountry} from '../models/place';
 import { Visit } from '../models/visit';
 import { AuthService } from './auth';
+import {Traverse} from '../models/traverse';
+import {Route} from '../models/route';
 
 @Injectable({ providedIn: 'root' })
 export class TripService {
@@ -78,13 +80,9 @@ export class TripService {
       map(data => {
         const countries = data.c.map(x => new Country(x));
         const seasons = data.s.map(x => new Season(x));
-        const places = data.p.map(rawPlace => {
-          const p = new Place(rawPlace, this);
-          p.country = countries.find(c => c.id === p.country_id);
-          p.season = seasons.find(s => s.id === p.season_id);
-          return p;
-        });
-        return new Trip(data.t, places);
+        const places = data.p.map(rawPlace => new Place(rawPlace, this));
+        const routes: Route[] = []; // TODO extract from api result.
+        return new Trip(data.t, countries, seasons, places, routes, this);
       }),
       tap(trip => this.trip.set(trip))
     );
@@ -96,17 +94,49 @@ export class TripService {
       switchMap(rawPlan => {
         return this.apiService.getVisits(planId).pipe(
           map(rawVisits => {
-            const currentPlaces = this.trip()?.places() || [];
-            const visits = rawVisits.map(v => {
-              const visit = new Visit(v);
-              visit.place = currentPlaces.find(p => p.id === visit.place_id);
-              return visit;
-            });
-            return new Plan(rawPlan, visits);
+            const visits: Visit[] = rawVisits.map(v => new Visit(v, this));
+            const traverses: Traverse[] = []; // TODO extract from api result.
+            return new Plan(rawPlan, visits, traverses);
           })
         );
       })
     ).subscribe(plan => this.plan.set(plan));
+  }
+
+  addPlace(data: NewPlace) {
+    return this.persist(
+      this.apiService.createPlace(data),
+      (placeData: IPlaceWithCountry) => {
+        const trip = this.trip();
+        if (!trip) return;
+        const place = new Place(placeData, this);
+        if (placeData.country) {
+          trip.addCountry(new Country(placeData.country));
+        }
+        trip.addPlace(place);
+      }
+    );
+  }
+
+  removePlace(place: Place) {
+    return this.persist(
+      this.apiService.deletePlace(place.id),
+      () => this.trip()?.removePlace(place)
+    );
+  }
+
+  linkSeasonToPlace(place: Place, season: Season) {
+    place.season_id = season.id;      // update the id
+    this.trip()?.addSeason(season);    // ensure the Trip knows about it
+  }
+
+  private persist<T>(
+    request$: Observable<T>,
+    onSuccess: (result: T) => void
+  ): Observable<T> {
+    return request$.pipe(
+      tap(onSuccess)
+    );
   }
 }
 

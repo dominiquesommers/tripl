@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, delay } from 'rxjs';
 import { AuthService } from './auth';
 import { ITrip } from '../models/trip';
-import { IPlace } from '../models/place';
+import {IPlace, IPlaceWithCountry, NewPlace, Place} from '../models/place';
 import { IPlan } from '../models/plan';
 import { IVisit } from '../models/visit';
 import { ICountry } from '../models/country';
@@ -19,6 +19,18 @@ export class ApiService {
   ) {}
 
   private d = 800; // Simulated latency (ms)
+
+  createPlace(newPlace: NewPlace): Observable<IPlaceWithCountry> {
+    // TODO implement
+    const mock =  { id: 'loc1', trip_id: 'wereldreis', name: 'Paris', country_id: 'fr', season_id: 's1', lat: 48.85, lng: 2.35,
+                    country: { id: 'fr', name: 'France' }}
+    return of(mock).pipe(delay(this.d));
+  }
+
+  deletePlace(placeId: string): Observable<void> {
+    // TODO implement
+    return of(void 0).pipe(delay(this.d));
+  }
 
   // 1. User Index (Navigation)
   getUserTrips() {

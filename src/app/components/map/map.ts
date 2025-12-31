@@ -41,6 +41,7 @@ const MAP_STYLES = {
   styleUrls: ['./map.css']
 })
 export class Map implements OnInit, OnDestroy {
+  readonly fallbackSignal = signal('');
   accessToken: string = 'pk.eyJ1IjoiZG9taW5pcXVlc29tbWVycyIsImEiOiJjbWNoeHNnZG4wMHk1MmtzOGtodnluZHJzIn0.j0bybMxwa2BK4UgPIhxpQw';
   authService = inject(AuthService);
   tripService = inject(TripService);
@@ -78,7 +79,7 @@ export class Map implements OnInit, OnDestroy {
     effect(() => {
       const trip = this.tripService.trip();
       if (!!trip) {
-        setTimeout(() => this.renderAllTripPlaces(trip.places()), 0);
+        setTimeout(() => this.renderAllTripPlaces(trip.placesArray()), 0);
         // this.renderAllTripPlaces(trip.places);
       } else {
         // this.clearPlaceMarkers();
@@ -258,6 +259,7 @@ export class Map implements OnInit, OnDestroy {
     const markerElements = this.markerElements.toArray();
 
     places.forEach((place, index) => {
+      console.log(place.toJSON());
       if (markerElements.length <= index) return;
       const markerElement = markerElements[index].nativeElement;
       const marker = new this.mapbox.Marker({ element: markerElement, anchor: 'center' })
@@ -353,4 +355,6 @@ export class Map implements OnInit, OnDestroy {
       this.map.remove();
     }
   }
+
+  protected readonly Array = Array;
 }

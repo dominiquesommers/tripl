@@ -37,14 +37,14 @@
 <div style="position: absolute; left: -9999px; top: 0;">
   <div #tooltipContainer>
     @if (hoveredPlace()) {
-      <app-place-tooltip [name]="hoveredPlace()?.name"></app-place-tooltip>
+      <app-place-tooltip [name]="hoveredPlace()?.name ?? fallbackSignal"></app-place-tooltip>
     }
   </div>
 </div>
 
 <div style="position: absolute; left: -9999px;">
   @if (!!tripService.trip()) {
-    @for (place of tripService.trip()?.places(); track place.id) {
+    @for (place of tripService.trip()?.placesArray(); track place.id) {
       <div #markerElement
            (mouseenter)="onMouseEnter(place)"
            (mouseleave)="onMouseLeave()">
