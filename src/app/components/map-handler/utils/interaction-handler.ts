@@ -2,8 +2,9 @@ import {TripService} from '../../../services/trip';
 import {UiService} from '../../../services/ui';
 import type { Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup } from 'mapbox-gl';
 import {Place} from '../../../models/place';
-import {WritableSignal} from '@angular/core';
+import {ElementRef, Signal, WritableSignal} from '@angular/core';
 import {Route} from '../../../models/route';
+
 
 export class MapInteractionManager {
   private activePlacePopup?: mapboxgl.Popup;
@@ -16,9 +17,9 @@ export class MapInteractionManager {
     private mapbox: any,
     private tripService: TripService,
     private uiService: UiService,
-    private activePlacePopupEL: HTMLElement,
-    private placeTooltipEl: HTMLElement,
-    private routeTooltipEl: HTMLElement,
+    private activePlacePopupEL: Signal<ElementRef | undefined>,
+    private placeTooltipEl: Signal<ElementRef | undefined>,
+    private routeTooltipEl: Signal<ElementRef | undefined>,
     private hoveredPlace: WritableSignal<Place | null>,
     private hoveredRoute: WritableSignal<Route | null>
   ) {}
@@ -36,21 +37,21 @@ export class MapInteractionManager {
     });
   }
 
-  public wireMarker(place: Place, marker: Marker, element: HTMLElement) {
-    element.addEventListener('click', (e: MouseEvent) => {
-      e.stopPropagation();
+  // public wireMarker(place: Place, marker: Marker, element: HTMLElement) {
+  //   element.addEventListener('click', (e: MouseEvent) => {
+  //     e.stopPropagation();
+  //
+  //     // 1. Handle the popup logic
+  //     this.handleOpenPopup(place, marker);
+  //
+  //     // 2. Handle search state
+  //     if (this.uiService.isSearchExpanded()) {
+  //       this.uiService.closeSearch();
+  //     }
+  //   });
+  // }
 
-      // 1. Handle the popup logic
-      this.handleOpenPopup(place, marker);
-
-      // 2. Handle search state
-      if (this.uiService.isSearchExpanded()) {
-        this.uiService.closeSearch();
-      }
-    });
-  }
-
-  private handleOpenPopup(place: Place, marker: Marker) {
+  public handleOpenPopup(place: Place, marker: Marker) {
     this.tripService.selectedPlace.set(place);
     this.showActivePlacePopup(marker.getLngLat());
   }
@@ -59,13 +60,16 @@ export class MapInteractionManager {
     if (this.activePlacePopup) {
       this.activePlacePopup.remove();
     }
+    // TODO we can 'listen' to the this.activePlacePopupEL signal, then the timeout is unnecessary.
     setTimeout(() => {
+      const element = this.activePlacePopupEL()
+      if (!element) return;
       this.activePlacePopup = new this.mapbox.Popup({
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
       })
-      .setDOMContent(this.activePlacePopupEL)
+      .setDOMContent(element.nativeElement)
       .setLngLat(lngLat)
       .addTo(this.map);
 
@@ -90,10 +94,11 @@ export class MapInteractionManager {
 
     // Don't show tooltip if a place is already selected/clicked
     if (this.tripService.selectedPlace()) return;
+    this.hoveredPlace.set(place);
 
     this.hoverTimer = setTimeout(() => {
-      this.hoveredPlace.set(place);
-
+      const element = this.placeTooltipEl();
+      if (!element) return;
       if (!this.placeHoverPopup) {
         this.placeHoverPopup = new this.mapbox.Popup({
           closeButton: false,
@@ -105,7 +110,7 @@ export class MapInteractionManager {
 
       this.placeHoverPopup
         .setLngLat([place.lng, place.lat])
-        .setDOMContent(this.placeTooltipEl)
+        .setDOMContent(element.nativeElement)
         .addTo(this.map);
     }, 120);
   }
@@ -127,9 +132,12 @@ export class MapInteractionManager {
       this.map.getCanvas().style.cursor = 'pointer';
       this.clearTimers();
 
+      const route = this.tripService.trip()?.routes()?.get(routeId);
+      this.hoveredRoute.set(route ?? null);
+
       this.hoverTimer = setTimeout(() => {
-        const route = this.tripService.trip()?.routes()?.get(routeId);
-        this.hoveredRoute.set(route ?? null);
+        const element = this.routeTooltipEl();
+        if (!element) return;
 
         this.map.setFeatureState(
           { source: 'all-routes', id: featureId },
@@ -147,7 +155,7 @@ export class MapInteractionManager {
 
         this.routeHoverPopup
           .setLngLat(e.lngLat)
-          .setDOMContent(this.routeTooltipEl)
+          .setDOMContent(element.nativeElement)
           .addTo(this.map);
       }, 120);
     });

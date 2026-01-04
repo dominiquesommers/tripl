@@ -8,7 +8,7 @@ import {
   signal,
   effect,
   Inject,
-  ChangeDetectorRef, ViewChildren, QueryList, computed, HostListener, untracked
+  ChangeDetectorRef, ViewChildren, QueryList, computed, HostListener, untracked, viewChildren, viewChild
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { PLATFORM_ID, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -57,12 +57,11 @@ export class MapHandler implements OnInit, OnDestroy {
   interactionManager!: MapInteractionManager
   private iconLoader!: IconLoader;
 
-  // 3. Local UI State (Keep only what's needed for the template)
-  @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
-  @ViewChildren('markerElement') markerElements!: QueryList<ElementRef>;
-  @ViewChild('popupContainer') popupEl!: ElementRef;
-  @ViewChild('placeTooltipContainer', { static: true }) placeTooltipEl!: ElementRef;
-  @ViewChild('routeTooltipContainer', { static: true }) routeTooltipEl!: ElementRef;
+  markerElements = viewChildren(PlaceMarker);
+  mapContainer = viewChild.required<ElementRef>('mapContainer');
+  popupEl = viewChild(PlacePopup, {read: ElementRef});
+  placeTooltipEl = viewChild(PlaceTooltip, { read: ElementRef });
+  routeTooltipEl = viewChild(RouteTooltip, { read: ElementRef });
 
   isMapVisible = signal(false);
   layersReady = signal(false);
@@ -92,7 +91,7 @@ export class MapHandler implements OnInit, OnDestroy {
     this.mapbox.accessToken = environment.mapboxToken;
 
     const map = new this.mapbox.Map({
-      container: this.mapContainer.nativeElement,
+      container: this.mapContainer().nativeElement,
       style: `mapbox://styles/mapbox/${MAP_STYLES.LOGGED_OUT}`,
       center: this.center(),
       zoom: this.zoom()
@@ -100,8 +99,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
     map.on('load', () => {
      this.interactionManager = new MapInteractionManager(
-       map, this.mapbox, this.tripService, this.uiService, this.popupEl.nativeElement, this.placeTooltipEl.nativeElement,
-       this.routeTooltipEl.nativeElement, this.hoveredPlace, this.hoveredRoute
+       map, this.mapbox, this.tripService, this.uiService, this.popupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
      );
      this.interactionManager.attachGlobalListeners(this.center, this.zoom);
     });
@@ -111,8 +109,7 @@ export class MapHandler implements OnInit, OnDestroy {
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
       if (!this.layerManager) this.layerManager = new MapLayerManager(map);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
-        map, this.mapbox, this.tripService, this.uiService, this.popupEl.nativeElement, this.placeTooltipEl.nativeElement,
-        this.routeTooltipEl.nativeElement, this.hoveredPlace, this.hoveredRoute
+        map, this.mapbox, this.tripService, this.uiService, this.popupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
       );
       await this.iconLoader.loadRouteIcons();
       const currentData = untracked(() => this.tripService.trip()?.routesGeoJson());
@@ -146,17 +143,14 @@ export class MapHandler implements OnInit, OnDestroy {
     this.interactionManager.handleMarkerUnhover();
   }
 
-
   private syncMarkers() {
-    const places = this.tripService.trip()?.placesArray() ?? [];
     const map = this.map();
-    console.log('updateMarkers?', map);
-    if (!map) return;
-    console.log('nr of places', places.length);
+    const trip = this.tripService.trip();
+    if (!map || !trip) return;
     setTimeout(() => {
-      const elements = this.markerElements;
-      console.log('markerElement length:', elements.length);
-      if (elements.length > 0) this.updateMarkers(places, elements);
+      const components = this.markerElements();
+      if (!components || components.length === 0) return;
+      this.updateMarkers(trip.placesArray() ?? [], components);
     }, 10);
   }
 
@@ -168,20 +162,17 @@ export class MapHandler implements OnInit, OnDestroy {
     }
   }
 
-  private updateMarkers(places: Place[], elements: QueryList<ElementRef>) {
+  private updateMarkers(places: Place[], components: readonly PlaceMarker[]) {
     const map = this.map();
-    if (!map || !this.interactionManager) {
-      return;
-    }
-
-    elements.forEach((ref) => {
-      const el = ref.nativeElement;
-      const placeId = el.getAttribute('data-id');
-      const place = places.find(p => p.id === placeId);
-      if (place && !this.markers.has(placeId)) {
+    if (!map || !this.interactionManager) return;
+    components.forEach((component) => {
+      const el = (component as any).elementRef.nativeElement;
+      const place = component.place();
+      const placeId = place.id;
+      if (!this.markers.has(placeId)) {
         const marker = new this.mapbox.Marker({ element: el }).setLngLat([place.lng, place.lat]).addTo(map);
         this.markers.set(placeId, marker);
-        this.interactionManager.wireMarker(place, marker, el);
+        component.setResources(this.interactionManager, marker);
       }
     });
     this.markers.forEach((marker, id) => {

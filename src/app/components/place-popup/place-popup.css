@@ -1,4 +1,8 @@
-/* place-popup.component.css */
+:host {
+  display: block;
+}
+
+
 .apple-popup {
   display: flex;
   flex-direction: column;

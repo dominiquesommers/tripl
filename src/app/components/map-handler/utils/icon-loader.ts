@@ -6,7 +6,6 @@ export class IconLoader {
   constructor(private map: MapboxMap) {}
 
   async loadRouteIcons() {
-    console.log('load icons');
     const iconEntries = Object.entries(ROUTE_ICONS);
     for (const [key, name] of iconEntries) {
       if (this.map.hasImage(name)) continue;

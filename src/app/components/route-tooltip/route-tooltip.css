@@ -1,3 +1,6 @@
+:host {
+  display: block;
+}
 
 ::ng-deep .hover-tooltip .mapboxgl-popup-content {
   background: rgba(20, 20, 20, 0.8) !important;

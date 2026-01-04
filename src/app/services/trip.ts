@@ -21,6 +21,7 @@ export class TripService {
   readonly trips: WritableSignal<IUserTrip[] | null> = signal(null);
   readonly trip: WritableSignal<Trip | null> = signal(null);
   readonly plan: WritableSignal<Plan | null> = signal(null);
+  private loadingPlanId = signal<string | null>(null);
 
   plans = computed(() => {
     const plans = this.trips()?.find(trip => trip.id === this.trip()?.id)?.plans;
@@ -93,7 +94,9 @@ export class TripService {
   }
 
   loadPlan(planId: string) {
-    console.log('load plan!')
+    if (this.loadingPlanId() === planId) return;
+    console.log('load plan', planId);
+    this.loadingPlanId.set(planId);
     this.clearPlan();
     this.apiService.getPlan(planId).pipe(
       switchMap(rawPlan => {
@@ -105,7 +108,13 @@ export class TripService {
           })
         );
       })
-    ).subscribe(plan => this.plan.set(plan));
+    ).subscribe({
+      next: (plan) => {
+        this.plan.set(plan);
+        this.loadingPlanId.set(null);
+      },
+      error: () => this.loadingPlanId.set(null)
+    } );
   }
 
   addPlace(data: NewPlace) {

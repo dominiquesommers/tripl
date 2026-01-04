@@ -46,6 +46,7 @@ export class TripView implements OnInit {
     }
     const currentTrip = this.tripService.trip();
     if (!currentTrip || currentTrip.id !== tripId) {
+      console.log('Loading trip', tripId);
       this.tripService.loadTrip(tripId).subscribe();
     }
   }
@@ -53,7 +54,7 @@ export class TripView implements OnInit {
   syncPlanWithUrl() {
     const tripId = this.tripId();
     const planId = this.planId();
-    const currentTrip = this.tripService.trip(); // Dependency: re-runs when trip loads
+    const currentTrip = this.tripService.trip();
     const availableTrips = this.tripService.trips();
 
     if (!tripId || !currentTrip || currentTrip.id !== tripId) return;
