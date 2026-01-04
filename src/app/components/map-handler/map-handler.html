@@ -1,0 +1,48 @@
+@if (map(); as map) {
+  <app-map-search [map]="map"></app-map-search>
+}
+
+<div #mapContainer id="map-container"
+     class="map-container"
+     [class.visible]="isMapVisible()">
+</div>
+
+<div style="position: absolute; left: -9999px; top: 0;">
+  <div #popupContainer>
+    @if (tripService.selectedPlace(); as selectedPlace) {
+      <app-place-popup
+        [place]="selectedPlace"
+        (onSave)="handleSave($event)"
+        (onDelete)="handleDelete($event)">
+      </app-place-popup>
+    }
+  </div>
+</div>
+
+<div style="position: absolute; left: -9999px; top: 0;">
+  <div #placeTooltipContainer>
+    @if (hoveredPlace();) {
+      <app-place-tooltip [place]="hoveredPlace"></app-place-tooltip>
+    }
+  </div>
+</div>
+
+<div style="position: absolute; left: -9999px; top: 0;">
+  <div #routeTooltipContainer>
+    @if (hoveredRoute()) {
+      <app-route-tooltip [route]="hoveredRoute"></app-route-tooltip>
+    }
+  </div>
+</div>
+
+
+<div style="position: absolute; left: -9999px;">
+  @for (place of tripService.trip()?.placesArray(); track place.id) {
+    <div #markerElement
+         [attr.data-id]="place.id"
+         (mouseenter)="$event.stopPropagation(); interactionManager.handleMarkerHover(place)"
+         (mouseleave)="interactionManager.handleMarkerUnhover()">
+      <app-place-marker [visits]="place.visits()" [zoom]="zoom"></app-place-marker>
+    </div>
+  }
+</div>

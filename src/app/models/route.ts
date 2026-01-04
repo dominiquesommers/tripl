@@ -43,6 +43,22 @@ export class Route {
   readonly traverses = computed(() =>
     this.tripService.plan()?.traverses().filter(t => t.route_id === this.id) ?? []
   );
+  readonly lineCoordinates = computed(() => {
+    const source = this.source;
+    const target = this.target;
+    if (!source || !target) return [];
+    return [
+      [source.lng, source.lat],
+      [target.lng, target.lat]
+    ];
+  });
+
+  readonly routeSpline = computed(() => {
+    const source = this.source;
+    const target = this.target;
+    if (!source || !target) return [];
+    return this.computeRouteSpline([[source.lng, source.lat], [target.lng, target.lat]]);
+  });
 
   constructor(
     data: IRoute,
@@ -72,6 +88,37 @@ export class Route {
     if ('route' in data) this.route.set(data.route ?? '');
     if ('actual_cost' in data) this.actual_cost.set(data.actual_cost ?? 0);
     if ('paid' in data) this.paid.set(data.paid ?? false);
+  }
+
+  private computeRouteSpline(controlpoints: number[][]): number[][] {
+    if (!this.source || !this.target) return [];
+    return [];
+    // const start_dist = Math.sqrt( Math.pow((controlpoints[0][0]-this.source.lat), 2) + Math.pow((controlpoints[0][1]-this.source.lng), 2) );
+    // const end_dist = Math.sqrt( Math.pow((controlpoints[controlpoints.length - 1][0]-this.target.lat), 2) + Math.pow((controlpoints[controlpoints.length - 1][1]-this.target.lng), 2) );
+    // // if (start_dist > 100 || end_dist > 100) {
+    // //   console.log(this.source.name, this.destination.name);
+    // // }
+    // if (start_dist > 0.05 && start_dist < 100) {
+    //   controlpoints = [[this.source?.lat, this.source?.lng], ...controlpoints];
+    // }
+    // if (end_dist > 0.05 && end_dist < 100) {
+    //   controlpoints = [...controlpoints, [this.target.lat, this.target.lng]];
+    // }
+    // if (controlpoints.length > 2) {
+    //   const omit_factor = {undefined: 1, 'boat': 1, 'flying': 1, 'bus': 7, 'train': 10, 'driving': 5}[this.type() as string] ?? 1;
+    //   return [interpolateBSpline([controlpoints[0], ...controlpoints.slice(1, -1).filter((value, index, Arr) => index % omit_factor == 0), controlpoints[controlpoints.length - 1]], 5)];
+    // } else {
+    //   const diff = controlpoints[0][0] - controlpoints[1][0];
+    //   if (Math.abs(diff) > 180) {
+    //     const c1 = 180 - Math.abs(controlpoints[0][0]);
+    //     const c2 = 180 - Math.abs(controlpoints[1][0]);
+    //     const mid = (controlpoints[0][1] * (c2 / (c1 + c2))) + (controlpoints[1][1] * (c1 / (c1 + c2)));
+    //     return [[controlpoints[0], [((diff > 180) ? 1 : -1) * 180, mid + ((diff > 180) ? 2 : -2)]], [[((diff > 180) ? -1 : 1) * 180, mid + ((diff > 180) ? 2 : -2)], controlpoints[1]]];
+    //   }
+    //   const bearing = {'Schiphol': -40, 'Buenos Aires': -20}[this.source.name()];
+    //   const pointC1 = calculatePointC(controlpoints[0], controlpoints[controlpoints.length - 1], bearing ?? 10);
+    //   return [interpolateBSpline([controlpoints[0], [pointC1[1], pointC1[0]], controlpoints[controlpoints.length - 1]], 50)];
+    // }
   }
 
   toJSON(): IRoute {

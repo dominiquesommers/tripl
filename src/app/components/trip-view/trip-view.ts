@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TripService } from '../../services/trip';
 import { UiService } from '../../services/ui';
-import { Map } from '../map/map';
+import { MapHandler } from '../map-handler/map-handler';
 import { TripBubble } from '../trip-bubble/trip-bubble';
 import { AuthWidget } from '../auth-widget/auth-widget';
 import { SidePanel } from '../side-panel/side-panel';
@@ -15,7 +15,7 @@ import { LoadingSpinner } from '../loading-spinner/loading-spinner';
   standalone: true,
   imports: [
     CommonModule,
-    Map,
+    MapHandler,
     TripBubble,
     AuthWidget,
     SidePanel,
@@ -34,37 +34,44 @@ export class TripView implements OnInit {
 
 
   constructor() {
-    effect(() => this.syncStateWithUrl());
+    effect(() => this.syncTripWithUrl());
+    effect(() => this.syncPlanWithUrl());
   }
 
+  syncTripWithUrl() {
+    const tripId = this.tripId();
+    if (!tripId) {
+      this.tripService.clearTrip();
+      return;
+    }
+    const currentTrip = this.tripService.trip();
+    if (!currentTrip || currentTrip.id !== tripId) {
+      this.tripService.loadTrip(tripId).subscribe();
+    }
+  }
 
-  syncStateWithUrl() {
+  syncPlanWithUrl() {
     const tripId = this.tripId();
     const planId = this.planId();
+    const currentTrip = this.tripService.trip(); // Dependency: re-runs when trip loads
     const availableTrips = this.tripService.trips();
 
-    untracked(() => {
-      if (!tripId) {
-        this.tripService.clearTrip();
-        return;
+    if (!tripId || !currentTrip || currentTrip.id !== tripId) return;
+
+    // Redirect to first plan if none in URL
+    if (!planId && availableTrips) {
+      const firstPlanId = availableTrips.find(t => t.id === tripId)?.plans[0]?.id;
+      if (firstPlanId) {
+        this.router.navigate(['trip', tripId, firstPlanId], { replaceUrl: true });
       }
-      const currentTrip = this.tripService.trip();
-      if (currentTrip?.id !== tripId) {
-        this.tripService.loadTrip(tripId).subscribe();
-      }
-      if (availableTrips && !planId) {
-        const firstPlanId = availableTrips.find(t => t.id === tripId)?.plans[0]?.id;
-        if (firstPlanId) {
-          this.router.navigate(['trip', tripId, firstPlanId], { replaceUrl: true });
-          return
-        }
-      }
-      if (planId && this.tripService.plan()?.id !== planId) {
-        if (currentTrip?.id === tripId) {
-          this.tripService.loadPlan(planId);
-        }
-      }
-    });
+      return;
+    }
+
+    // Load plan if it exists and isn't loaded yet
+    if (planId && this.tripService.plan()?.id !== planId) {
+      console.log('Trip ready, loading plan:', planId);
+      this.tripService.loadPlan(planId);
+    }
   }
 
   ngOnInit(): void {

@@ -29,8 +29,15 @@
     </div>
   }
 
-  <div class="content">
-    <h2>Trip Details</h2>
-    <p>This is where your itinerary, notes, and local info will live.</p>
-  </div>
+  @if (tripService.selectedPlace(); as place) {
+    <div class="content">
+      <h2>{{ place.name() }}</h2>
+      <p>This is where your place info will live.</p>
+    </div>
+  } @else {
+    <div class="content">
+      <h2>Trip Details</h2>
+      <p>This is where your itinerary, notes, and local info will live.</p>
+    </div>
+  }
 </div>

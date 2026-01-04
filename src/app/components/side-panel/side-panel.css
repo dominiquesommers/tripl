@@ -136,7 +136,7 @@
   transform: translateY(0);
 }
 
-/* Ensure the panel stays above the map but below modals */
+/* Ensure the panel stays above the map-handler but below modals */
 .panel-container {
   touch-action: none; /* Required for CDK Drag on mobile */
   user-select: none;

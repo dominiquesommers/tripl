@@ -1,0 +1,30 @@
+
+::ng-deep .hover-tooltip .mapboxgl-popup-content {
+  background: rgba(20, 20, 20, 0.8) !important;
+  color: white;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  white-space: nowrap;
+  border-radius: 20px !important;
+  /*height: 37px;*/
+  margin-bottom: 3px;
+  pointer-events: none; /* Ensure the tooltip doesn't flicker by blocking the mouse */
+}
+
+/* Hide the arrow for the hover tooltip for a cleaner 'floating' look */
+::ng-deep .hover-tooltip .mapboxgl-popup-tip {
+  display: none;
+}
+
+.tooltip-text {
+  color: white !important;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 20px;
+  white-space: nowrap;
+}

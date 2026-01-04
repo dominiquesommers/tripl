@@ -25,7 +25,10 @@ export class TripService {
   plans = computed(() => {
     const plans = this.trips()?.find(trip => trip.id === this.trip()?.id)?.plans;
     return plans ?? [];
-  })
+  });
+
+  readonly selectedPlace: WritableSignal<Place | null> = signal(null);
+  readonly selectedRoute: WritableSignal<Route | null> = signal(null);
 
   constructor() {
     effect(() => {
@@ -74,6 +77,7 @@ export class TripService {
     return forkJoin({
       t: this.apiService.getTrip(tripId),
       p: this.apiService.getPlaces(tripId),
+      r: this.apiService.getRoutes(tripId),
       c: this.apiService.getCountries(),
       s: this.apiService.getSeasons()
     }).pipe(
@@ -81,7 +85,7 @@ export class TripService {
         const countries = data.c.map(x => new Country(x));
         const seasons = data.s.map(x => new Season(x));
         const places = data.p.map(rawPlace => new Place(rawPlace, this));
-        const routes: Route[] = []; // TODO extract from api result.
+        const routes = data.r.map(rawRoute => new Route(rawRoute, this));
         return new Trip(data.t, countries, seasons, places, routes, this);
       }),
       tap(trip => this.trip.set(trip))
@@ -89,6 +93,7 @@ export class TripService {
   }
 
   loadPlan(planId: string) {
+    console.log('load plan!')
     this.clearPlan();
     this.apiService.getPlan(planId).pipe(
       switchMap(rawPlan => {
@@ -209,7 +214,7 @@ export class TripService {
 
   // updatePlanPriorities(plans: any[]) {
   //   // Update the 'priority' property based on the new array index
-  //   const updatedPlans = plans.map((plan, index) => ({
+  //   const updatedPlans = plans.map-handler((plan, index) => ({
   //     ...plan,
   //     priority: index + 1
   //   }));

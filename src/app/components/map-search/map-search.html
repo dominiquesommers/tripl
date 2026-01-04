@@ -1,0 +1,12 @@
+<div class="search-container"
+     [class.expanded]="uiService.isSearchExpanded()"
+     [style.left.px]="uiService.sidePanelWidth() + 12">
+
+  <button class="search-toggle-btn" (click)="$event.stopPropagation(); toggleSearch()">
+    <lucide-icon [name]="SearchIcon" [size]="18" color="white"></lucide-icon>
+  </button>
+
+  <div class="search-input-wrapper" [class.show]="uiService.isSearchExpanded()">
+    <div #searchWrapper class="search-wrapper"></div>
+  </div>
+</div>

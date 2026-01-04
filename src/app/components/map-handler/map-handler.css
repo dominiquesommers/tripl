@@ -101,63 +101,6 @@
   opacity: 0.8;
 }
 
-/* 1. THE OUTER PILL CONTAINER */
-.search-container {
-  position: absolute;
-  bottom: 16px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  height: 37px; /* Forced height */
-  width: 37px;  /* Starts as a circle */
-  background: rgba(45, 45, 50, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 18.5px; /* Perfect circle half of 37px */
-  overflow: visible !important; /* Required to see the search results dropdown */
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), left 0.3s ease;
-  cursor: pointer;
-}
-
-/* Expanded State for the Container */
-.search-container.expanded {
-  width: 300px;
-  background: rgba(30, 30, 35, 0.9);
-}
-
-/* 2. THE LUCIDE ICON BUTTON */
-.search-toggle-btn {
-  min-width: 37px;
-  height: 37px;
-  background: none;
-  border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  outline: none;
-}
-
-/* 3. THE INPUT WRAPPER (Clips width during animation) */
-.search-input-wrapper {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-.search-container.expanded .search-input-wrapper {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 @keyframes tooltipFadeIn {
   from {
     opacity: 0;

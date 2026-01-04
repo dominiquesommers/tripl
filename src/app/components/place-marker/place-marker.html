@@ -1,12 +1,14 @@
-<div class="marker-pill">
-  @if (!visits || visits.length === 0 || isZoomLow()) {
-    <span class="night-count">-</span>
-  } @else {
-    @for (visit of visits; track $index) {
-      <span class="night-count">{{ visit.nights() }}</span>
-      @if (!$last) {
-        <div class="marker-divider"></div>
+<div>
+  <div class="marker-pill">
+    @if (!visits || visits.length === 0 || isZoomLow()) {
+      <span class="night-count">-</span>
+    } @else {
+      @for (visit of visits; track $index) {
+        <span class="night-count">{{ visit.nights() }}</span>
+        @if (!$last) {
+          <div class="marker-divider"></div>
+        }
       }
     }
-  }
+  </div>
 </div>

@@ -23,6 +23,24 @@ export class Trip {
   readonly placesArray = computed(() => Array.from(this.places().values()));
   readonly routes = signal<Map<string, Route>>(new Map());
 
+  readonly routesGeoJson = computed(() => {
+    const routes = this.routes() ?? new Map();
+    return {
+      type: 'FeatureCollection' as const,
+      features: Array.from(routes.values()).map((route: Route) => ({
+        type: 'Feature' as const,
+        id: route.id,
+        properties: {
+          type: route.type(),
+          routeId: route.id
+        },
+        geometry: {
+          type: 'LineString' as const,
+          coordinates: route.lineCoordinates()
+        }
+      }))
+    };
+  });
 
   constructor(
     data: ITrip,

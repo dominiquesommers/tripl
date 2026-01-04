@@ -8,6 +8,7 @@ import { IPlan } from '../models/plan';
 import { IVisit } from '../models/visit';
 import { ICountry } from '../models/country';
 import { ISeason } from '../models/season';
+import {IRoute} from '../models/route';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -58,11 +59,23 @@ export class ApiService {
   }
 
   // 3. Places (The Pool)
-  getPlaces(tripId: string) {
+  getPlaces(tripId: string): Observable<IPlace[]> {
     const mock = [
       { id: 'loc1', trip_id: tripId, name: 'Paris', country_id: 'fr', season_id: 's1', lat: 48.85, lng: 2.35 },
       { id: 'loc2', trip_id: tripId, name: 'Berlin', country_id: 'de', season_id: 's2', lat: 52.52, lng: 13.40 },
       { id: 'loc3', trip_id: tripId, name: 'Rome', country_id: 'it', season_id: 's3', lat: 41.90, lng: 12.49 }
+    ];
+    return of(mock).pipe(delay(this.d));
+  }
+
+  getRoutes(tripId: string): Observable<IRoute[]> {
+    const mock: IRoute[] = [
+      { id: 'route1', trip_id: tripId, source: 'loc1', target: 'loc2', type: 'driving', distance: 10, duration: 1,
+        route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
+      { id: 'route2', trip_id: tripId, source: 'loc1', target: 'loc3', type: 'flying', distance: 10, duration: 1,
+        route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
+      { id: 'route3', trip_id: tripId, source: 'loc2', target: 'loc3', type: 'boat', distance: 10, duration: 1,
+        route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
     ];
     return of(mock).pipe(delay(this.d));
   }
