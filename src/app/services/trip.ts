@@ -1,5 +1,5 @@
 import {Injectable, inject, signal, WritableSignal, effect, computed} from '@angular/core';
-import { Observable, tap, forkJoin, switchMap} from 'rxjs';
+import {Observable, tap, forkJoin, switchMap, catchError, throwError, finalize, EMPTY} from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from './api';
 import { IUserTrip } from '../models/user';
@@ -20,6 +20,7 @@ export class TripService {
 
   readonly trips: WritableSignal<IUserTrip[] | null> = signal(null);
   readonly trip: WritableSignal<Trip | null> = signal(null);
+  private loadingTripId = signal<string | null>(null);
   readonly plan: WritableSignal<Plan | null> = signal(null);
   private loadingPlanId = signal<string | null>(null);
 
@@ -74,6 +75,9 @@ export class TripService {
   }
 
   loadTrip(tripId: string): Observable<Trip> {
+    if (this.loadingTripId() === tripId) return EMPTY;
+    console.log('load trip', tripId);
+    this.loadingPlanId.set(tripId);
     this.clearTrip();
     return forkJoin({
       t: this.apiService.getTrip(tripId),
@@ -89,15 +93,42 @@ export class TripService {
         const routes = data.r.map(rawRoute => new Route(rawRoute, this));
         return new Trip(data.t, countries, seasons, places, routes, this);
       }),
-      tap(trip => this.trip.set(trip))
+      tap(trip => this.trip.set(trip)),
+      catchError(err => {
+        console.error('Failed to load trip:', err);
+        return throwError(() => err);
+      }),
+      finalize(() => this.loadingTripId.set(null))
     );
   }
 
-  loadPlan(planId: string) {
-    if (this.loadingPlanId() === planId) return;
+  loadPlan(planId: string): Observable<Plan> {
+    if (this.loadingPlanId() === planId) return EMPTY;
     console.log('load plan', planId);
     this.loadingPlanId.set(planId);
     this.clearPlan();
+    return forkJoin({
+      p: this.apiService.getPlan(planId),
+      v: this.apiService.getVisits(planId),
+      t: this.apiService.getTraverses(planId)
+    }).pipe(
+      map(data => {
+        const visits: Visit[] = data.v.map(v => new Visit(v, this));
+        const traverses: Traverse[] = data.t.map(t => new Traverse(t, this));
+        return new Plan(data.p, visits, traverses);
+      }),
+      tap(plan => {
+        this.plan.set(plan);
+      }),
+      catchError(err => {
+        console.error('Failed to load plan:', err);
+        return throwError(() => err);
+      }),
+      finalize(() => this.loadingPlanId.set(null))
+    );
+  }
+
+  test(planId: string) {
     this.apiService.getPlan(planId).pipe(
       switchMap(rawPlan => {
         return this.apiService.getVisits(planId).pipe(
@@ -153,90 +184,3 @@ export class TripService {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-  // private async fetchUserDataAndContext(userId: string, tripId?: string, planId?: string) {
-  //   console.log(`Fetching data for User: ${userId}. Requested Trip: ${tripId} and Plan: ${planId}`);
-  //   this._loading.next(true);
-  //
-  //   this.api.getSyncData(userId, tripId, planId).subscribe({
-  //     next: (response: any) => {
-  //       // Always update the list of trips for the menu
-  //       this._userTrips.next(response.userTrips || []);
-  //
-  //       console.log('response', response);
-  //       if (response.activeTrip) {
-  //         this._activeTrip.next(response.activeTrip);
-  //         if (response.activePlan) {
-  //           this._activePlan.next(response.activePlan);
-  //         }
-  //       } else {
-  //         this._activeTrip.next(null);
-  //       }
-  //       this._loading.next(false);
-  //     },
-  //     error: (err) => {
-  //       console.error("Sync failed", err);
-  //       this.clearActiveTrip();
-  //       this._loading.next(false);
-  //     }
-  //   });
-  // }
-
-  // clearActiveTrip() {
-  //   this._activeTrip.next(null);
-  //   this._activePlan.next(null);
-  //   console.log("TripService: State cleared (User logged out or returned to home)");
-  // }
-
-  // toggleSidebar() {
-  //   this._isSidebarOpen.next(!this._isSidebarOpen.value);
-  // }
-
-  // get isSidebarOpen() {
-  //   return this._isSidebarOpen.value;
-  // }
-
-  // get isMobile(): boolean {
-  //   return this.breakpointObserver.isMatched(Breakpoints.Handset);
-  // }
-
-  // getActiveTrip() {
-  //   return this._activeTrip.value;
-  // }
-  //
-  // getCurrentPlanValue() {
-  //   return this._activePlan.value;
-  // }
-  //
-  // setActivePlan(plan: any) {
-  //   this._activePlan.next(plan);
-  // }
-
-  // updatePlanPriorities(plans: any[]) {
-  //   // Update the 'priority' property based on the new array index
-  //   const updatedPlans = plans.map-handler((plan, index) => ({
-  //     ...plan,
-  //     priority: index + 1
-  //   }));
-  //
-  //   // Update the active trip with the new plan order
-  //   const currentTrip = this._activeTrip.value;
-  //   if (currentTrip) {
-  //     this._activeTrip.next({ ...currentTrip, plans: updatedPlans });
-  //   }
-  //
-  //   // In the future, you'd send 'updatedPlans' to your Google Function here:
-  //   // this.http.post('api/update-priorities', { plans: updatedPlans }).subscribe();
-  //   console.log('Priorities updated in Service:', updatedPlans);
-  // }
-
-// }

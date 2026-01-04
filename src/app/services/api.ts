@@ -9,6 +9,7 @@ import { IVisit } from '../models/visit';
 import { ICountry } from '../models/country';
 import { ISeason } from '../models/season';
 import {IRoute} from '../models/route';
+import {ITraverse} from '../models/traverse';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -72,25 +73,37 @@ export class ApiService {
     const mock: IRoute[] = [
       { id: 'route1', trip_id: tripId, source: 'loc1', target: 'loc2', type: 'driving', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
-      { id: 'route2', trip_id: tripId, source: 'loc1', target: 'loc3', type: 'flying', distance: 10, duration: 1,
+      { id: 'route2', trip_id: tripId, source: 'loc2', target: 'loc1', type: 'driving', distance: 10, duration: 1,
+        route: '', actual_cost: 0, estimated_cost: 0, nights: 1, paid: false },
+      { id: 'route3', trip_id: tripId, source: 'loc1', target: 'loc3', type: 'flying', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
-      { id: 'route3', trip_id: tripId, source: 'loc2', target: 'loc3', type: 'boat', distance: 10, duration: 1,
+      { id: 'route4', trip_id: tripId, source: 'loc2', target: 'loc3', type: 'boat', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
     ];
     return of(mock).pipe(delay(this.d));
   }
 
   // 4. Plan Metadata
-  getPlan(id: string) {
-    const mock = { id, name: id, lat: 48.0, lng: 10.0, zoom: 4, start_date: '2026-05-23', note: '', priority: 1, trip_id: 'wereldreis' };
+  getPlan(id: string): Observable<IPlan> {
+    const mock = { id, name: id, lat: 48.0, lng: 10.0, zoom: 4, start_date: '2026-04-23', note: '', priority: 1, trip_id: 'wereldreis' };
     return of(mock).pipe(delay(this.d));
   }
 
   // 5. Visits (The Itinerary)
-  getVisits(planId: string) {
+  getVisits(planId: string): Observable<IVisit[]> {
     const mock = [
       { id: 'v1', plan_id: planId, place_id: 'loc1', nights: 3, included: true },
-      { id: 'v2', plan_id: planId, place_id: 'loc2', nights: 2, included: true }
+      { id: 'v2', plan_id: planId, place_id: 'loc2', nights: 2, included: true },
+      { id: 'v3', plan_id: planId, place_id: 'loc1', nights: 2, included: true },
+    ];
+    return of(mock).pipe(delay(this.d));
+  }
+
+  // 3. Traverses (The Itinerary part 2)
+  getTraverses(planId: string): Observable<ITraverse[]> {
+    const mock = [
+      { source_visit_id: 'v1', target_visit_id: 'v2', route_id: 'route1', priority: 0, plan_id: 'v1'},
+      { source_visit_id: 'v2', target_visit_id: 'v3', route_id: 'route2', priority: 0, plan_id: 'v1'},
     ];
     return of(mock).pipe(delay(this.d));
   }

@@ -1,5 +1,5 @@
 import {IPlace, Place} from './place';
-import {signal} from '@angular/core';
+import {computed, signal} from '@angular/core';
 import {TripService} from '../services/trip';
 
 export interface IVisit {
@@ -19,6 +19,53 @@ export class Visit {
   plan_id: string;
   nights = signal<number>(0);
   included = signal<boolean>(true);
+
+  readonly outgoingTraverses = computed(() =>
+    this.tripService.plan()?.traversesArray().filter(t => t.source_visit_id === this.id) ?? []
+  );
+
+  readonly nextTraverse = computed(() => {
+    const outgoing = this.outgoingTraverses().filter(t => t.target?.included);
+    if (outgoing.length === 0) return null;
+    return outgoing.reduce((prev, curr) => curr.priority < prev.priority ? curr : prev);
+  });
+
+  readonly nextVisit = computed((): (Visit | null) => {
+    const targetId = this.nextTraverse()?.target_visit_id;
+    return targetId ? (this.tripService.plan()?.visits().get(targetId) ?? null) : null;
+  });
+
+  readonly ingoingTraverses = computed(() =>
+    this.tripService.plan()?.traversesArray().filter(t => t.target_visit_id === this.id) ?? []
+  );
+
+  readonly entryDate = computed(() => {
+    const plan = this.tripService.plan();
+    if (!plan) return null;
+    const startDate = plan.start_date();
+    if (!startDate) return null;
+    const itinerary = plan.itinerary();
+    let totalNights = 0;
+    for (const v of itinerary) {
+      if (v.id === this.id) {
+        const entry = new Date(startDate);
+        entry.setDate(entry.getDate() + totalNights);
+        return entry;
+      }
+      totalNights += v.nights();
+      const traverse = v.nextTraverse();
+      totalNights += traverse?.route?.nights() ?? 0;
+    }
+    return null;
+  });
+
+  readonly exitDate = computed(() => {
+    const start = this.entryDate();
+    if (!start) return null;
+    const end = new Date(start);
+    end.setDate(end.getDate() + this.nights());
+    return end;
+  });
 
   constructor(
     data: IVisit,

@@ -33,7 +33,7 @@ export class PlaceMarker {
     event.stopPropagation();
     const marker = this.marker();
     if (!marker) return;
-    this.interactionManager.handleOpenPopup(this.place(), marker);
+    this.interactionManager.handleOpenPlacePopup(this.place(), marker);
     if (this.uiService.isSearchExpanded()) {
       this.uiService.closeSearch();
     }

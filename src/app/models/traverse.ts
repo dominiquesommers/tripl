@@ -1,8 +1,7 @@
 import { signal } from '@angular/core';
 import { Visit } from './visit';
 import { Route } from './route';
-import {Place} from './place';
-import {TripService} from '../services/trip';
+import { TripService } from '../services/trip';
 
 
 export interface ITraverse {
@@ -11,10 +10,10 @@ export interface ITraverse {
   route_id: string;
   priority: number;
   rent_until?: string | null
-  includes_accommodation: boolean;
+  includes_accommodation?: boolean | false;
   plan_id: string;
-  cost: number;
-  booked_days: number;
+  cost?: number | 0;
+  booked_days?: number | 0;
 }
 
 
@@ -80,17 +79,3 @@ export class Traverse {
     } as ITraverse;
   }
 }
-
-
-
-/*
-source_visit_id        | INT8      | f           |                |                       | {diff_prios,edges_pkey} | f
- destination_visit_id   | INT8      | f           |                |                       | {diff_prios,edges_pkey} | f
- route_id               | INT8      | f           |                |                       | {diff_prios,edges_pkey} | f
- priority               | FLOAT8    | t           | 0.0            |                       | {diff_prios,edges_pkey} | f
- rent_until             | INT8      | t           |                |                       | {edges_pkey}            | f
- includes_accommodation | BOOL      | t           |                |                       | {edges_pkey}            | f
- plan_id                | INT8      | f           |                |                       | {diff_prios,edges_pkey} | f
- cost                   | FLOAT4    | t           |                |                       | {edges_pkey}            | f
- booked_days
- */

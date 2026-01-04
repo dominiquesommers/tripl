@@ -21,6 +21,8 @@ export class Trip {
   readonly seasons = signal<Map<string, Season>>(new Map());
   readonly places = signal<Map<string, Place>>(new Map());
   readonly placesArray = computed(() => Array.from(this.places().values()));
+  readonly sourcePlace = computed(() => this.places()?.get('loc1')); // Hardcoded for now.
+
   readonly routes = signal<Map<string, Route>>(new Map());
 
   readonly routesGeoJson = computed(() => {

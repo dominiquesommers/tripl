@@ -41,7 +41,7 @@ export class Route {
   paid = signal<boolean>(false);
 
   readonly traverses = computed(() =>
-    this.tripService.plan()?.traverses().filter(t => t.route_id === this.id) ?? []
+    this.tripService.plan()?.traversesArray().filter(t => t.route_id === this.id) ?? []
   );
   readonly lineCoordinates = computed(() => {
     const source = this.source;

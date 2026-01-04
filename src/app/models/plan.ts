@@ -32,11 +32,28 @@ export class Plan {
 
   readonly visits = signal<Map<string, Visit>>(new Map());
   readonly visitsArray = computed(() => Array.from(this.visits().values()));
-  readonly traverses = signal<Traverse[]>([]);
+  readonly sourceVisit = computed(() => this.visits()?.get('v1')); // Hardcoded for now.
+
+  readonly traverses = signal<Map<[string, string], Traverse>>(new Map());
+  readonly traversesArray = computed(() => Array.from(this.traverses().values()));
 
   readonly startDateString = computed(() => {
     const date = this.start_date();
     return date ? date.toLocaleDateString('nl-NL') : '';
+  });
+
+  readonly itinerary = computed(() => {
+    const source = this.sourceVisit();
+    if (!source) return [];
+    const sequence: Visit[] = [];
+    const seen = new Set<string>();
+    let currentVisit: Visit | null = source;
+    while (currentVisit && !seen.has(currentVisit.id)) {
+      seen.add(currentVisit.id);
+      sequence.push(currentVisit);
+      currentVisit = currentVisit.nextVisit();
+    }
+    return sequence;
   });
 
   constructor(data: IPlan, visits: Visit[], traverses: Traverse[]) {
@@ -44,7 +61,7 @@ export class Plan {
     this.trip_id = data.trip_id;
     this.update(data);
     this.visits.set(new Map(visits.map(v => [v.id, v])));
-    this.traverses.set(traverses);
+    this.traverses.set(new Map(traverses.map(t => [[t.source_visit_id, t.target_visit_id], t])));
   }
 
   update(data: Partial<IPlan>) {

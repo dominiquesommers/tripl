@@ -36,8 +36,33 @@
     </div>
   } @else {
     <div class="content">
-      <h2>Trip Details</h2>
-      <p>This is where your itinerary, notes, and local info will live.</p>
+      <h2>Your Itinerary</h2>
+      <div class="itinerary-list">
+        @for (visit of tripService.plan()?.itinerary() ?? []; track visit.id) {
+          <div class="itinerary-item">
+            <div class="date-badge">
+              {{ visit.entryDate() | date:'MMM d' }} - {{ visit.exitDate() | date:'MMM d' }}
+            </div>
+
+            <div class="visit-card">
+              <strong>{{ visit.place?.name() }}</strong>
+              <p>{{ visit.nights() }} nights</p>
+            </div>
+
+            @if (visit.nextTraverse(); as traverse) {
+              @if ((traverse.route?.nights() ?? 0) > 0) {
+                <div class="transit-info">
+                  ↓ {{ traverse.route?.nights() }} nights in transit
+                </div>
+              } @else {
+                <div class="transit-line"></div>
+              }
+            }
+          </div>
+        } @empty {
+          <p>No visits planned yet. Start by adding a place!</p>
+        }
+      </div>
     </div>
   }
 </div>

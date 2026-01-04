@@ -30,13 +30,14 @@ import {MapInteractionManager} from './utils/interaction-handler';
 
 import { MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM } from './config/map-styles.config';
 import { MapSearch } from '../map-search/map-search';
+import {RoutePopup} from '../route-popup/route-popup';
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, PlaceMarker, PlacePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
+  imports: [CommonModule, PlaceMarker, PlacePopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
   templateUrl: './map-handler.html',
   styleUrls: ['./map-handler.css']
 })
@@ -59,7 +60,8 @@ export class MapHandler implements OnInit, OnDestroy {
 
   markerElements = viewChildren(PlaceMarker);
   mapContainer = viewChild.required<ElementRef>('mapContainer');
-  popupEl = viewChild(PlacePopup, {read: ElementRef});
+  placePopupEl = viewChild(PlacePopup, {read: ElementRef});
+  routePopupEl = viewChild(RoutePopup, {read: ElementRef});
   placeTooltipEl = viewChild(PlaceTooltip, { read: ElementRef });
   routeTooltipEl = viewChild(RouteTooltip, { read: ElementRef });
 
@@ -99,7 +101,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
     map.on('load', () => {
      this.interactionManager = new MapInteractionManager(
-       map, this.mapbox, this.tripService, this.uiService, this.popupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
+       map, this.mapbox, this.tripService, this.uiService, this.placePopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
      );
      this.interactionManager.attachGlobalListeners(this.center, this.zoom);
     });
@@ -109,7 +111,7 @@ export class MapHandler implements OnInit, OnDestroy {
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
       if (!this.layerManager) this.layerManager = new MapLayerManager(map);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
-        map, this.mapbox, this.tripService, this.uiService, this.popupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
+        map, this.mapbox, this.tripService, this.uiService, this.placePopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
       );
       await this.iconLoader.loadRouteIcons();
       const currentData = untracked(() => this.tripService.trip()?.routesGeoJson());
@@ -147,11 +149,12 @@ export class MapHandler implements OnInit, OnDestroy {
     const map = this.map();
     const trip = this.tripService.trip();
     if (!map || !trip) return;
+    // TODO this should no need a timeout as this.markerElements is a signal, but without, it doesn't seem to work.
     setTimeout(() => {
       const components = this.markerElements();
       if (!components || components.length === 0) return;
       this.updateMarkers(trip.placesArray() ?? [], components);
-    }, 10);
+    }, 100);
   }
 
   private syncRoutes() {
@@ -183,18 +186,33 @@ export class MapHandler implements OnInit, OnDestroy {
     });
   }
 
-  handleSave(updatePlace: UpdatePlace) {
+  handlePlaceSave(updatePlace: UpdatePlace) {
     console.log('place saved from its popup.', updatePlace);
     // this.tripService.savePlace(place);
     // Optionally close the popup after save
-    this.interactionManager.closeActivePopup();
+    this.interactionManager.closeActivePlacePopup();
   }
 
-  handleDelete(placeId: string) {
+  handlePlaceDelete(placeId: string) {
     console.log('place deleted from its popup.');
     if (confirm('Are you sure?')) {
       // this.tripService.deletePlace(place);
-      this.interactionManager.closeActivePopup();
+      this.interactionManager.closeActivePlacePopup();
+    }
+  }
+
+  handleRouteSave(updateRoute: any) {
+    console.log('route saved from its popup.', updateRoute);
+    // this.tripService.savePlace(place);
+    // Optionally close the popup after save
+    this.interactionManager.closeActiveRoutePopup();
+  }
+
+  handleRouteDelete(routeId: string) {
+    console.log('route deleted from its popup.');
+    if (confirm('Are you sure?')) {
+      // this.tripService.deletePlace(place);
+      this.interactionManager.closeActiveRoutePopup();
     }
   }
 

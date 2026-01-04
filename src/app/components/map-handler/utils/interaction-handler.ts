@@ -7,7 +7,8 @@ import {Route} from '../../../models/route';
 
 
 export class MapInteractionManager {
-  private activePlacePopup?: mapboxgl.Popup;
+  private activePlacePopup?: Popup;
+  private activeRoutePopup?: Popup;
   private hoverTimer?: any;
   private placeHoverPopup?: any;
   private routeHoverPopup?: any;
@@ -18,6 +19,7 @@ export class MapInteractionManager {
     private tripService: TripService,
     private uiService: UiService,
     private activePlacePopupEL: Signal<ElementRef | undefined>,
+    private activeRoutePopupEL: Signal<ElementRef | undefined>,
     private placeTooltipEl: Signal<ElementRef | undefined>,
     private routeTooltipEl: Signal<ElementRef | undefined>,
     private hoveredPlace: WritableSignal<Place | null>,
@@ -27,6 +29,7 @@ export class MapInteractionManager {
   public attachGlobalListeners(centerSignal: any, zoomSignal: any) {
     this.map.on('click', () => {
       this.tripService.selectedPlace.set(null);
+      this.tripService.selectedRoute.set(null);
       if (this.uiService.isSearchExpanded()) this.uiService.closeSearch();
     });
 
@@ -37,21 +40,7 @@ export class MapInteractionManager {
     });
   }
 
-  // public wireMarker(place: Place, marker: Marker, element: HTMLElement) {
-  //   element.addEventListener('click', (e: MouseEvent) => {
-  //     e.stopPropagation();
-  //
-  //     // 1. Handle the popup logic
-  //     this.handleOpenPopup(place, marker);
-  //
-  //     // 2. Handle search state
-  //     if (this.uiService.isSearchExpanded()) {
-  //       this.uiService.closeSearch();
-  //     }
-  //   });
-  // }
-
-  public handleOpenPopup(place: Place, marker: Marker) {
+  public handleOpenPlacePopup(place: Place, marker: Marker) {
     this.tripService.selectedPlace.set(place);
     this.showActivePlacePopup(marker.getLngLat());
   }
@@ -81,11 +70,44 @@ export class MapInteractionManager {
     }, 0);
   }
 
-  public closeActivePopup() {
+  public showActiveRoutePopup(lngLat: LngLatLike) {
+    if (this.activeRoutePopup) {
+      this.activeRoutePopup.remove();
+    }
+    // TODO we can 'listen' to the this.activePlacePopupEL signal, then the timeout is unnecessary.
+    setTimeout(() => {
+      const element = this.activeRoutePopupEL()
+      if (!element) return;
+      this.activeRoutePopup = new this.mapbox.Popup({
+        offset: 25,
+        closeButton: false,
+        className: 'apple-glass-popup'
+      })
+      .setDOMContent(element.nativeElement)
+      .setLngLat(lngLat)
+      .addTo(this.map);
+
+      // 3. Handle cleanup if the user closes the popup via Mapbox controls
+      this.activeRoutePopup?.on('close', () => {
+        this.tripService.selectedRoute.set(null);
+        this.activeRoutePopup = undefined;
+      });
+    }, 0);
+  }
+
+  public closeActivePlacePopup() {
     if (this.activePlacePopup) {
       this.activePlacePopup.remove();
       this.activePlacePopup = undefined;
       this.tripService.selectedPlace.set(null);
+    }
+  }
+
+  public closeActiveRoutePopup() {
+    if (this.activeRoutePopup) {
+      this.activeRoutePopup.remove();
+      this.activeRoutePopup = undefined;
+      this.tripService.selectedRoute.set(null);
     }
   }
 
@@ -122,7 +144,20 @@ export class MapInteractionManager {
   }
 
   public attachLayerListeners() {
+    this.map.on('click', ['route-icons'], (e) => {
+      const feature = e.features?.[0];
+      const routeId = feature?.properties?.['routeId'];
+      const featureId = feature?.id;
+
+      if (!routeId || featureId === undefined) return;
+      const route = this.tripService.trip()?.routes()?.get(routeId);
+      this.tripService.selectedRoute.set(route ?? null);
+      this.showActiveRoutePopup(e.lngLat);
+    });
+
     this.map.on('mouseenter', ['route-icons'], (e) => {
+      if (this.tripService.selectedPlace()) return;
+
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;

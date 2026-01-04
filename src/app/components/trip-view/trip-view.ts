@@ -71,7 +71,7 @@ export class TripView implements OnInit {
     // Load plan if it exists and isn't loaded yet
     if (planId && this.tripService.plan()?.id !== planId) {
       console.log('Trip ready, loading plan:', planId);
-      this.tripService.loadPlan(planId);
+      this.tripService.loadPlan(planId).subscribe();
     }
   }
 
