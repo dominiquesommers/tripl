@@ -10,8 +10,8 @@ export class MapInteractionManager {
   private activePlacePopup?: Popup;
   private activeRoutePopup?: Popup;
   private hoverTimer?: any;
-  private placeHoverPopup?: any;
-  private routeHoverPopup?: any;
+  private placeTooltip?: any;
+  private routeTooltip?: any;
 
   constructor(
     private map: MapboxMap,
@@ -43,6 +43,7 @@ export class MapInteractionManager {
   public handleOpenPlacePopup(place: Place, marker: Marker) {
     this.tripService.selectedPlace.set(place);
     this.showActivePlacePopup(marker.getLngLat());
+
   }
 
   public showActivePlacePopup(lngLat: LngLatLike) {
@@ -113,24 +114,22 @@ export class MapInteractionManager {
 
   public handleMarkerHover(place: Place) {
     this.clearTimers();
-
     // Don't show tooltip if a place is already selected/clicked
-    if (this.tripService.selectedPlace()) return;
+    if (this.tripService.selectedPlace() || this.tripService.selectedRoute()) return;
     this.hoveredPlace.set(place);
 
     this.hoverTimer = setTimeout(() => {
       const element = this.placeTooltipEl();
       if (!element) return;
-      if (!this.placeHoverPopup) {
-        this.placeHoverPopup = new this.mapbox.Popup({
+      if (!this.placeTooltip) {
+        this.placeTooltip = new this.mapbox.Popup({
           closeButton: false,
           closeOnClick: false,
           offset: 15,
           className: 'hover-tooltip'
         });
       }
-
-      this.placeHoverPopup
+      this.placeTooltip
         .setLngLat([place.lng, place.lat])
         .setDOMContent(element.nativeElement)
         .addTo(this.map);
@@ -140,11 +139,13 @@ export class MapInteractionManager {
   public handleMarkerUnhover() {
     this.clearTimers();
     this.hoveredPlace.set(null);
-    this.placeHoverPopup?.remove();
+    this.placeTooltip?.remove();
   }
 
   public attachLayerListeners() {
     this.map.on('click', ['route-icons'], (e) => {
+      if (this.tripService.selectedPlace()) return;
+
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
@@ -156,7 +157,7 @@ export class MapInteractionManager {
     });
 
     this.map.on('mouseenter', ['route-icons'], (e) => {
-      if (this.tripService.selectedPlace()) return;
+      if (this.hoveredPlace()) return;
 
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
@@ -179,8 +180,10 @@ export class MapInteractionManager {
           { hover: true }
         );
 
-        if (!this.routeHoverPopup) {
-          this.routeHoverPopup = new this.mapbox.Popup({
+        if (this.tripService.selectedPlace() || this.tripService.selectedRoute()) return;
+
+        if (!this.routeTooltip) {
+          this.routeTooltip = new this.mapbox.Popup({
             closeButton: false,
             closeOnClick: false,
             offset: 15,
@@ -188,7 +191,7 @@ export class MapInteractionManager {
           });
         }
 
-        this.routeHoverPopup
+        this.routeTooltip
           .setLngLat(e.lngLat)
           .setDOMContent(element.nativeElement)
           .addTo(this.map);
@@ -197,7 +200,7 @@ export class MapInteractionManager {
 
     this.map.on('mouseleave', ['route-icons'], () => {
       this.hoveredRoute.set(null);
-      this.routeHoverPopup?.remove();
+      this.routeTooltip?.remove();
       this.map.getCanvas().style.cursor = '';
       this.clearTimers();
       this.map.removeFeatureState({ source: 'all-routes' });
@@ -213,7 +216,7 @@ export class MapInteractionManager {
 
   public destroy() {
     this.clearTimers();
-    this.placeHoverPopup?.remove();
-    this.routeHoverPopup?.remove();
+    this.placeTooltip?.remove();
+    this.routeTooltip?.remove();
   }
 }

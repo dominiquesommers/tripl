@@ -11,6 +11,7 @@
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .marker-divider {

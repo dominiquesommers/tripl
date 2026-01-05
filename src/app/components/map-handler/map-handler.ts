@@ -154,7 +154,7 @@ export class MapHandler implements OnInit, OnDestroy {
       const components = this.markerElements();
       if (!components || components.length === 0) return;
       this.updateMarkers(trip.placesArray() ?? [], components);
-    }, 100);
+    }, 300);
   }
 
   private syncRoutes() {

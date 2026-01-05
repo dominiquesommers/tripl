@@ -58,7 +58,7 @@ export class MapLayerManager {
         paint: {
           'line-width': [
             'case',
-            ['boolean', ['feature-state', 'hover'], false], 4, // Thicker on hover
+            ['boolean', ['feature-state', 'hover'], false], 6, // Thicker on hover
             2.4                                              // Normal width
           ],
           'line-color': [

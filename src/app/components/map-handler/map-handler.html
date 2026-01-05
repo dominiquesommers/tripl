@@ -15,7 +15,7 @@
   </app-place-popup>
 }
 
-@if (tripService.selectedRoute(); as selectedRoute) {
+@if (!tripService.selectedPlace() && tripService.selectedRoute(); as selectedRoute) {
   <app-route-popup
     [route]="selectedRoute"
     (onSave)="handleRouteSave($event)"
@@ -23,11 +23,11 @@
   </app-route-popup>
 }
 
-@if (hoveredPlace()) {
+@if (!tripService.selectedPlace() && !tripService.selectedRoute() && !hoveredRoute() && hoveredPlace()) {
   <app-place-tooltip [place]="hoveredPlace"></app-place-tooltip>
 }
 
-@if (hoveredRoute(); as route) {
+@if (!tripService.selectedPlace() && !tripService.selectedRoute() && !hoveredPlace() && hoveredRoute()) {
   <app-route-tooltip [route]="hoveredRoute"></app-route-tooltip>
 }
 
