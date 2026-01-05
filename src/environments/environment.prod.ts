@@ -1,6 +1,6 @@
 export const environment = {
-  production: false,
-  useOfflineMode: true,
+  production: true,
+  useOfflineMode: false,
   mapboxToken: 'pk.eyJ1IjoiZG9taW5pcXVlc29tbWVycyIsImEiOiJjbWNoeHNnZG4wMHk1MmtzOGtodnluZHJzIn0.j0bybMxwa2BK4UgPIhxpQw',
   firebase: {
     apiKey: "AIzaSyBKjHTxlaa6D7icnxhp1Unz9uTCcuJLWSc",

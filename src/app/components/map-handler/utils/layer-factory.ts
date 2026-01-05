@@ -1,22 +1,36 @@
 import { signal } from '@angular/core';
 import type { Map as MapboxMap, GeoJSONSource, Marker, Popup } from 'mapbox-gl';
-import {MAP_STYLES, ROUTE_COLORS, ROUTE_ICONS} from '../config/map-styles.config';
+import {
+  MAP_STYLES,
+  OFFLINE_BASE_STYLE,
+  ROUTE_COLOR_EXPRESSION,
+  ROUTE_ICONS
+} from '../config/map-styles.config';
+import { AuthService } from '../../../services/auth';
 
 
 export class MapLayerManager {
   currentStyle = signal<string>('');
   routesLayerReady = signal<boolean>(false);
 
-  constructor(private map: MapboxMap) {}
+  constructor(
+    private map: MapboxMap,
+    private authService: AuthService,
+  ) {}
 
   private getStyle(user: any, plan: any) {
     return (!user) ? MAP_STYLES.LOGGED_OUT : (!plan ? MAP_STYLES.LOGGED_IN : MAP_STYLES.ACTIVE_TRIP);
   }
 
   public updateStyle(user: any, plan: any) {
-    const nextStyle = this.getStyle(user, plan);
+    const isOffline = this.authService.isOfflineMode();
+    const nextStyle = isOffline ? MAP_STYLES.OFFLINE : this.getStyle(user, plan);
     if (this.currentStyle() !== nextStyle) {
-      this.map.setStyle(`mapbox://styles/mapbox/${nextStyle}?optimize=true`);
+      if (nextStyle === MAP_STYLES.OFFLINE) {
+        this.map.setStyle(OFFLINE_BASE_STYLE);
+      } else {
+        this.map.setStyle(`mapbox://styles/mapbox/${nextStyle}?optimize=true`);
+      }
       this.currentStyle.set(nextStyle);
     }
   }
@@ -61,15 +75,7 @@ export class MapLayerManager {
             ['boolean', ['feature-state', 'hover'], false], 6, // Thicker on hover
             2.4                                              // Normal width
           ],
-          'line-color': [
-            'match', ['get', 'type'],
-            'driving', ROUTE_COLORS.driving,
-            'boat', ROUTE_COLORS.boat,
-            'flying', ROUTE_COLORS.flying,
-            'bus', ROUTE_COLORS.bus,
-            'train', ROUTE_COLORS.train,
-            ROUTE_COLORS.undefined
-          ],
+          'line-color': ROUTE_COLOR_EXPRESSION,
           'line-opacity': [
             'case',
             ['boolean', ['feature-state', 'disabled'], false], 0.1,
@@ -97,16 +103,7 @@ export class MapLayerManager {
           'icon-keep-upright': false
         },
         paint: {
-          'icon-color': 'rgba(45, 45, 50, 0.85)',
-          //   [
-          //   'match', ['get', 'type'],
-          //   'driving', ROUTE_COLORS.driving,
-          //   'boat', ROUTE_COLORS.boat,
-          //   'flying', ROUTE_COLORS.flying,
-          //   'bus', ROUTE_COLORS.bus,
-          //   'train', ROUTE_COLORS.train,
-          //   ROUTE_COLORS.undefined
-          // ],
+          'icon-color': 'rgba(45, 45, 50, 0.85)', // ROUTE_COLOR_EXPRESSION
           'icon-opacity': [
             'case',
             ['boolean', ['feature-state', 'disabled'], false], 0.2,

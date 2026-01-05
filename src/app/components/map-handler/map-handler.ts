@@ -89,6 +89,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private async initializeMap() {
+    console.log('INITIALIZE MAP!')
     this.mapbox = (await import('mapbox-gl')).default;
     this.mapbox.accessToken = environment.mapboxToken;
 
@@ -109,7 +110,7 @@ export class MapHandler implements OnInit, OnDestroy {
     map.on('style.load', async () => {
       this.layersReady.set(false); // Reset while we rebuild
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
-      if (!this.layerManager) this.layerManager = new MapLayerManager(map);
+      if (!this.layerManager) this.layerManager = new MapLayerManager(map, this.authService);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
         map, this.mapbox, this.tripService, this.uiService, this.placePopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
       );
@@ -132,6 +133,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncTheme() {
+    const offline = this.authService.isOfflineMode();
     const user = this.authService.user();
     const plan = this.tripService.plan();
     const map = this.map();
@@ -146,15 +148,18 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncMarkers() {
+    console.log('syncMarkers.')
     const map = this.map();
     const trip = this.tripService.trip();
+    // TODO delete existing markers if no places.
     if (!map || !trip) return;
     // TODO this should no need a timeout as this.markerElements is a signal, but without, it doesn't seem to work.
     setTimeout(() => {
       const components = this.markerElements();
+      console.log(components?.length, (trip.placesArray() ?? []).length);
       if (!components || components.length === 0) return;
       this.updateMarkers(trip.placesArray() ?? [], components);
-    }, 300);
+    }, 0);
   }
 
   private syncRoutes() {
@@ -166,21 +171,27 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private updateMarkers(places: Place[], components: readonly PlaceMarker[]) {
+    console.log('update markers?')
     const map = this.map();
     if (!map || !this.interactionManager) return;
+    console.log('update markers')
     components.forEach((component) => {
       const el = (component as any).elementRef.nativeElement;
       const place = component.place();
       const placeId = place.id;
-      if (!this.markers.has(placeId)) {
+      if (!this.markers.has(placeId) || true) { // TODO fix this.
+        console.log('create in newly marker');
         const marker = new this.mapbox.Marker({ element: el }).setLngLat([place.lng, place.lat]).addTo(map);
         this.markers.set(placeId, marker);
         component.setResources(this.interactionManager, marker);
+      } else {
+        console.log('skip marker');
       }
     });
     this.markers.forEach((marker, id) => {
       if (!places.find(p => p.id === id)) {
         marker.remove();
+        console.log('deleting marker');
         this.markers.delete(id);
       }
     });

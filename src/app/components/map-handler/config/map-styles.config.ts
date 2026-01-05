@@ -1,9 +1,12 @@
+import type {ExpressionSpecification, StyleSpecification} from 'mapbox-gl';
+
 export const INITIAL_CENTER: [number, number] = [2.35, 48.85];
 export const INITIAL_ZOOM = 3.2;
 export const MAP_STYLES = {
   LOGGED_OUT: 'dark-v11',
   LOGGED_IN: 'light-v11',
-  ACTIVE_TRIP: 'streets-v12'
+  ACTIVE_TRIP: 'streets-v12',
+  OFFLINE: 'OFFLINE_STYLE'
 };
 
 
@@ -30,7 +33,7 @@ export const ROUTE_ICONS = {
 
 // 2. Mapbox Style Expressions
 // Moving these here prevents your LayerManager from having "magic strings"
-export const ROUTE_COLOR_EXPRESSION = [
+export const ROUTE_COLOR_EXPRESSION: ExpressionSpecification = [
   'match', ['get', 'type'],
   'driving', ROUTE_COLORS.driving,
   'flying', ROUTE_COLORS.flying,
@@ -40,15 +43,41 @@ export const ROUTE_COLOR_EXPRESSION = [
   ROUTE_COLORS.undefined
 ];
 
-// 3. The Offline "Base" Style
-export const OFFLINE_BASE_STYLE = {
+
+export const OFFLINE_BASE_STYLE: StyleSpecification = {
   version: 8,
   sources: {},
   layers: [
     {
       id: 'background',
       type: 'background',
-      paint: { 'background-color': '#1a1a1a' }
+      paint: { 'background-color': '#405e75' }
     }
   ]
 };
+
+
+// export const OFFLINE_BASE_STYLE: StyleSpecification = {
+//   version: 8,
+//   sources: {
+//     'local-tiles': {
+//       type: 'vector',
+//       tiles: ['/tiles/{z}/{x}/{y}.pbf'], // Path to your cached/local tiles
+//       maxzoom: 14
+//     }
+//   },
+//   layers: [
+//     {
+//       id: 'background',
+//       type: 'background',
+//       paint: { 'background-color': '#405e75' }
+//     },
+//     {
+//       id: 'local-roads',
+//       type: 'line',
+//       source: 'local-tiles',
+//       'source-layer': 'transportation', // Dependent on your tile provider
+//       paint: { 'line-color': '#444' }
+//     }
+//   ]
+// };

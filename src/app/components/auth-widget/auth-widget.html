@@ -1,31 +1,50 @@
 <div class="auth-wrapper">
-  @if (authService.user()) {
+  @if (authService.user(); as user) {
     <ng-container>
-      <div class="profile-trigger" (click)="toggleMenu($event)" [class.active]="showMenu">
-        <img [src]="authService.user()?.photoURL" (error)="handleImageError($event, authService.user())" class="avatar">
+      <div class="profile-trigger" (click)="toggleMenu($event)" [class.active]="showMenu" [class.offline-mode]="authService.isOfflineMode()">
+        <img [src]="user.photoURL" (error)="handleImageError($event, user)" class="avatar">
+        @if (authService.isOfflineMode()) {
+          <div class="status-indicator offline" title="Offline Mode"></div>
+        }
       </div>
 
-      <div class="menu-card" *ngIf="showMenu">
-        <div class="menu-header">
-          <img [src]="authService.user()?.photoURL" alt="Profile" class="avatar-large">
+      @if (showMenu) {
+       <div class="menu-card">
+         <div class="menu-header">
+          <img [src]="user.photoURL"
+               (error)="handleImageError($event, user)"
+               alt="Profile"
+               class="avatar-large">
           <div class="user-details">
-            <span class="name">{{ authService.user()?.displayName }}</span>
-            <span class="email">{{ authService.user()?.email }}</span>
+            <div class="name-row">
+              <span class="name">{{ user.displayName }}</span>
+              @if (authService.isOfflineMode()) {
+                <span class="offline-tag">Offline</span>
+              }
+            </div>
+            <span class="email">{{ user.email }}</span>
           </div>
         </div>
+
         <div class="menu-divider"></div>
+
         <button class="menu-item" (click)="authService.logout()">
-          <lucide-icon [img]="LogOut" class="icon-left"></lucide-icon>
+          <lucide-icon [name]="LogOut" class="icon-left"></lucide-icon>
           Sign out
         </button>
-      </div>
+       </div>
+      }
     </ng-container>
-  }
-
-  <ng-template #loggedOut>
+  } @else {
     <button class="google-signin-btn" (click)="handleLogin()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" class="google-icon">
       <span>Sign in</span>
     </button>
-  </ng-template>
+  }
+<!--  <ng-template #loggedOut>-->
+<!--    <button class="google-signin-btn" (click)="handleLogin()">-->
+<!--      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" class="google-icon">-->
+<!--      <span>Sign in</span>-->
+<!--    </button>-->
+<!--  </ng-template>-->
 </div>

@@ -22,6 +22,8 @@ export class ApiService {
 
   private d = 800; // Simulated latency (ms)
 
+  // TODO bundle the getters and handle isOfflineMode.
+
   createPlace(newPlace: NewPlace): Observable<IPlaceWithCountry> {
     // TODO implement
     const mock =  { id: 'loc1', trip_id: 'wereldreis', name: 'Paris', country_id: 'fr', season_id: 's1', lat: 48.85, lng: 2.35,
