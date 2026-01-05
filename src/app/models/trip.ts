@@ -37,8 +37,8 @@ export class Trip {
           routeId: route.id
         },
         geometry: {
-          type: 'LineString' as const,
-          coordinates: route.lineCoordinates()
+          type: 'MultiLineString' as const,
+          coordinates: route.routeSpline()
         }
       }))
     };
