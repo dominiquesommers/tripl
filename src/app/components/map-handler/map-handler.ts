@@ -8,7 +8,7 @@ import {
   signal,
   effect,
   Inject,
-  ChangeDetectorRef, ViewChildren, QueryList, computed, HostListener, untracked, viewChildren, viewChild
+  ChangeDetectorRef, ViewChildren, QueryList, computed, HostListener, untracked, viewChildren, viewChild, Injector
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { PLATFORM_ID, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -17,7 +17,7 @@ import { AuthService } from '../../services/auth';
 import { TripService } from '../../services/trip';
 import { UiService } from '../../services/ui';
 import {Place, UpdatePlace} from '../../models/place';
-import { PlacePopup } from '../place-popup/place-popup';
+import { VisitPopup } from '../visit-popup/visit-popup';
 import { PlaceMarker } from '../place-marker/place-marker';
 import { PlaceTooltip } from '../place-tooltip/place-tooltip';
 import { RouteTooltip } from '../route-tooltip/route-tooltip';
@@ -37,7 +37,7 @@ import {RoutePopup} from '../route-popup/route-popup';
   selector: 'app-map',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, PlaceMarker, PlacePopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
+  imports: [CommonModule, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
   templateUrl: './map-handler.html',
   styleUrls: ['./map-handler.css']
 })
@@ -47,7 +47,8 @@ export class MapHandler implements OnInit, OnDestroy {
   readonly tripService = inject(TripService);
   private uiService = inject(UiService);
   private platformId = inject(PLATFORM_ID);
-  private cdr = inject(ChangeDetectorRef);
+  // private cdr = inject(ChangeDetectorRef);
+  private injector = inject(Injector);
 
   // 2. Map Elements (The "Hands")
   private mapbox: any;
@@ -60,7 +61,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
   markerElements = viewChildren(PlaceMarker);
   mapContainer = viewChild.required<ElementRef>('mapContainer');
-  placePopupEl = viewChild(PlacePopup, {read: ElementRef});
+  visitPopupEl = viewChild(VisitPopup, {read: ElementRef});
   routePopupEl = viewChild(RoutePopup, {read: ElementRef});
   placeTooltipEl = viewChild(PlaceTooltip, { read: ElementRef });
   routeTooltipEl = viewChild(RouteTooltip, { read: ElementRef });
@@ -102,7 +103,8 @@ export class MapHandler implements OnInit, OnDestroy {
 
     map.on('load', () => {
      this.interactionManager = new MapInteractionManager(
-       map, this.mapbox, this.tripService, this.uiService, this.placePopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
+       map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl,
+       this.hoveredPlace, this.hoveredRoute, this.injector
      );
      this.interactionManager.attachGlobalListeners(this.center, this.zoom);
     });
@@ -112,7 +114,8 @@ export class MapHandler implements OnInit, OnDestroy {
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
       if (!this.layerManager) this.layerManager = new MapLayerManager(map, this.authService);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
-        map, this.mapbox, this.tripService, this.uiService, this.placePopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.hoveredPlace, this.hoveredRoute
+        map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl,
+        this.hoveredPlace, this.hoveredRoute, this.injector
       );
       await this.iconLoader.loadRouteIcons();
       const currentData = untracked(() => this.tripService.trip()?.routesGeoJson());
@@ -142,7 +145,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncSelectedPlace() {
-    const selectedPlace = this.tripService.selectedPlace();
+    const selectedPlace = this.tripService.selectedVisit();
     if (!selectedPlace) return;
     this.interactionManager.handleMarkerUnhover();
   }
@@ -201,14 +204,14 @@ export class MapHandler implements OnInit, OnDestroy {
     console.log('place saved from its popup.', updatePlace);
     // this.tripService.savePlace(place);
     // Optionally close the popup after save
-    this.interactionManager.closeActivePlacePopup();
+    this.interactionManager.closeActiveVisitPopup();
   }
 
-  handlePlaceDelete(placeId: string) {
-    console.log('place deleted from its popup.');
+  handleVisitDelete(visitId: string) {
+    console.log('visit deleted from its popup.');
     if (confirm('Are you sure?')) {
       // this.tripService.deletePlace(place);
-      this.interactionManager.closeActivePlacePopup();
+      this.interactionManager.closeActiveVisitPopup();
     }
   }
 

@@ -1,26 +1,14 @@
 <div>
   <div class="marker-pill">
     @let v = place().visits();
-    @if (!v || v.length === 0 || isZoomLow()) {
-      <span class="night-count">-</span>
+    @if (!v || isZoomLow()) {
+      <span class="night-count">.</span>
     } @else {
       @for (visit of v; track $index) {
-        <span class="night-count">{{ visit.nights() }}</span>
-
-        @if (!$last) {
-          <div class="marker-divider"></div>
-        }
+        <span class="night-count" (click)="handleVisitClick($event, visit)">{{ visit.nights() }}</span>
+        <div class="marker-divider"></div>
       }
+      <span class="night-count" (click)="handleAddClick($event)">+</span>
     }
-<!--    @if (!visits || visits.length === 0 || isZoomLow()) {-->
-<!--      <span class="night-count">-</span>-->
-<!--    } @else {-->
-<!--      @for (visit of visits; track $index) {-->
-<!--        <span class="night-count">{{ visit.nights() }}</span>-->
-<!--        @if (!$last) {-->
-<!--          <div class="marker-divider"></div>-->
-<!--        }-->
-<!--      }-->
-<!--    }-->
   </div>
 </div>

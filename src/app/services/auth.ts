@@ -1,4 +1,4 @@
-import {computed, Injectable, signal, WritableSignal} from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { environment } from '../../environments/environment';

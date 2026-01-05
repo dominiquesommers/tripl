@@ -29,9 +29,9 @@
     </div>
   }
 
-  @if (tripService.selectedPlace(); as place) {
+  @if (tripService.selectedVisit(); as visit) {
     <div class="content">
-      <h2>{{ place.name() }}</h2>
+      <h2>{{ visit.place?.name() }}</h2>
       <p>This is where your place info will live.</p>
     </div>
   } @else {

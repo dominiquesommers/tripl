@@ -7,15 +7,15 @@
      [class.visible]="isMapVisible()">
 </div>
 
-@if (tripService.selectedPlace(); as selectedPlace) {
-  <app-place-popup
-    [place]="selectedPlace"
+@if (tripService.selectedVisit(); as selectedVisit) {
+  <app-visit-popup
+    [visit]="selectedVisit"
     (onSave)="handlePlaceSave($event)"
-    (onDelete)="handlePlaceDelete($event)">
-  </app-place-popup>
+    (onDelete)="handleVisitDelete($event)">
+  </app-visit-popup>
 }
 
-@if (!tripService.selectedPlace() && tripService.selectedRoute(); as selectedRoute) {
+@if (!tripService.selectedVisit() && tripService.selectedRoute(); as selectedRoute) {
   <app-route-popup
     [route]="selectedRoute"
     (onSave)="handleRouteSave($event)"
@@ -23,11 +23,11 @@
   </app-route-popup>
 }
 
-@if (!tripService.selectedPlace() && !tripService.selectedRoute() && !hoveredRoute() && hoveredPlace()) {
+@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !hoveredRoute() && hoveredPlace()) {
   <app-place-tooltip [place]="hoveredPlace"></app-place-tooltip>
 }
 
-@if (!tripService.selectedPlace() && !tripService.selectedRoute() && !hoveredPlace() && hoveredRoute()) {
+@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !hoveredPlace() && hoveredRoute()) {
   <app-route-tooltip [route]="hoveredRoute"></app-route-tooltip>
 }
 

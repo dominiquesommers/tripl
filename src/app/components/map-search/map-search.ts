@@ -4,7 +4,7 @@ import type { Map as MapboxMap } from 'mapbox-gl';
 import { LucideAngularModule, Search } from 'lucide-angular';
 import {CommonModule} from '@angular/common';
 import {PlaceMarker} from '../place-marker/place-marker';
-import {PlacePopup} from '../place-popup/place-popup';
+import {VisitPopup} from '../visit-popup/visit-popup';
 import {PlaceTooltip} from '../place-tooltip/place-tooltip';
 import {RouteTooltip} from '../route-tooltip/route-tooltip';
 import {UiService} from '../../services/ui';

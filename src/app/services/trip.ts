@@ -8,7 +8,7 @@ import { Plan } from '../models/plan';
 import { Country } from '../models/country';
 import { Season } from '../models/season';
 import {Place, NewPlace, UpdatePlace, IPlace, IPlaceWithCountry} from '../models/place';
-import { Visit } from '../models/visit';
+import { NewVisit, Visit } from '../models/visit';
 import { AuthService } from './auth';
 import {Traverse} from '../models/traverse';
 import {Route} from '../models/route';
@@ -29,7 +29,7 @@ export class TripService {
     return plans ?? [];
   });
 
-  readonly selectedPlace: WritableSignal<Place | null> = signal(null);
+  readonly selectedVisit: WritableSignal<Visit | null> = signal(null);
   readonly selectedRoute: WritableSignal<Route | null> = signal(null);
 
   constructor() {
@@ -173,6 +173,15 @@ export class TripService {
   linkSeasonToPlace(place: Place, season: Season) {
     place.season_id = season.id;      // update the id
     this.trip()?.addSeason(season);    // ensure the Trip knows about it
+  }
+
+  async addVisit(data: NewVisit) {
+    // TODO properly implement, use this.persist(...) and apiService.createVisit(...)
+    const plan = this.plan();
+    if (!plan) return;
+    const newVisit = new Visit({id: 'new', ...data}, this);
+    plan.addVisit(newVisit);
+    return newVisit;
   }
 
   private persist<T>(

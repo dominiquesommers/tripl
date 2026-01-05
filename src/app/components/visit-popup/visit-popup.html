@@ -1,0 +1,8 @@
+<div class="apple-popup">
+  <input #nameInput [value]="visit().place?.name()" class="popup-input" (keydown.enter)="save(nameInput.value)" />
+  <input #nightsInput [value]="visit().nights()" class="popup-input" (keydown.enter)="save(nightsInput.value)" />
+  <div class="popup-actions">
+    <button class="save-btn" (click)="save(nameInput.value)">Save</button>
+    <button class="delete-btn" (click)="delete()">Delete</button>
+  </div>
+</div>

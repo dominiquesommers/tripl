@@ -10,7 +10,7 @@ export interface IVisit {
   included: boolean;
 }
 
-export type NewVist = Omit<IVisit, 'id'>;
+export type NewVisit = Omit<IVisit, 'id'>;
 export type UpdateVisit = Partial<Omit<IVisit, 'id' | 'place_id' | 'plan_id'>>;
 
 export class Visit {

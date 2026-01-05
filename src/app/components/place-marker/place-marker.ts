@@ -1,9 +1,10 @@
 import {Component, computed, HostListener, inject, input, Input, signal, Signal, ElementRef} from '@angular/core';
-import { Visit } from '../../models/visit';
+import {NewVisit, Visit} from '../../models/visit';
 import {Place} from '../../models/place';
 import {MapInteractionManager} from '../map-handler/utils/interaction-handler';
 import {Marker} from 'mapbox-gl';
 import {UiService} from '../../services/ui';
+import {TripService} from '../../services/trip';
 
 @Component({
   selector: 'app-place-marker',
@@ -27,15 +28,33 @@ export class PlaceMarker {
   }
 
   private uiService = inject(UiService);
+  private tripService = inject(TripService);
 
-  @HostListener('click', ['$event'])
-  onClick(event: MouseEvent) {
+  handleVisitClick(event: MouseEvent, visit: Visit) {
     event.stopPropagation();
     const marker = this.marker();
     if (!marker) return;
-    this.interactionManager.handleOpenPlacePopup(this.place(), marker);
+    this.interactionManager.handleOpenVisitPopup(visit, marker);
     if (this.uiService.isSearchExpanded()) {
       this.uiService.closeSearch();
+    }
+  }
+
+  async handleAddClick(event: MouseEvent) {
+    event.stopPropagation();
+    //TODO implement properly.
+    console.log('Add new visit.')
+    try {
+      const plan = this.tripService.plan();
+      if (!plan) return;
+      const newVisitData: NewVisit = {place_id: this.place().id, plan_id: plan.id, nights: 0, included: true};
+      const newVisit = await this.tripService.addVisit(newVisitData);
+      const marker = this.marker();
+      if (marker && newVisit) {
+        this.interactionManager.handleOpenVisitPopup(newVisit, marker);
+      }
+    } catch (err) {
+      console.error("Failed to add visit:", err);
     }
   }
 

@@ -76,8 +76,9 @@ export class Plan {
 
   addVisit(visit: Visit) {
     this.visits.update(vs => {
-      vs.set(visit.id, visit);
-      return vs;
+      const newMap = new Map(vs);
+      newMap.set(visit.id, visit);
+      return newMap;
     });
   }
 

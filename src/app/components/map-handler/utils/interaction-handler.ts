@@ -2,13 +2,16 @@ import {TripService} from '../../../services/trip';
 import {UiService} from '../../../services/ui';
 import type { Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup } from 'mapbox-gl';
 import {Place} from '../../../models/place';
-import {ElementRef, Signal, WritableSignal} from '@angular/core';
+import {effect, ElementRef, Injector, runInInjectionContext, Signal, WritableSignal} from '@angular/core';
 import {Route} from '../../../models/route';
+import {Visit} from '../../../models/visit';
 
 
 export class MapInteractionManager {
-  private activePlacePopup?: Popup;
+  private activeVisitPopup?: Popup;
+  currentVisitPopupCoords?: LngLatLike;
   private activeRoutePopup?: Popup;
+  currentRoutePopupCoords?: LngLatLike;
   private hoverTimer?: any;
   private placeTooltip?: any;
   private routeTooltip?: any;
@@ -18,17 +21,32 @@ export class MapInteractionManager {
     private mapbox: any,
     private tripService: TripService,
     private uiService: UiService,
-    private activePlacePopupEL: Signal<ElementRef | undefined>,
+    private activeVisitPopupEL: Signal<ElementRef | undefined>,
     private activeRoutePopupEL: Signal<ElementRef | undefined>,
     private placeTooltipEl: Signal<ElementRef | undefined>,
     private routeTooltipEl: Signal<ElementRef | undefined>,
     private hoveredPlace: WritableSignal<Place | null>,
-    private hoveredRoute: WritableSignal<Route | null>
-  ) {}
+    private hoveredRoute: WritableSignal<Route | null>,
+    private injector: Injector
+  ) {
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        const visit = this.tripService.selectedVisit();
+        const popupElement = this.activeVisitPopupEL();
+        this.syncVisitPopup(visit, popupElement);
+      });
+
+      effect(() => {
+        const route = this.tripService.selectedRoute();
+        const popupElement = this.activeRoutePopupEL();
+        this.syncRoutePopup(route, popupElement);
+      });
+    });
+  }
 
   public attachGlobalListeners(centerSignal: any, zoomSignal: any) {
     this.map.on('click', () => {
-      this.tripService.selectedPlace.set(null);
+      this.tripService.selectedVisit.set(null);
       this.tripService.selectedRoute.set(null);
       if (this.uiService.isSearchExpanded()) this.uiService.closeSearch();
     });
@@ -40,67 +58,64 @@ export class MapInteractionManager {
     });
   }
 
-  public handleOpenPlacePopup(place: Place, marker: Marker) {
-    this.tripService.selectedPlace.set(place);
-    this.showActivePlacePopup(marker.getLngLat());
-
+  public handleOpenVisitPopup(visit: Visit, marker: Marker) {
+    this.tripService.selectedVisit.set(visit);
+    this.currentVisitPopupCoords = marker.getLngLat();
   }
 
-  public showActivePlacePopup(lngLat: LngLatLike) {
-    if (this.activePlacePopup) {
-      this.activePlacePopup.remove();
-    }
-    // TODO we can 'listen' to the this.activePlacePopupEL signal, then the timeout is unnecessary.
-    setTimeout(() => {
-      const element = this.activePlacePopupEL()
-      if (!element) return;
-      this.activePlacePopup = new this.mapbox.Popup({
+  private syncVisitPopup(visit: Visit | null, popupElement: ElementRef | undefined) {
+    if (visit && popupElement && this.currentVisitPopupCoords) {
+      if (this.activeVisitPopup) {
+         this.activeVisitPopup.setLngLat(this.currentVisitPopupCoords);
+         return;
+      }
+      this.activeVisitPopup = new this.mapbox.Popup({
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
       })
-      .setDOMContent(element.nativeElement)
-      .setLngLat(lngLat)
+      .setDOMContent(popupElement.nativeElement)
+      .setLngLat(this.currentVisitPopupCoords)
       .addTo(this.map);
-
-      // 3. Handle cleanup if the user closes the popup via Mapbox controls
-      this.activePlacePopup?.on('close', () => {
-        this.tripService.selectedPlace.set(null);
-        this.activePlacePopup = undefined;
+      this.activeVisitPopup?.on('close', () => {
+        if (this.tripService.selectedVisit() === visit) {
+           this.tripService.selectedVisit.set(null);
+        }
+        this.activeVisitPopup = undefined;
       });
-    }, 0);
+    }
   }
 
-  public showActiveRoutePopup(lngLat: LngLatLike) {
-    if (this.activeRoutePopup) {
-      this.activeRoutePopup.remove();
-    }
-    // TODO we can 'listen' to the this.activePlacePopupEL signal, then the timeout is unnecessary.
-    setTimeout(() => {
-      const element = this.activeRoutePopupEL()
-      if (!element) return;
+  private syncRoutePopup(route: Route | null, popupElement: ElementRef | undefined) {
+    if (route && popupElement && this.currentRoutePopupCoords) {
+      if (this.activeVisitPopup) {
+         this.activeVisitPopup.setLngLat(this.currentRoutePopupCoords);
+         return;
+      }
       this.activeRoutePopup = new this.mapbox.Popup({
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
       })
-      .setDOMContent(element.nativeElement)
-      .setLngLat(lngLat)
+      .setDOMContent(popupElement.nativeElement)
+      .setLngLat(this.currentRoutePopupCoords)
       .addTo(this.map);
 
-      // 3. Handle cleanup if the user closes the popup via Mapbox controls
       this.activeRoutePopup?.on('close', () => {
-        this.tripService.selectedRoute.set(null);
+        if (this.tripService.selectedRoute() === route) {
+          this.tripService.selectedRoute.set(null);
+        }
         this.activeRoutePopup = undefined;
       });
-    }, 0);
+    }
   }
 
-  public closeActivePlacePopup() {
-    if (this.activePlacePopup) {
-      this.activePlacePopup.remove();
-      this.activePlacePopup = undefined;
-      this.tripService.selectedPlace.set(null);
+  public closeActiveVisitPopup() {
+    if (this.activeVisitPopup) {
+      console.log('close visit popup.')
+      this.activeVisitPopup.remove();
+      this.activeVisitPopup = undefined;
+      this.tripService.selectedVisit.set(null);
     }
   }
 
@@ -115,7 +130,7 @@ export class MapInteractionManager {
   public handleMarkerHover(place: Place) {
     this.clearTimers();
     // Don't show tooltip if a place is already selected/clicked
-    if (this.tripService.selectedPlace() || this.tripService.selectedRoute()) return;
+    if (this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
     this.hoveredPlace.set(place);
 
     this.hoverTimer = setTimeout(() => {
@@ -144,7 +159,7 @@ export class MapInteractionManager {
 
   public attachLayerListeners() {
     this.map.on('click', ['route-icons'], (e) => {
-      if (this.tripService.selectedPlace()) return;
+      if (this.tripService.selectedVisit()) return;
 
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
@@ -153,7 +168,7 @@ export class MapInteractionManager {
       if (!routeId || featureId === undefined) return;
       const route = this.tripService.trip()?.routes()?.get(routeId);
       this.tripService.selectedRoute.set(route ?? null);
-      this.showActiveRoutePopup(e.lngLat);
+      this.currentRoutePopupCoords = e.lngLat;
     });
 
     this.map.on('mouseenter', ['route-icons'], (e) => {
@@ -172,15 +187,14 @@ export class MapInteractionManager {
       this.hoveredRoute.set(route ?? null);
 
       this.hoverTimer = setTimeout(() => {
-        const element = this.routeTooltipEl();
-        if (!element) return;
 
         this.map.setFeatureState(
           { source: 'all-routes', id: featureId },
           { hover: true }
         );
 
-        if (this.tripService.selectedPlace() || this.tripService.selectedRoute()) return;
+        const element = this.routeTooltipEl();
+        if (!element || this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
 
         if (!this.routeTooltip) {
           this.routeTooltip = new this.mapbox.Popup({
