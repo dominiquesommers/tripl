@@ -16,6 +16,10 @@ export class PlaceMarker {
   public elementRef = inject(ElementRef);
 
   place = input.required<Place>();
+  @Input() hoveredPlace!: Signal<Place | null>;
+  readonly isHovered = computed(() => this.place() === this.hoveredPlace());
+  @Input() selectedVisit!: Signal<Visit | null>;
+  readonly isSelected = computed(() => this.place() === this.selectedVisit()?.place);
   zoom = input.required<Signal<number>>();
   readonly isZoomLow = computed(() => this.zoom()() < 3);
   public interactionManager!: MapInteractionManager;

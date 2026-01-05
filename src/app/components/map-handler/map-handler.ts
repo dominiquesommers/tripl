@@ -70,7 +70,6 @@ export class MapHandler implements OnInit, OnDestroy {
   layersReady = signal(false);
 
   private markers: Map<string, Marker> = new Map();
-  private placePopup: any;
 
   hoveredPlace = signal<Place | null>(null);
   hoveredRoute = signal<Route | null>(null);

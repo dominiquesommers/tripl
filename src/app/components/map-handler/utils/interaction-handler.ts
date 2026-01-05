@@ -61,6 +61,7 @@ export class MapInteractionManager {
   public handleOpenVisitPopup(visit: Visit, marker: Marker) {
     this.tripService.selectedVisit.set(visit);
     this.currentVisitPopupCoords = marker.getLngLat();
+    this.handleMarkerUnhover();
   }
 
   private syncVisitPopup(visit: Visit | null, popupElement: ElementRef | undefined) {
@@ -73,13 +74,12 @@ export class MapInteractionManager {
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
-      })
-      .setDOMContent(popupElement.nativeElement)
-      .setLngLat(this.currentVisitPopupCoords)
-      .addTo(this.map);
+      }).setDOMContent(popupElement.nativeElement)
+        .setLngLat(this.currentVisitPopupCoords)
+        .addTo(this.map);
       this.activeVisitPopup?.on('close', () => {
         if (this.tripService.selectedVisit() === visit) {
-           this.tripService.selectedVisit.set(null);
+          this.tripService.selectedVisit.set(null);
         }
         this.activeVisitPopup = undefined;
       });

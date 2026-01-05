@@ -36,6 +36,8 @@
     @for (place of trip.placesArray(); track place.id) {
       <app-place-marker
         [place]="place"
+        [hoveredPlace]="hoveredPlace"
+        [selectedVisit]="tripService.selectedVisit"
         [zoom]="zoom">
       </app-place-marker>
     }
