@@ -73,13 +73,13 @@ export class ApiService {
 
   getRoutes(tripId: string): Observable<IRoute[]> {
     const mock: IRoute[] = [
-      { id: 'route1', trip_id: tripId, source: 'loc1', target: 'loc2', type: 'driving', distance: 10, duration: 1,
+      { id: '1', trip_id: tripId, source: 'loc1', target: 'loc2', type: 'driving', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
-      { id: 'route2', trip_id: tripId, source: 'loc2', target: 'loc1', type: 'driving', distance: 10, duration: 1,
+      { id: '2', trip_id: tripId, source: 'loc2', target: 'loc1', type: 'driving', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 1, paid: false },
-      { id: 'route3', trip_id: tripId, source: 'loc1', target: 'loc3', type: 'flying', distance: 10, duration: 1,
+      { id: '3', trip_id: tripId, source: 'loc1', target: 'loc3', type: 'flying', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
-      { id: 'route4', trip_id: tripId, source: 'loc2', target: 'loc3', type: 'boat', distance: 10, duration: 1,
+      { id: '4', trip_id: tripId, source: 'loc2', target: 'loc3', type: 'boat', distance: 10, duration: 1,
         route: '', actual_cost: 0, estimated_cost: 0, nights: 0, paid: false },
     ];
     return of(mock).pipe(delay(this.d));
@@ -96,7 +96,10 @@ export class ApiService {
     const mock = [
       { id: 'v1', plan_id: planId, place_id: 'loc1', nights: 3, included: true },
       { id: 'v2', plan_id: planId, place_id: 'loc2', nights: 2, included: true },
-      { id: 'v3', plan_id: planId, place_id: 'loc1', nights: 2, included: true },
+      { id: 'v3', plan_id: planId, place_id: 'loc1', nights: 2, included: false },
+      { id: 'v4', plan_id: planId, place_id: 'loc3', nights: 10, included: true },
+      { id: 'v5', plan_id: planId, place_id: 'loc3', nights: 1, included: true },
+      { id: 'v6', plan_id: planId, place_id: 'loc3', nights: 2, included: true },
     ];
     return of(mock).pipe(delay(this.d));
   }
@@ -104,8 +107,11 @@ export class ApiService {
   // 3. Traverses (The Itinerary part 2)
   getTraverses(planId: string): Observable<ITraverse[]> {
     const mock = [
-      { source_visit_id: 'v1', target_visit_id: 'v2', route_id: 'route1', priority: 0, plan_id: 'v1'},
-      { source_visit_id: 'v2', target_visit_id: 'v3', route_id: 'route2', priority: 0, plan_id: 'v1'},
+      { source_visit_id: 'v1', target_visit_id: 'v2', route_id: '1', priority: 0, plan_id: 'v1'},
+      { source_visit_id: 'v2', target_visit_id: 'v3', route_id: '2', priority: 0, plan_id: 'v1'},
+      { source_visit_id: 'v2', target_visit_id: 'v4', route_id: '4', priority: 1, plan_id: 'v1'},
+      { source_visit_id: 'v2', target_visit_id: 'v5', route_id: '4', priority: 2, plan_id: 'v1'},
+      { source_visit_id: 'v2', target_visit_id: 'v6', route_id: '4', priority: 3, plan_id: 'v1'},
     ];
     return of(mock).pipe(delay(this.d));
   }

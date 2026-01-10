@@ -55,7 +55,7 @@ export class MapLayerManager {
       this.map.addSource('all-routes', {
         type: 'geojson',
         data: data || {type: 'FeatureCollection', features: []},
-        generateId: true
+        // generateId: true
       });
     }
 

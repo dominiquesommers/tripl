@@ -7,12 +7,12 @@
       @for (visit of v; track $index) {
         <span class="night-count" (click)="handleVisitClick($event, visit)">{{ visit.nights() }}</span>
 
-        @if (!$last || isHovered() || isSelected()) {
+        @if (!$last || isHovered() || isSelected() || false) {
           <div class="marker-divider"></div>
         }
       }
 
-      @if (isHovered() || isSelected()) {
+      @if (isHovered() || isSelected() || false) {
         <span class="night-count" (click)="handleAddClick($event)">+</span>
       }
     }

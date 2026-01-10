@@ -51,7 +51,7 @@ export class Plan {
     while (currentVisit && !seen.has(currentVisit.id)) {
       seen.add(currentVisit.id);
       sequence.push(currentVisit);
-      currentVisit = currentVisit.nextVisit();
+      currentVisit = currentVisit.outgoingTraverses().filter(t => t.target?.included() && !seen.has(t.target?.id))[0]?.target ?? null;
     }
     return sequence;
   });

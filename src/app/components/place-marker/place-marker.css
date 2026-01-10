@@ -34,7 +34,7 @@
 .night-count {
   padding: 3px 3px;
   border-radius: 50%;
-  min-width: 12px;
+  min-width: 14px;
   text-align: center;
   cursor: pointer;
 }
@@ -48,7 +48,7 @@
 }
 
 .marker-pill:hover {
-  transform: scale(1.05);
+  /*transform: scale(1.05);*/
   background: rgba(60, 60, 65, 0.95);
   border-color: rgba(0, 122, 255, 0.5); /* Apple Blue border on hover */
 }

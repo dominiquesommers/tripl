@@ -30,7 +30,9 @@ export class TripService {
   });
 
   readonly selectedVisit: WritableSignal<Visit | null> = signal(null);
+  readonly hoveredPlace: WritableSignal<Place | null> = signal(null);
   readonly selectedRoute: WritableSignal<Route | null> = signal(null);
+  readonly hoveredRoute: WritableSignal<Route | null> = signal(null);
 
   constructor() {
     effect(() => {

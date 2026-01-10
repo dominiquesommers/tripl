@@ -31,7 +31,7 @@ export class Trip {
       type: 'FeatureCollection' as const,
       features: Array.from(routes.values()).map((route: Route) => ({
         type: 'Feature' as const,
-        id: route.id,
+        id: Number(route.id),
         properties: {
           type: route.type(),
           routeId: route.id

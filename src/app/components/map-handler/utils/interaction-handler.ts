@@ -14,7 +14,9 @@ export class MapInteractionManager {
   currentRoutePopupCoords?: LngLatLike;
   private hoverTimer?: any;
   private placeTooltip?: any;
+  private hoveredMarker?: Marker | null;
   private routeTooltip?: any;
+  private currentRouteTooltipCoords?: LngLatLike | null;
 
   constructor(
     private map: MapboxMap,
@@ -25,21 +27,35 @@ export class MapInteractionManager {
     private activeRoutePopupEL: Signal<ElementRef | undefined>,
     private placeTooltipEl: Signal<ElementRef | undefined>,
     private routeTooltipEl: Signal<ElementRef | undefined>,
-    private hoveredPlace: WritableSignal<Place | null>,
-    private hoveredRoute: WritableSignal<Route | null>,
     private injector: Injector
   ) {
     runInInjectionContext(this.injector, () => {
-      effect(() => {
+      effect((onCleanup) => {
         const visit = this.tripService.selectedVisit();
         const popupElement = this.activeVisitPopupEL();
-        this.syncVisitPopup(visit, popupElement);
+        if (visit && popupElement) {
+          this.syncVisitPopup(visit, popupElement);
+          onCleanup(() => {
+            // this.closeActiveVisitPopup();
+            // TODO fix.
+          });
+        }
       });
 
       effect(() => {
         const route = this.tripService.selectedRoute();
         const popupElement = this.activeRoutePopupEL();
         this.syncRoutePopup(route, popupElement);
+      });
+
+      effect((onCleanup) => {
+        const hoveredRoute = this.tripService.hoveredRoute();
+        if (hoveredRoute) {
+          this.handleRouteHover(hoveredRoute);
+          onCleanup(() => {
+            this.handleRouteUnhover();
+          });
+        }
       });
     });
   }
@@ -64,8 +80,8 @@ export class MapInteractionManager {
     this.handleMarkerUnhover();
   }
 
-  private syncVisitPopup(visit: Visit | null, popupElement: ElementRef | undefined) {
-    if (visit && popupElement && this.currentVisitPopupCoords) {
+  private syncVisitPopup(visit: Visit, popupElement: ElementRef) {
+    if (this.currentVisitPopupCoords) {
       if (this.activeVisitPopup) {
          this.activeVisitPopup.setLngLat(this.currentVisitPopupCoords);
          return;
@@ -80,6 +96,7 @@ export class MapInteractionManager {
       this.activeVisitPopup?.on('close', () => {
         if (this.tripService.selectedVisit() === visit) {
           this.tripService.selectedVisit.set(null);
+          this.handleMarkerUnhover();
         }
         this.activeVisitPopup = undefined;
       });
@@ -116,6 +133,7 @@ export class MapInteractionManager {
       this.activeVisitPopup.remove();
       this.activeVisitPopup = undefined;
       this.tripService.selectedVisit.set(null);
+      this.handleMarkerUnhover();
     }
   }
 
@@ -127,15 +145,20 @@ export class MapInteractionManager {
     }
   }
 
-  public handleMarkerHover(place: Place) {
+  public handleMarkerHover(place: Place, marker: Marker | null) {
     this.clearTimers();
     // Don't show tooltip if a place is already selected/clicked
     if (this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
-    this.hoveredPlace.set(place);
+    this.tripService.hoveredPlace.set(place);
+    this.hoveredMarker = marker;
+    if (place.visits()?.length > 0) {
+      this.hoveredMarker?.setOffset([10, 0]);
+    }
 
     this.hoverTimer = setTimeout(() => {
       const element = this.placeTooltipEl();
       if (!element) return;
+      // this.marker.setOffset([0, 0]);
       if (!this.placeTooltip) {
         this.placeTooltip = new this.mapbox.Popup({
           closeButton: false,
@@ -151,16 +174,55 @@ export class MapInteractionManager {
     }, 120);
   }
 
-  public handleMarkerUnhover() {
+  public handleMarkerUnhover(forceMarkerOffsetReset: boolean = false) {
     this.clearTimers();
-    this.hoveredPlace.set(null);
+    this.tripService.hoveredPlace.set(null);
     this.placeTooltip?.remove();
+    if (!this.tripService.selectedVisit()) {
+      this.hoveredMarker?.setOffset([0, 0]);
+    }
+  }
+
+  public handleRouteHover(route: Route) {
+    this.hoverTimer = setTimeout(() => {
+      this.map.setFeatureState(
+        { source: 'all-routes', id: route.id },
+        { hover: true }
+      );
+
+      const element = this.routeTooltipEl();
+      if (!element || this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
+
+      if (!this.routeTooltip) {
+        this.routeTooltip = new this.mapbox.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          offset: 15,
+          className: 'hover-tooltip'
+        });
+      }
+
+      if (this.currentRouteTooltipCoords) {
+        this.routeTooltip
+          .setLngLat(this.currentRouteTooltipCoords)
+          .setDOMContent(element.nativeElement)
+          .addTo(this.map);
+      }
+    }, 120);
+  }
+
+  public handleRouteUnhover() {
+    this.routeTooltip?.remove();
+    this.map.getCanvas().style.cursor = '';
+    this.clearTimers();
+    if (this.map.getSource('all-routes')) {
+      this.map.removeFeatureState({ source: 'all-routes' });
+    }
   }
 
   public attachLayerListeners() {
     this.map.on('click', ['route-icons'], (e) => {
-      if (this.tripService.selectedVisit()) return;
-
+      // if (this.tripService.selectedVisit()) return;
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
@@ -172,52 +234,22 @@ export class MapInteractionManager {
     });
 
     this.map.on('mouseenter', ['route-icons'], (e) => {
-      if (this.hoveredPlace()) return;
-
+      if (this.tripService.hoveredPlace()) return;
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
 
       if (!routeId || featureId === undefined) return;
-
       this.map.getCanvas().style.cursor = 'pointer';
       this.clearTimers();
-
       const route = this.tripService.trip()?.routes()?.get(routeId);
-      this.hoveredRoute.set(route ?? null);
-
-      this.hoverTimer = setTimeout(() => {
-
-        this.map.setFeatureState(
-          { source: 'all-routes', id: featureId },
-          { hover: true }
-        );
-
-        const element = this.routeTooltipEl();
-        if (!element || this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
-
-        if (!this.routeTooltip) {
-          this.routeTooltip = new this.mapbox.Popup({
-            closeButton: false,
-            closeOnClick: false,
-            offset: 15,
-            className: 'hover-tooltip'
-          });
-        }
-
-        this.routeTooltip
-          .setLngLat(e.lngLat)
-          .setDOMContent(element.nativeElement)
-          .addTo(this.map);
-      }, 120);
+      this.tripService.hoveredRoute.set(route ?? null);
+      this.currentRouteTooltipCoords = e.lngLat;
     });
 
     this.map.on('mouseleave', ['route-icons'], () => {
-      this.hoveredRoute.set(null);
-      this.routeTooltip?.remove();
-      this.map.getCanvas().style.cursor = '';
-      this.clearTimers();
-      this.map.removeFeatureState({ source: 'all-routes' });
+      this.tripService.hoveredRoute.set(null);
+      this.currentRouteTooltipCoords = null;
     });
   }
 

@@ -1,6 +1,7 @@
 import {IPlace, Place} from './place';
-import {computed, signal} from '@angular/core';
+import {computed, signal, untracked} from '@angular/core';
 import {TripService} from '../services/trip';
+import {Traverse} from './traverse';
 
 export interface IVisit {
   id: string;
@@ -21,23 +22,37 @@ export class Visit {
   included = signal<boolean>(true);
 
   readonly outgoingTraverses = computed(() =>
-    this.tripService.plan()?.traversesArray().filter(t => t.source_visit_id === this.id) ?? []
+    this.tripService.plan()?.traversesArray()
+      .filter(t => t.source_visit_id === this.id)
+      .sort((a, b) => a.priority() - b.priority())
+      ?? []
   );
 
-  readonly nextTraverse = computed(() => {
-    const outgoing = this.outgoingTraverses().filter(t => t.target?.included);
-    if (outgoing.length === 0) return null;
-    return outgoing.reduce((prev, curr) => curr.priority < prev.priority ? curr : prev);
+  readonly nextTraverse = computed((): Traverse | null => {
+    const plan = this.tripService.plan();
+    if (!plan) return null;
+    const itinerary = plan.itinerary();
+    const currentIndex = itinerary.findIndex(v => v.id === this.id);
+    if (currentIndex === -1 || currentIndex >= itinerary.length - 1) return null;
+    return this.outgoingTraverses().find(t => t.source === this && t.target === itinerary[currentIndex + 1]) ?? null;
   });
 
-  readonly nextVisit = computed((): (Visit | null) => {
-    const targetId = this.nextTraverse()?.target_visit_id;
-    return targetId ? (this.tripService.plan()?.visits().get(targetId) ?? null) : null;
-  });
+  readonly nextVisit = computed((): Visit | null => this.nextTraverse()?.target ?? null);
 
   readonly ingoingTraverses = computed(() =>
     this.tripService.plan()?.traversesArray().filter(t => t.target_visit_id === this.id) ?? []
   );
+
+  readonly previousTraverse = computed((): Traverse | null => {
+    const plan = this.tripService.plan();
+    if (!plan) return null;
+    const itinerary = plan.itinerary();
+    const currentIndex = itinerary.findIndex(v => v.id === this.id);
+    if (currentIndex <= 0) return null;
+    return itinerary[currentIndex - 1].nextTraverse();
+  });
+
+  readonly previousVisit = computed((): Visit | null => this.previousTraverse()?.source ?? null);
 
   readonly entryDate = computed(() => {
     const plan = this.tripService.plan();
@@ -59,12 +74,22 @@ export class Visit {
     return null;
   });
 
+  readonly entryDateString = computed(() => {
+    const date = this.entryDate();
+    return date ? date.toLocaleDateString('nl-NL') : '';
+  });
+
   readonly exitDate = computed(() => {
     const start = this.entryDate();
     if (!start) return null;
     const end = new Date(start);
     end.setDate(end.getDate() + this.nights());
     return end;
+  });
+
+  readonly exitDateString = computed(() => {
+    const date = this.exitDate();
+    return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
   constructor(

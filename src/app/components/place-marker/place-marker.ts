@@ -65,7 +65,7 @@ export class PlaceMarker {
   @HostListener('mouseenter', ['$event'])
   onHover(event: MouseEvent) {
     event.stopPropagation();
-    this.interactionManager.handleMarkerHover(this.place());
+    this.interactionManager.handleMarkerHover(this.place(), this.marker());
   }
 
   @HostListener('mouseleave')

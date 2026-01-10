@@ -23,12 +23,12 @@
   </app-route-popup>
 }
 
-@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !hoveredRoute() && hoveredPlace()) {
-  <app-place-tooltip [place]="hoveredPlace"></app-place-tooltip>
+@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !tripService.hoveredRoute() && tripService.hoveredPlace()) {
+  <app-place-tooltip [place]="tripService.hoveredPlace"></app-place-tooltip>
 }
 
-@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !hoveredPlace() && hoveredRoute()) {
-  <app-route-tooltip [route]="hoveredRoute"></app-route-tooltip>
+@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !tripService.hoveredPlace() && tripService.hoveredRoute()) {
+  <app-route-tooltip [route]="tripService.hoveredRoute"></app-route-tooltip>
 }
 
 <div style="position: absolute; left: -9999px;">
@@ -36,7 +36,7 @@
     @for (place of trip.placesArray(); track place.id) {
       <app-place-marker
         [place]="place"
-        [hoveredPlace]="hoveredPlace"
+        [hoveredPlace]="tripService.hoveredPlace"
         [selectedVisit]="tripService.selectedVisit"
         [zoom]="zoom">
       </app-place-marker>

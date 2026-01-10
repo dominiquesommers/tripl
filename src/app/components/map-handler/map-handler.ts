@@ -71,15 +71,15 @@ export class MapHandler implements OnInit, OnDestroy {
 
   private markers: Map<string, Marker> = new Map();
 
-  hoveredPlace = signal<Place | null>(null);
-  hoveredRoute = signal<Route | null>(null);
+  // hoveredPlace = signal<Place | null>(null);
+  // hoveredRoute = signal<Route | null>(null);
 
   constructor() {
     effect(() => this.syncUI());
     effect(() => this.syncTheme());
     effect(() => this.syncMarkers());
     effect(() => this.syncRoutes());
-    effect(() => this.syncSelectedPlace());
+    effect(() => this.syncSelectedVisit());
   }
 
   async ngOnInit() {
@@ -89,7 +89,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private async initializeMap() {
-    console.log('INITIALIZE MAP!')
+    console.log('Initialize map.')
     this.mapbox = (await import('mapbox-gl')).default;
     this.mapbox.accessToken = environment.mapboxToken;
 
@@ -102,8 +102,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
     map.on('load', () => {
      this.interactionManager = new MapInteractionManager(
-       map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl,
-       this.hoveredPlace, this.hoveredRoute, this.injector
+       map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.injector
      );
      this.interactionManager.attachGlobalListeners(this.center, this.zoom);
     });
@@ -113,8 +112,7 @@ export class MapHandler implements OnInit, OnDestroy {
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
       if (!this.layerManager) this.layerManager = new MapLayerManager(map, this.authService);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
-        map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl,
-        this.hoveredPlace, this.hoveredRoute, this.injector
+        map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.injector
       );
       await this.iconLoader.loadRouteIcons();
       const currentData = untracked(() => this.tripService.trip()?.routesGeoJson());
@@ -143,14 +141,13 @@ export class MapHandler implements OnInit, OnDestroy {
     this.layerManager?.updateStyle(user, plan);
   }
 
-  private syncSelectedPlace() {
+  private syncSelectedVisit() {
     const selectedPlace = this.tripService.selectedVisit();
     if (!selectedPlace) return;
     this.interactionManager.handleMarkerUnhover();
   }
 
   private syncMarkers() {
-    console.log('syncMarkers.')
     const map = this.map();
     const trip = this.tripService.trip();
     // TODO delete existing markers if no places.
@@ -158,7 +155,6 @@ export class MapHandler implements OnInit, OnDestroy {
     // TODO this should no need a timeout as this.markerElements is a signal, but without, it doesn't seem to work.
     setTimeout(() => {
       const components = this.markerElements();
-      console.log(components?.length, (trip.placesArray() ?? []).length);
       if (!components || components.length === 0) return;
       this.updateMarkers(trip.placesArray() ?? [], components);
     }, 0);
@@ -173,16 +169,13 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private updateMarkers(places: Place[], components: readonly PlaceMarker[]) {
-    console.log('update markers?')
     const map = this.map();
     if (!map || !this.interactionManager) return;
-    console.log('update markers')
     components.forEach((component) => {
       const el = (component as any).elementRef.nativeElement;
       const place = component.place();
       const placeId = place.id;
       if (!this.markers.has(placeId) || true) { // TODO fix this.
-        console.log('create in newly marker');
         const marker = new this.mapbox.Marker({ element: el }).setLngLat([place.lng, place.lat]).addTo(map);
         this.markers.set(placeId, marker);
         component.setResources(this.interactionManager, marker);
