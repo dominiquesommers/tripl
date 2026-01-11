@@ -2,9 +2,22 @@
   <app-map-search [map]="map"></app-map-search>
 }
 
-<div #mapContainer id="map-container"
-     class="map-container"
-     [class.visible]="isMapVisible()">
+<div class="map-wrapper" style="position: relative; width: 100%; height: 100%;">
+  <div #mapContainer id="map-container"
+       class="map-container"
+       [class.visible]="isMapVisible()">
+  </div>
+
+
+  <div class="map-interaction-overlay" [class.active]="tripService.drawingState().active">
+    <div class="hint-toast">
+      @if (tripService.drawingState().preselectedRoute) {
+        Select a destination visit
+      } @else {
+        Select a destination visit or an existing route
+      }
+    </div>
+  </div>
 </div>
 
 @if (tripService.selectedVisit(); as selectedVisit) {
@@ -43,3 +56,16 @@
     }
   }
 </div>
+
+
+@if (selectorVisible()) {
+  <div class="route-type-selector"
+       [style.left.px]="selectorPos().x"
+       [style.top.px]="selectorPos().y">
+    @for (type of availableTypes; track type) {
+      <button class="icon-btn" (click)="$event.stopPropagation(); handleTypeSelection(type)">
+        <lucide-icon [name]="getRouteIcon(type)" [size]="18"></lucide-icon>
+      </button>
+    }
+  </div>
+}

@@ -22,10 +22,11 @@ export class VisitPopup {
   isMenuOpen = signal(false);
   isManagingTraverses = signal(false);
 
+  // TODO move to config.
   private readonly routeIconMap: Record<string, string> = {
-    'flight': 'plane',
+    'flying': 'plane',
     'bus': 'bus',
-    'train': 'train',
+    'train': 'train-front',
     'driving': 'car',
     'boat': 'ship',
   };
@@ -42,7 +43,7 @@ export class VisitPopup {
   }
 
   highlightTraverse(traverse: any) {
-    this.tripService.hoveredRoute.set(traverse.route);
+    this.tripService.hoveredRoute.set(traverse?.route);
   }
 
   clearHighlight() {
@@ -158,11 +159,18 @@ export class VisitPopup {
   }
 
   onRouteClick(event: MouseEvent, route?: Route | null) {
-    event.stopPropagation(); // Prevent the 'moveToTop' click
+    event.stopPropagation();
     console.log('TODO: route clicked.', route);
   }
 
   addNewTraverse() {
-    console.log('TODO: Logic to add a new traverse to the visit')
+    console.log('TODO: Logic to add a new traverse to the visit2');
+    this.tripService.drawingState.set({
+      active: true,
+      sourceVisit: this.visit(),
+      preselectedRoute: undefined
+    });
+
+    this.tripService.selectedVisit.set(null);
   }
 }

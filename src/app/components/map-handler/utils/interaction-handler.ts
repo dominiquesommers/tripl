@@ -1,10 +1,20 @@
 import {TripService} from '../../../services/trip';
 import {UiService} from '../../../services/ui';
-import type { Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup } from 'mapbox-gl';
+import type {Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup, Point} from 'mapbox-gl';
 import {Place} from '../../../models/place';
-import {effect, ElementRef, Injector, runInInjectionContext, Signal, WritableSignal} from '@angular/core';
-import {Route} from '../../../models/route';
+import {
+  effect,
+  ElementRef,
+  HostListener,
+  Injector,
+  runInInjectionContext,
+  signal,
+  Signal,
+  WritableSignal
+} from '@angular/core';
+import {Route, RouteType} from '../../../models/route';
 import {Visit} from '../../../models/visit';
+import {MapHandler} from '../map-handler';
 
 
 export class MapInteractionManager {
@@ -18,6 +28,8 @@ export class MapInteractionManager {
   private routeTooltip?: any;
   private currentRouteTooltipCoords?: LngLatLike | null;
 
+  private selectionResolver: ((type: RouteType | null) => void) | null = null;
+
   constructor(
     private map: MapboxMap,
     private mapbox: any,
@@ -27,6 +39,8 @@ export class MapInteractionManager {
     private activeRoutePopupEL: Signal<ElementRef | undefined>,
     private placeTooltipEl: Signal<ElementRef | undefined>,
     private routeTooltipEl: Signal<ElementRef | undefined>,
+    private selectorVisible: WritableSignal<boolean>,
+    private selectorPos: WritableSignal<{ x: number, y: number }>,
     private injector: Injector
   ) {
     runInInjectionContext(this.injector, () => {
@@ -36,9 +50,10 @@ export class MapInteractionManager {
         if (visit && popupElement) {
           this.syncVisitPopup(visit, popupElement);
           onCleanup(() => {
-            // this.closeActiveVisitPopup();
-            // TODO fix.
+            this.closeActiveVisitPopup();
           });
+        } else if (popupElement) {
+          this.closeActiveVisitPopup();
         }
       });
 
@@ -61,16 +76,41 @@ export class MapInteractionManager {
   }
 
   public attachGlobalListeners(centerSignal: any, zoomSignal: any) {
-    this.map.on('click', () => {
-      this.tripService.selectedVisit.set(null);
-      this.tripService.selectedRoute.set(null);
-      if (this.uiService.isSearchExpanded()) this.uiService.closeSearch();
+    this.map.on('click', (e) => {
+      if (!this.tripService.drawingState().active) {
+        this.tripService.selectedVisit.set(null);
+        this.tripService.selectedRoute.set(null);
+        if (this.uiService.isSearchExpanded()) this.uiService.closeSearch();
+      } else {
+        const features = this.map.queryRenderedFeatures(e.point, {layers: ['route-icons']});
+        if (features.length === 0) {
+          console.log('cancel drawing mode from map click not on a route icon.')
+          this.cancelDrawing();
+        }
+      }
     });
 
     this.map.on('move', () => {
       const center = this.map.getCenter();
       centerSignal.set([center.lng, center.lat]);
       zoomSignal.set(this.map.getZoom());
+    });
+  }
+
+  private toggleMapInteractions(enabled: boolean) {
+    const handlers = [
+      this.map.scrollZoom,
+      this.map.boxZoom,
+      this.map.dragPan,
+      this.map.dragRotate,
+      this.map.keyboard,
+      this.map.doubleClickZoom,
+      this.map.touchZoomRotate
+    ];
+
+    handlers.forEach(handler => {
+      if (enabled) handler.enable();
+      else handler.disable();
     });
   }
 
@@ -132,7 +172,7 @@ export class MapInteractionManager {
       console.log('close visit popup.')
       this.activeVisitPopup.remove();
       this.activeVisitPopup = undefined;
-      this.tripService.selectedVisit.set(null);
+      // this.tripService.selectedVisit.set(null);
       this.handleMarkerUnhover();
     }
   }
@@ -213,7 +253,7 @@ export class MapInteractionManager {
 
   public handleRouteUnhover() {
     this.routeTooltip?.remove();
-    this.map.getCanvas().style.cursor = '';
+    this.map.getCanvas().style.cursor = (this.tripService.drawingState().active) ? 'crosshair' : '';
     this.clearTimers();
     if (this.map.getSource('all-routes')) {
       this.map.removeFeatureState({ source: 'all-routes' });
@@ -222,15 +262,28 @@ export class MapInteractionManager {
 
   public attachLayerListeners() {
     this.map.on('click', ['route-icons'], (e) => {
-      // if (this.tripService.selectedVisit()) return;
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
 
       if (!routeId || featureId === undefined) return;
       const route = this.tripService.trip()?.routes()?.get(routeId);
-      this.tripService.selectedRoute.set(route ?? null);
-      this.currentRoutePopupCoords = e.lngLat;
+
+      if (!this.tripService.drawingState()) {
+        this.tripService.selectedRoute.set(route ?? null);
+        this.currentRoutePopupCoords = e.lngLat;
+      } else if (route) {
+        const targetPlace = route?.target;
+        if (targetPlace && (this.tripService.drawingState().sourceVisit?.place === route?.source)) {
+          this.tripService.drawingState.update(s => ({...s, preselectedRoute: route}));
+          const drawingSource = this.map.getSource('drawing-line') as mapboxgl.GeoJSONSource;
+          if (drawingSource) drawingSource.setData({ type: 'FeatureCollection', features: [] });
+          this.map.getCanvas().style.cursor = 'pointer';
+          console.log('flying to target, drawing state:', this.tripService.drawingState().active)
+          this.map.flyTo({center: [targetPlace.lng, targetPlace.lat], zoom: Math.max(this.map.getZoom(), 7), essential: true});
+          this.toggleMapInteractions(false);
+        }
+      }
     });
 
     this.map.on('mouseenter', ['route-icons'], (e) => {
@@ -251,6 +304,60 @@ export class MapInteractionManager {
       this.tripService.hoveredRoute.set(null);
       this.currentRouteTooltipCoords = null;
     });
+
+    this.map.on('mousemove', (e) => {
+      const state = this.tripService.drawingState();
+      const sourcePlace = state.sourceVisit?.place;
+      if (!state.active || !sourcePlace || state.preselectedRoute || this.selectorVisible()) return;
+
+      const mousePos = [e.lngLat.lng, e.lngLat.lat];
+      const source = this.map.getSource('drawing-line') as GeoJSONSource;
+      if (source) {
+        source.setData({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [[sourcePlace.lng, sourcePlace.lat], mousePos]
+          },
+          properties: {}
+        });
+      }
+    });
+  }
+
+  async showRouteTypeSelector(point: { x: number, y: number }) {
+    const source = this.map.getSource('drawing-line') as GeoJSONSource;
+    const sourcePlace = this.tripService.drawingState().sourceVisit?.place
+    const targetPlace = this.tripService.drawingState().targetVisit?.place
+    if (source && sourcePlace && targetPlace) {
+      source.setData({ type: 'Feature', geometry: { type: 'LineString',
+          coordinates: [[sourcePlace.lng, sourcePlace.lat], [targetPlace.lng, targetPlace.lat]]
+        }, properties: {} });
+    }
+    this.selectorPos.set(point);
+    this.selectorVisible.set(true);
+    this.toggleMapInteractions(false);
+  }
+
+  handleTypeSelection(type: RouteType) {
+    const state = this.tripService.drawingState();
+    if (state.sourceVisit && state.targetVisit) {
+      this.tripService.createTraverse(type, state.sourceVisit.id, state.targetVisit.id);
+      this.cancelDrawing();
+    }
+  }
+
+  cancelDrawing() {
+    // If the selector was open, resolve the promise so the 'await' finishes
+    console.log('CLEARING RESOLVER (CANCEL)');
+    if (this.selectionResolver) {
+      this.selectionResolver(null);
+      this.selectionResolver = null;
+    }
+
+    this.tripService.drawingState.set({ active: false, sourceVisit: null });
+    this.selectorVisible.set(false);
+    this.toggleMapInteractions(true);
   }
 
   private clearTimers() {

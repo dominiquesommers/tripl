@@ -2,6 +2,7 @@ import { Country, ICountry } from './country';
 import { Season } from './season';
 import { TripService } from '../services/trip';
 import { signal, computed } from '@angular/core';
+import {LngLatLike} from 'mapbox-gl';
 
 
 export interface IPlace {
@@ -39,6 +40,7 @@ export class Place {
   food_cost= signal<number>(0);
   miscellaneous_cost = signal<number>(0);
 
+  readonly coordinates: LngLatLike = [this.lng, this.lat];
   readonly visits = computed(() =>
     this.tripService.plan()?.visitsArray().filter(v => v.place_id === this.id) ?? []
   );

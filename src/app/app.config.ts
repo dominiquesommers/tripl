@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, importProvidersFrom } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { LucideAngularModule, ArrowUpRight, Plane, MapPin, Moon, Trash2, Bus, Car, Ship, Footprints, Milestone,
+import { LucideAngularModule, ArrowUpRight, Plane, MapPin, Moon, Trash2, TrainFront, Bus, Car, Ship, Footprints, Milestone,
   MoreVertical, Settings2, ArrowLeft, GripVertical, Check, X, Eye, EyeOff, MapPinCheck, MapPinX, MapPinMinus, MapPinPlus,
   MapPinOff, ChevronUp, ChevronDown, Plus} from 'lucide-angular';
 
@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
       LucideAngularModule.pick({
         Plane, MapPin, Moon, Trash2, Bus, Car, Ship, Footprints, Milestone, ChevronUp, ChevronDown, Plus,
         MoreVertical, ArrowUpRight, Settings2, ArrowLeft, GripVertical, Check, X, Eye, EyeOff, MapPinCheck, MapPinX,
-        MapPinMinus, MapPinPlus, MapPinOff
+        MapPinMinus, MapPinPlus, MapPinOff, TrainFront
       })
     )
   ]

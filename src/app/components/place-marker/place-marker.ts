@@ -5,6 +5,7 @@ import {MapInteractionManager} from '../map-handler/utils/interaction-handler';
 import {Marker} from 'mapbox-gl';
 import {UiService} from '../../services/ui';
 import {TripService} from '../../services/trip';
+import {RouteType} from '../../models/route';
 
 @Component({
   selector: 'app-place-marker',
@@ -34,19 +35,39 @@ export class PlaceMarker {
   private uiService = inject(UiService);
   private tripService = inject(TripService);
 
-  handleVisitClick(event: MouseEvent, visit: Visit) {
+  async handleVisitClick(event: MouseEvent, visit: Visit) {
     event.stopPropagation();
-    const marker = this.marker();
-    if (!marker) return;
-    this.interactionManager.handleOpenVisitPopup(visit, marker);
-    if (this.uiService.isSearchExpanded()) {
-      this.uiService.closeSearch();
+    const state = this.tripService.drawingState();
+
+    console.log('clicked visit, drawing state:', state.active);
+
+    if (!state.active) {
+      // Normal behavior: Open popup
+      const marker = this.marker();
+      if (marker) {
+        this.interactionManager.handleOpenVisitPopup(visit, marker);
+        if (this.uiService.isSearchExpanded()) {
+          this.uiService.closeSearch();
+        }
+      }
+      return;
+    }
+
+    // --- DRAWING MODE ACTIVE ---
+    const point = { x: event.clientX, y: event.clientY };
+    if (visit.id === state.sourceVisit?.id) return;
+    if (state.preselectedRoute && (state.preselectedRoute?.target === visit.place)) {
+      await this.tripService.createTraverse(state.preselectedRoute.type(), state.sourceVisit?.id, visit.id);
+      this.interactionManager.cancelDrawing();
+    } else {
+      this.tripService.drawingState.update(s => ({ ...s, targetVisit: visit }));
+      await this.interactionManager.showRouteTypeSelector(point);
     }
   }
 
   async handleAddClick(event: MouseEvent) {
     event.stopPropagation();
-    //TODO implement properly.
+    //TODO check for drawing mode.
     console.log('Add new visit.')
     try {
       const plan = this.tripService.plan();

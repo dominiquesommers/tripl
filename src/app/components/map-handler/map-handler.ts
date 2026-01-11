@@ -22,13 +22,13 @@ import { PlaceMarker } from '../place-marker/place-marker';
 import { PlaceTooltip } from '../place-tooltip/place-tooltip';
 import { RouteTooltip } from '../route-tooltip/route-tooltip';
 import type { Map as MapboxMap, GeoJSONSource, Marker, Popup } from 'mapbox-gl';
-import {Route} from '../../models/route';
+import {Route, RouteType} from '../../models/route';
 import { environment } from '../../../environments/environment';
 import {MapLayerManager} from './utils/layer-factory';
 import {IconLoader} from './utils/icon-loader';
 import {MapInteractionManager} from './utils/interaction-handler';
 
-import { MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM } from './config/map-styles.config';
+import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICONS} from './config/map-styles.config';
 import { MapSearch } from '../map-search/map-search';
 import {RoutePopup} from '../route-popup/route-popup';
 
@@ -37,7 +37,8 @@ import {RoutePopup} from '../route-popup/route-popup';
   selector: 'app-map',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
+  imports: [CommonModule, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule,
+    MapSearch],
   templateUrl: './map-handler.html',
   styleUrls: ['./map-handler.css']
 })
@@ -65,11 +66,23 @@ export class MapHandler implements OnInit, OnDestroy {
   routePopupEl = viewChild(RoutePopup, {read: ElementRef});
   placeTooltipEl = viewChild(PlaceTooltip, { read: ElementRef });
   routeTooltipEl = viewChild(RouteTooltip, { read: ElementRef });
+  selectorVisible = signal(false);
+  selectorPos = signal({ x: 0, y: 0 });
 
   isMapVisible = signal(false);
   layersReady = signal(false);
 
   private markers: Map<string, Marker> = new Map();
+
+  // TODO move to config.
+  private readonly routeIconMap: Record<string, string> = {
+    'flying': 'plane',
+    'bus': 'bus',
+    'train': 'train-front',
+    'driving': 'car',
+    'boat': 'ship',
+  };
+  readonly availableTypes: RouteType[] = ['flying', 'bus', 'train', 'driving', 'boat'];
 
   // hoveredPlace = signal<Place | null>(null);
   // hoveredRoute = signal<Route | null>(null);
@@ -80,6 +93,7 @@ export class MapHandler implements OnInit, OnDestroy {
     effect(() => this.syncMarkers());
     effect(() => this.syncRoutes());
     effect(() => this.syncSelectedVisit());
+    effect(() => this.syncDrawer());
   }
 
   async ngOnInit() {
@@ -97,12 +111,14 @@ export class MapHandler implements OnInit, OnDestroy {
       container: this.mapContainer().nativeElement,
       style: `mapbox://styles/mapbox/${MAP_STYLES.LOGGED_OUT}`,
       center: this.center(),
-      zoom: this.zoom()
+      zoom: this.zoom(),
+      config: { basemap: { lightPreset: 'night' } }
     });
 
     map.on('load', () => {
      this.interactionManager = new MapInteractionManager(
-       map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.injector
+       map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl,
+       this.placeTooltipEl, this.routeTooltipEl, this.selectorVisible, this.selectorPos, this.injector
      );
      this.interactionManager.attachGlobalListeners(this.center, this.zoom);
     });
@@ -112,7 +128,8 @@ export class MapHandler implements OnInit, OnDestroy {
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
       if (!this.layerManager) this.layerManager = new MapLayerManager(map, this.authService);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
-        map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl, this.placeTooltipEl, this.routeTooltipEl, this.injector
+        map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl,
+        this.placeTooltipEl, this.routeTooltipEl, this.selectorVisible, this.selectorPos, this.injector
       );
       await this.iconLoader.loadRouteIcons();
       const currentData = untracked(() => this.tripService.trip()?.routesGeoJson());
@@ -123,6 +140,24 @@ export class MapHandler implements OnInit, OnDestroy {
     });
 
     this.map.set(map);
+  }
+
+  private syncDrawer() {
+    const state = this.tripService.drawingState();
+    const isReady = this.layersReady();
+    const map = this.map();
+    if (!isReady || !map) return; // TODO handle via layerManager
+    if (state.active) {
+      map.getCanvas().style.cursor = 'crosshair';
+      // Show the layer/source we'll use for drawing
+      map.setLayoutProperty('drawing-line-layer', 'visibility', 'visible');
+    } else {
+      map.getCanvas().style.cursor = '';
+      map.setLayoutProperty('drawing-line-layer', 'visibility', 'none');
+      // Clear the line data
+      const source = map.getSource('drawing-line') as GeoJSONSource;
+      source?.setData({ type: 'FeatureCollection', features: [] });
+    }
   }
 
   private syncUI() {
@@ -168,6 +203,13 @@ export class MapHandler implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('window:keydown.escape', ['$event'])
+  handleEsc(event: any) {
+    if (this.tripService.drawingState().active) {
+      this.interactionManager?.cancelDrawing();
+    }
+  }
+
   private updateMarkers(places: Place[], components: readonly PlaceMarker[]) {
     const map = this.map();
     if (!map || !this.interactionManager) return;
@@ -192,18 +234,22 @@ export class MapHandler implements OnInit, OnDestroy {
     });
   }
 
+  handleTypeSelection(type: RouteType) {
+    this.interactionManager.handleTypeSelection(type);
+  }
+
   handlePlaceSave(updatePlace: UpdatePlace) {
     console.log('place saved from its popup.', updatePlace);
     // this.tripService.savePlace(place);
     // Optionally close the popup after save
-    this.interactionManager.closeActiveVisitPopup();
+    this.tripService.selectedVisit.set(null);
   }
 
   handleVisitDelete(visitId: string) {
     console.log('visit deleted from its popup.');
     if (confirm('Are you sure?')) {
       // this.tripService.deletePlace(place);
-      this.interactionManager.closeActiveVisitPopup();
+      this.tripService.selectedVisit.set(null);
     }
   }
 
@@ -220,6 +266,11 @@ export class MapHandler implements OnInit, OnDestroy {
       // this.tripService.deletePlace(place);
       this.interactionManager.closeActiveRoutePopup();
     }
+  }
+
+  getRouteIcon(type: string | undefined | null): string {
+    if (!type) return 'milestone';
+    return this.routeIconMap[type.toLowerCase()] || 'milestone';
   }
 
   ngOnDestroy() {

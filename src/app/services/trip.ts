@@ -11,7 +11,15 @@ import {Place, NewPlace, UpdatePlace, IPlace, IPlaceWithCountry} from '../models
 import { NewVisit, Visit } from '../models/visit';
 import { AuthService } from './auth';
 import {Traverse} from '../models/traverse';
-import {Route} from '../models/route';
+import {Route, RouteType} from '../models/route';
+import {ROUTE_ICONS} from '../components/map-handler/config/map-styles.config';
+
+export type DrawingState = {
+  active: boolean;
+  sourceVisit: Visit | null;
+  targetVisit?: Visit | null;
+  preselectedRoute?: Route;
+};
 
 @Injectable({ providedIn: 'root' })
 export class TripService {
@@ -33,6 +41,7 @@ export class TripService {
   readonly hoveredPlace: WritableSignal<Place | null> = signal(null);
   readonly selectedRoute: WritableSignal<Route | null> = signal(null);
   readonly hoveredRoute: WritableSignal<Route | null> = signal(null);
+  drawingState = signal<DrawingState>({ active: false, sourceVisit: null });
 
   constructor() {
     effect(() => {
@@ -184,6 +193,10 @@ export class TripService {
     const newVisit = new Visit({id: 'new', ...data}, this);
     plan.addVisit(newVisit);
     return newVisit;
+  }
+
+  async createTraverse(routeType: RouteType, sourceId?: string, targetId?: string) {
+    console.log(`TODO: create traverse from ${sourceId} to ${targetId} by ${routeType}`);
   }
 
   private persist<T>(

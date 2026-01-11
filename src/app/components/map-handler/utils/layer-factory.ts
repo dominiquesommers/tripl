@@ -147,6 +147,32 @@ export class MapLayerManager {
           ]
         }
       });
+
+      if (!this.map.getSource('drawing-line')) {
+        this.map.addSource('drawing-line', {
+          type: 'geojson',
+          data: {type: 'FeatureCollection', features: []}
+        });
+      }
+
+      if (!this.map.getLayer('drawing-line')) {
+        this.map.addLayer({
+          id: 'drawing-line-layer',
+          type: 'line',
+          source: 'drawing-line',
+          layout: {
+            'line-cap': 'round',
+            'line-join': 'round',
+            'visibility': 'none' // Hidden by default
+          },
+          paint: {
+            'line-color': '#252525',
+            'line-width': 3,
+            'line-dasharray': [2, 2], // Creates the dashed effect
+            'line-opacity': 0.6
+          }
+        });
+      }
     }
 
     // 4. THE HIGHLIGHT ICON LAYER (The "Pop" layer)
