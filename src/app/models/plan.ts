@@ -56,6 +56,13 @@ export class Plan {
     return sequence;
   });
 
+  readonly itineraryTraverses = computed(() => {
+    const itinerary = this.itinerary() ?? [];
+    return itinerary
+      .map(v => v.nextTraverse())
+      .filter((t): t is Traverse => !!t);
+  });
+
   constructor(data: IPlan, visits: Visit[], traverses: Traverse[]) {
     this.id = data.id;
     this.trip_id = data.trip_id;

@@ -44,6 +44,30 @@ export class MapInteractionManager {
     private injector: Injector
   ) {
     runInInjectionContext(this.injector, () => {
+      effect(() => {
+        const plan = this.tripService.plan();
+        // const itineraryTraverses = plan?.visitsArray()
+        //   .map(visit => visit.nextTraverse())
+        //   .filter(traverse => !!traverse) ?? [];
+        const itineraryTraverses = plan?.itineraryTraverses() ?? [];
+        const itineraryRouteIds = new Set(itineraryTraverses.map(traverse => traverse.route?.id));
+        const map = this.map;
+        if (!map) return;
+        // TODO check if the timeout can be avoided.
+        setTimeout(() => {
+          if (!map.getSource('all-routes')) return;
+          const allRoutes = this.tripService.trip()?.routes() ?? new Map();
+          allRoutes.forEach((route, id) => {
+            const isActive = itineraryRouteIds.has(id);
+            console.log('route', id, isActive);
+            map.setFeatureState(
+              { source: 'all-routes', id: id },
+              { disabled: !isActive }
+            );
+          });
+        }, 200);
+      });
+
       effect((onCleanup) => {
         const visit = this.tripService.selectedVisit();
         const popupElement = this.activeVisitPopupEL();
@@ -65,10 +89,11 @@ export class MapInteractionManager {
 
       effect((onCleanup) => {
         const hoveredRoute = this.tripService.hoveredRoute();
+        const routeToCleanup = hoveredRoute;
         if (hoveredRoute) {
           this.handleRouteHover(hoveredRoute);
           onCleanup(() => {
-            this.handleRouteUnhover();
+            this.handleRouteUnhover(routeToCleanup);
           });
         }
       });
@@ -251,13 +276,17 @@ export class MapInteractionManager {
     }, 120);
   }
 
-  public handleRouteUnhover() {
+  public handleRouteUnhover(route: Route | null) {
+    const routeId = route?.id;
+    if (routeId) {
+      this.map.setFeatureState(
+        { source: 'all-routes', id: routeId },
+        { hover: false }
+      );
+    }
     this.routeTooltip?.remove();
     this.map.getCanvas().style.cursor = (this.tripService.drawingState().active) ? 'crosshair' : '';
     this.clearTimers();
-    if (this.map.getSource('all-routes')) {
-      this.map.removeFeatureState({ source: 'all-routes' });
-    }
   }
 
   public attachLayerListeners() {

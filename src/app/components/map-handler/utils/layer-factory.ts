@@ -72,13 +72,15 @@ export class MapLayerManager {
         paint: {
           'line-width': [
             'case',
-            ['boolean', ['feature-state', 'hover'], false], 6, // Thicker on hover
-            2.4                                              // Normal width
+            ['boolean', ['feature-state', 'hover'], false], 6,
+            ['boolean', ['feature-state', 'disabled'], false], 1.5,
+            2.4
           ],
           'line-color': ROUTE_COLOR_EXPRESSION,
           'line-opacity': [
             'case',
-            ['boolean', ['feature-state', 'disabled'], false], 0.1,
+            ['boolean', ['feature-state', 'hover'], false], 0.8,
+            ['boolean', ['feature-state', 'disabled'], false], 0.2,
             0.8
           ]
         }
@@ -106,9 +108,9 @@ export class MapLayerManager {
           'icon-color': 'rgba(45, 45, 50, 0.85)', // ROUTE_COLOR_EXPRESSION
           'icon-opacity': [
             'case',
-            ['boolean', ['feature-state', 'disabled'], false], 0.2,
-            // ['boolean', ['feature-state', 'hover'], false], 0,
-            1
+            ['boolean', ['feature-state', 'hover'], false], 1,
+            ['boolean', ['feature-state', 'disabled'], false], 0.1,
+            0.8
           ]
         }
       });
@@ -138,12 +140,17 @@ export class MapLayerManager {
           'icon-rotation-alignment': 'viewport',
         },
         paint: {
-          'icon-color': '#ffffff',
+          'icon-color': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false], '#ffffff',
+            ['boolean', ['feature-state', 'disabled'], false], '#323232',
+            '#ffffff'
+          ],
           'icon-opacity': [
             'case',
+            ['boolean', ['feature-state', 'hover'], false], 1,
             ['boolean', ['feature-state', 'disabled'], false], 0.2,
-            // ['boolean', ['feature-state', 'hover'], false], 0, // Hide base icon when hovered
-            1
+            0.8
           ]
         }
       });
