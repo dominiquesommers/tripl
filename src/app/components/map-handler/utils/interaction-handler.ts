@@ -59,13 +59,12 @@ export class MapInteractionManager {
           const allRoutes = this.tripService.trip()?.routes() ?? new Map();
           allRoutes.forEach((route, id) => {
             const isActive = itineraryRouteIds.has(id);
-            console.log('route', id, isActive);
             map.setFeatureState(
               { source: 'all-routes', id: id },
               { disabled: !isActive }
             );
           });
-        }, 200);
+        }, 500);
       });
 
       effect((onCleanup) => {
@@ -152,6 +151,7 @@ export class MapInteractionManager {
          return;
       }
       this.activeVisitPopup = new this.mapbox.Popup({
+        maxWidth: '320px',
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
@@ -217,7 +217,7 @@ export class MapInteractionManager {
     this.tripService.hoveredPlace.set(place);
     this.hoveredMarker = marker;
     if (place.visits()?.length > 0) {
-      this.hoveredMarker?.setOffset([10, 0]);
+      this.hoveredMarker?.setOffset([8, 0]);
     }
 
     this.hoverTimer = setTimeout(() => {

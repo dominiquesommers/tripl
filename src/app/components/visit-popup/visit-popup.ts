@@ -1,15 +1,17 @@
-import {Component, computed, inject, input, output, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';import { Visit } from '../../models/visit';
 import {TripService} from '../../services/trip';
 import {Traverse} from '../../models/traverse';
 import {CommonModule} from '@angular/common';
 import {Route} from '../../models/route';
+import {CdkTextareaAutosize} from '@angular/cdk/text-field';
+import {ROUTE_COLORS} from '../map-handler/config/map-styles.config';
 
 @Component({
   selector: 'app-visit-popup',
   standalone: true,
-  imports: [LucideAngularModule, DragDropModule, CommonModule ],
+  imports: [LucideAngularModule, DragDropModule, CommonModule, CdkTextareaAutosize ],
   templateUrl: './visit-popup.html',
   styleUrl: './visit-popup.css',
 })
@@ -19,8 +21,9 @@ export class VisitPopup {
   visit = input.required<Visit>();
   onSave = output<{id: string, name: string}>();
   onDelete = output<string>();
-  isMenuOpen = signal(false);
+  // isMenuOpen = signal(false);
   isManagingTraverses = signal(false);
+  isManagingRentUntil = signal(false);
 
   // TODO move to config.
   private readonly routeIconMap: Record<string, string> = {
@@ -31,9 +34,28 @@ export class VisitPopup {
     'boat': 'ship',
   };
 
-  toggleManager(event: MouseEvent) {
+  constructor() {
+    effect(() => {
+      this.visit();
+      this.isManagingTraverses.set(false);
+      this.isManagingRentUntil.set(false);
+      // this.isMenuOpen.set(false);
+    });
+  }
+
+  toggleManagingTraverses(event: MouseEvent) {
     event.stopPropagation(); // Prevents flyTo when clicking the edit icon
     this.isManagingTraverses.update(v => !v);
+  }
+
+  toggleManagingRentUntil(event: MouseEvent) {
+    event.stopPropagation(); // Prevents flyTo when clicking the edit icon
+    this.isManagingRentUntil.update(v => !v);
+  }
+
+  setRentUntil(traverse: Traverse) {
+    console.log('TODO set rent until', traverse.target);
+    // nextLeg()?.traverse?.rent_until.set(t.target_visit_id)
   }
 
   onFlyTo(place: any) {
@@ -50,6 +72,15 @@ export class VisitPopup {
     this.tripService.hoveredRoute.set(null);
   }
 
+  toggleAccommodation(traverse: Traverse) {
+    console.log('toggleAccommodation', traverse);
+    traverse.includes_accommodation.set(!traverse.includes_accommodation());
+  }
+
+  toggleRentSelector() {
+    console.log('toggleRentSelector')
+  }
+
   // toggleMenu(event: MouseEvent) {
   //   event.preventDefault(); // Stop native context menu
   //   this.isMenuOpen.update(v => !v);
@@ -58,6 +89,12 @@ export class VisitPopup {
   getRouteIcon(type: string | undefined | null): string {
     if (!type) return 'milestone';
     return this.routeIconMap[type.toLowerCase()] || 'milestone';
+  }
+
+  getRouteColor(type: string | undefined | null): string {
+    if (!type) return ROUTE_COLORS.undefined;
+    // @ts-ignore
+    return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
   }
 
   previousLeg = computed(() => {
@@ -84,8 +121,47 @@ export class VisitPopup {
     console.log('save place name');
   }
 
-  saveNights(newNight: string) {
-    console.log('save nights');
+  onNightsInputKeyDown(event: KeyboardEvent) {
+    if (['e', 'E', '.', '-'].includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  handleNightsInputPaste(event: ClipboardEvent) {
+    const clipboardData = event.clipboardData;
+    const pastedText = clipboardData?.getData('text');
+    if (pastedText && !/^\d+$/.test(pastedText)) {
+      event.preventDefault();
+      const sanitizedValue = (pastedText === '' || isNaN(parseInt(pastedText)))
+      ? 0 : Math.max(0, Math.floor(Number(pastedText)));
+      document.execCommand('insertText', false, sanitizedValue.toString());
+    }
+  }
+
+  saveNights(input: HTMLInputElement) {
+    const rawValue = input.value;
+    const sanitizedValue = (rawValue === '' || isNaN(parseInt(rawValue)))
+      ? 0 : Math.max(0, Math.floor(Number(rawValue)));
+    input.value = sanitizedValue.toString();
+    if (sanitizedValue !== this.visit().nights()) {
+      // TODO handle this via the tripService
+      this.visit().nights.set(sanitizedValue); // this.tripService.updateVisitNights(this.visit().id, val);
+    }
+  }
+
+  adjustNights(delta: number) {
+    const current = this.visit().nights();
+    const next = Math.max(0, current + delta);
+
+    if (next !== current) {
+      // We update the signal directly or via your existing save logic
+      // If your saveNights(input) expects the HTML element:
+      const input = document.querySelector('.nights-val') as HTMLInputElement;
+      if (input) {
+        input.value = next.toString();
+        this.saveNights(input);
+      }
+    }
   }
 
   handleDrop(event: CdkDragDrop<any[]>) {
@@ -120,7 +196,7 @@ export class VisitPopup {
   }
 
   moveToTop(traverse: any) {
-    console.log('TODO: move to top', traverse.source_visit_id, traverse.source_target_id);
+    console.log('TODO: move to top', traverse.source_visit_id, traverse.target_visit_id);
     // Check if it's already at the top to avoid unnecessary calls
     // if (this.visit().outgoingTraverses()[0].id === traverse.id) return;
     //

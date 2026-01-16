@@ -74,7 +74,7 @@ export class MapLayerManager {
             'case',
             ['boolean', ['feature-state', 'hover'], false], 6,
             ['boolean', ['feature-state', 'disabled'], false], 1.5,
-            2.4
+            3 //2.4
           ],
           'line-color': ROUTE_COLOR_EXPRESSION,
           'line-opacity': [

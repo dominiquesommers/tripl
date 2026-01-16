@@ -1,153 +1,393 @@
-<div class="visit-card" [class.managing]="isManagingTraverses()">
+<div class="visit-card" [class.managing]="isManagingTraverses() || isManagingRentUntil()">
   <span tabindex="0" class="sr-only"></span>
 
-  @if (!isManagingTraverses()) {
-    <div class="view-stack">
-      <div class="row-slot top">
-        @if (previousLeg(); as leg) {
-          <div class="leg-row secondary nav-row" [class.planned]="leg.planned"
-               (click)="onFlyTo(leg.traverse.source?.place)"
-               (mouseenter)="highlightTraverse(leg?.traverse)"
+  <div class="view-wrapper">
+    @if (!isManagingTraverses() && !isManagingRentUntil()) {
+      <div class="view-animate">
+        <div class="view-stack">
+          <!-- 1. TOP ROW: PREVIOUS LEG (60px) -->
+          <!-- Left Column: Spine -->
+          <div class="spine-cell">
+            @if (previousLeg(); as leg) {
+              <!-- Line is always present, active if driving -->
+              @if (leg.traverse.route?.type() === 'driving') {
+                <div class="spine-line top-third dashed"
+                     [style.background-color]="getRouteColor(undefined)"
+                     [class.active]="!!leg"></div>
+                <div class="spine-line middle-third dashed"
+                     [style.background-color]="getRouteColor(leg?.traverse?.route?.type())"
+                     [class.active]="!!leg"></div>
+                <div class="spine-line bottom-third"
+                     [style.background-color]="getRouteColor(leg?.traverse?.route?.type())"
+                     [class.active]="!!leg"></div>
+              } @else {
+                <div class="spine-line top-half dashed"
+                     [style.background-color]="getRouteColor(undefined)"
+                     [class.active]="!!leg"></div>
+                <div class="spine-line bottom-half"
+                     [style.background-color]="getRouteColor(leg?.traverse?.route?.type())"
+                     [class.active]="!!leg"></div>
+              }
+
+              @if (leg.traverse.route?.type() === 'driving') {
+                <!-- Option 3: Driving (Split Spine) -->
+                <div class="spine-split">
+                  <div class="subrow-30 spine-center">
+                    <div class="node-small"></div>
+                  </div>
+                  <div class="subrow-30 spine-center">
+                    <div class="node-small"></div>
+                  </div>
+                </div>
+              } @else {
+                <!-- Option 2: Not Driving (Single Node) -->
+                <div class="spine-split">
+                  <div class="full-row-content spine-center">
+                    <div class="node-small"></div>
+                  </div>
+                </div>
+              }
+
+              <!-- Transport Icon between rows (at bottom edge) -->
+              <div class="transport-icon"
+                   [style.top]="leg?.traverse?.route?.type() === 'driving' ? '112%' : '100%'"
+                   [style.background-color]="getRouteColor(leg.traverse.route?.type())"
+                   (click)="onRouteClick($event, leg.traverse.route)">
+                <lucide-icon [name]="getRouteIcon(leg.traverse.route?.type())" [size]="16"></lucide-icon>
+              </div>
+            }
+          </div>
+
+          <!-- Right Column: Content -->
+          <div class="content-cell"
+               (click)="onFlyTo(previousLeg()?.traverse?.source?.place)"
+               (mouseenter)="highlightTraverse(previousLeg()?.traverse)"
                (mouseleave)="clearHighlight()">
-            <div class="route-info prevnext" (click)="onRouteClick($event, leg?.traverse?.route)">
-              <lucide-icon [name]="getRouteIcon(leg.traverse.route?.type())" [size]="18"></lucide-icon>
-              <div class="details">
-                <span>{{ leg.traverse.route?.duration() }} h</span>
+            @if (previousLeg(); as leg) {
+              @if (leg.traverse.route?.type() === 'driving') {
+                <!-- Option 3: Split Content -->
+                <div class="split-row">
+                  <div class="subrow-30 hoverable-row top">
+                    <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting from: {{ 'Placeholder' }}</span>
+                  </div>
+                  <div class="subrow-30 hoverable-row">
+                    <span class="text-truncate" style="font-weight: 500; font-size: 13px;">From: {{ leg.traverse.source?.place?.name() }}</span>
+                  </div>
+                </div>
+              } @else {
+                <!-- Option 2: Single Content -->
+                <div class="full-row-content subrow-30 hoverable-row">
+                  <span class="text-truncate" style="font-weight: 500; font-size: 13px;">From: {{ leg.traverse.source?.place?.name() }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- 2. MIDDLE ROW: CURRENT VISIT (80px) -->
+          <!-- Left Column: Spine + MapPin -->
+          <div class="spine-cell">
+            <!-- Top Half Line: Only if previous leg exists -->
+            @if (previousLeg()) {
+              <div class="spine-line top-half"
+                   [style.background-color]="getRouteColor(previousLeg()?.traverse?.route?.type())"
+                   [class.active]="!!previousLeg()"></div>
+            }
+            <!-- Bottom Half Line: Only if next leg exists -->
+            @if (nextLeg()) {
+              <div class="spine-line bottom-half"
+                   [style.background-color]="getRouteColor(nextLeg()?.traverse?.route?.type())"
+                   [class.active]="!!nextLeg()"></div>
+            }
+
+            <div class="spine-center full-row-content">
+              <div class="node-icon main-pin" (click)="toggleIncluded()">
+                @if (!visit().included()) {
+                  <lucide-icon name="map-pin-off" [size]="20" class="gray"></lucide-icon>
+                } @else if (!visit().entryDate()) {
+                  <lucide-icon name="map-pin-minus" [size]="20" class="yellow"></lucide-icon>
+                } @else {
+                  <lucide-icon name="map-pin-check" [size]="20" class="blue"></lucide-icon>
+                }
               </div>
             </div>
-            <div class="place-name">{{ leg.traverse.source?.place?.name() }}</div>
           </div>
-        }
-      </div>
 
-      <div class="leg-row primary"
-          [class.planned]="visit().included() && visit().entryDate()"
-          [class.draft]="visit().included() && !visit().entryDate()"
-          [class.excluded]="!visit().included()">
+          <!-- Right Column: Visit Info -->
+          <div class="content-cell middle-content">
+            <!-- Line 1: Name + Nights -->
+            <div class="line-2">
+            </div>
+            <div class="line-1">
+              <textarea #nameInput
+                     class="name-input-editable"
+                     cdkTextareaAutosize
+                     cdkAutosizeMinRows="1"
+                     cdkAutosizeMaxRows="2"
+                     (keydown.enter)="$event.preventDefault(); nameInput.blur()"
+                     (blur)="onSave.emit({id: visit().id, name: nameInput.value})">{{ visit().place?.name() }}</textarea>
 
-        <div class="route-info">
-          <button class="icon-btn pin-toggle" (click)="toggleIncluded()">
-            @if (!visit().included()) {
-              <lucide-icon name="map-pin-off" [size]="24" class="main-icon gray"></lucide-icon>
-            } @else if (!visit().entryDate()) {
-              <lucide-icon name="map-pin-minus" [size]="24" class="main-icon yellow"></lucide-icon>
-            } @else {
-              <lucide-icon name="map-pin-check" [size]="24" class="main-icon blue"></lucide-icon>
+              <div class="nights-badge">
+                <input #nightsInput type="number"
+                       min="0"
+                       step="1"
+                       [value]="visit().nights()"
+                       class="nights-val"
+                       (keydown)="onNightsInputKeyDown($event)"
+                       (paste)="handleNightsInputPaste($event)"
+                       (blur)="saveNights(nightsInput)"
+                       (keydown.enter)="$event.preventDefault(); nightsInput.blur()" />
+
+                <div class="icon-stack">
+                  <lucide-icon name="moon" [size]="18" class="moon-icon"></lucide-icon>
+
+                  <div class="stepper-controls">
+                    <button class="step-btn" (click)="adjustNights(1)" type="button">
+                      <lucide-icon name="chevron-up" [size]="14"></lucide-icon>
+                    </button>
+                    <button class="step-btn"
+                            [style.visibility]="visit().nights() > 0 ? 'visible' : 'hidden'"
+                            (click)="adjustNights(-1)" type="button">
+                      <lucide-icon name="chevron-down" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+<!--                <lucide-icon name="moon" [size]="18" class="moon-icon"></lucide-icon>-->
+              </div>
+            </div>
+
+            <!-- Line 2: Dates + Delete -->
+            <div class="line-2">
+              <div class="date-text">
+                @if (visit().included() && visit().entryDate()) {
+                  {{ visit().entryDateString() }} – {{ visit().exitDateString() }}
+                } @else {
+                  <span class="unscheduled-label">Not in itinerary</span>
+                }
+              </div>
+              <div class="delete-btn-wrapper">
+                <button class="icon-btn delete" (click)="onDelete.emit(visit().id)">
+                  <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. BOTTOM ROW: NEXT LEG (60px) -->
+          <!-- Left Column: Spine -->
+          <div class="spine-cell">
+            @if (nextLeg(); as leg) {
+              <!-- Transport Icon between rows (at top edge) -->
+              <div class="transport-icon"
+                   [style.top]="leg?.traverse?.route?.type() === 'driving' ? '-12%' : '0%'"
+                   [style.background-color]="getRouteColor(leg.traverse.route?.type())"
+                   (click)="onRouteClick($event, leg.traverse.route)">
+                <lucide-icon [name]="getRouteIcon(leg.traverse.route?.type())" [size]="16"></lucide-icon>
+              </div>
+
+              @if (leg.traverse.route?.type() === 'driving') {
+                <div class="spine-line top-third"
+                     [style.background-color]="getRouteColor(leg?.traverse?.route?.type())"
+                     [class.active]="!!leg"></div>
+                <div class="spine-line middle-third dashed"
+                     [style.background-color]="getRouteColor(leg?.traverse?.route?.type())"
+                     [class.active]="!!leg"></div>
+                <div class="spine-line bottom-third dashed"
+                     [style.background-color]="getRouteColor(undefined)"
+                     [class.active]="!!leg"></div>
+              } @else {
+                <div class="spine-line top-half"
+                     [style.background-color]="getRouteColor(leg?.traverse?.route?.type())"
+                     [class.active]="!!leg"></div>
+                <div class="spine-line bottom-half dashed"
+                     [style.background-color]="getRouteColor(undefined)"
+                     [class.active]="!!leg"></div>
+              }
+
+              @if (leg.traverse.route?.type() === 'driving') {
+                <div class="spine-split">
+                  <div class="subrow-30 spine-center">
+                    <div class="node-small"></div>
+                  </div>
+                  <div class="subrow-30 spine-center">
+                    <div class="node-small"></div>
+                  </div>
+                </div>
+              } @else {
+                <div class="spine-split">
+                  <div class="full-row-content spine-center">
+                    <div class="node-small"></div>
+                  </div>
+                </div>
+              }
             }
-          </button>
+          </div>
+
+          <!-- Right Column: Content -->
+          <div class="content-cell"
+               (click)="onFlyTo(nextLeg()?.traverse?.target?.place)"
+               (mouseenter)="highlightTraverse(nextLeg()?.traverse)"
+               (mouseleave)="clearHighlight()">
+            @if (nextLeg(); as leg) {
+              @if (leg.traverse.route?.type() === 'driving' && previousLeg()?.traverse?.route?.type() !== 'driving') {
+                <!-- Option 3: Split Content -->
+                <div class="split-row">
+                  <div class="subrow-30 hoverable-row">
+                    <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target?.place?.name() }}</span>
+                    <div class="config-btn-wrapper">
+                      <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                        <lucide-icon name="settings-2" [size]="16"></lucide-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="subrow-30 hoverable-row top">
+                    <div class="rent-until-wrapper" style="display: flex; align-items: center; gap: 8px; flex-grow: 1;">
+                      <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting until: {{ 'Placeholder' }}</span>
+      <!--                </div>-->
+                      <div class="bed-check icon-btn" [class.active]="leg.traverse.includes_accommodation()"
+                           (click)="$event.stopPropagation(); toggleAccommodation(leg.traverse)">
+                        <lucide-icon name="bed" [size]="16"></lucide-icon>
+                      </div>
+                    </div>
+                    <div class="config-btn-wrapper">
+                      <button class="icon-btn" (click)="toggleManagingRentUntil($event)">
+                        <lucide-icon name="settings-2" [size]="16"></lucide-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              } @else if (leg.traverse.route?.type() === 'driving' && previousLeg()?.traverse?.route?.type() === 'driving') {
+                <div class="split-row">
+                  <div class="subrow-30 hoverable-row">
+                    <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target?.place?.name() }}</span>
+                    <div class="config-btn-wrapper">
+                      <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                        <lucide-icon name="settings-2" [size]="16"></lucide-icon>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="subrow-30 hoverable-row top">
+                    <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Rent until: {{ 'Placeholder' }}</span>
+                    <div class="bed-check icon-btn no-interaction" [class.active]="leg.traverse.includes_accommodation()">
+                      <lucide-icon name="bed" [size]="16"></lucide-icon>
+                    </div>
+                  </div>
+                </div>
+              } @else {
+                <!-- Option 2: Single Content -->
+                <div class="full-row-content subrow-30 hoverable-row">
+                  <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target?.place?.name() }}</span>
+                  <div class="config-btn-wrapper">
+                    <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                      <lucide-icon name="settings-2" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
         </div>
-        <div class="visit-content-wrapper">
-          <div class="top-controls">
-            <div class="name-wrapper">
-              <input #nameInput [value]="visit().place?.name()" [attr.size]="nameInput.value.length || 1"
-                     class="name-input" (input)="0" (blur)="onSave.emit({id: visit().id, name: nameInput.value})" />
-            </div>
-            <div class="nights-badge">
-              <input #nightsInput type="number" [value]="visit().nights()"
-                     class="nights-val" (change)="saveNights(nightsInput.value)" />
-              <lucide-icon name="moon" [size]="18" class="moon-icon"></lucide-icon>
-            </div>
-            <button class="icon-btn delete" (click)="onDelete.emit(visit().id)">
-              <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+      </div>
+    } @else if (isManagingTraverses()) {
+      <div class="view-animate">
+        <div class="manager-view">
+          <div class="manager-header">
+            <button class="icon-btn back" (click)="isManagingTraverses.set(false)">
+              <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
+            </button>
+
+            <span class="header-title">Next Connections</span>
+
+            <button class="icon-btn add" (click)="addNewTraverse()" title="Add Connection">
+              <lucide-icon name="plus" [size]="18"></lucide-icon>
             </button>
           </div>
-          <div class="date-row">
-            @if (visit().included() && visit().entryDate()) {
-              {{ visit().entryDateString() }} – {{ visit().exitDateString() }}
-            } @else {
-              <span class="unscheduled-label">Not in itinerary</span>
+
+          <div class="scroll-container" cdkDropList (cdkDropListDropped)="handleDrop($event)">
+            @for (t of visit().outgoingTraverses(); track t) {
+              <div class="manage-item"
+                   cdkDrag
+                   cdkDragLockAxis="y"
+                   cdkDragBoundary=".scroll-container"
+                   (click)="moveToTop(t)"
+                   (mouseenter)="highlightTraverse(t)"
+                   (mouseleave)="clearHighlight()"
+                   [class.active]="t === nextLeg()?.traverse"
+                   [class.excluded]="!t.target?.included()">
+
+                <div class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
+                  <lucide-icon name="grip-vertical" [size]="18"></lucide-icon>
+                </div>
+
+                <div class="compact-route-meta">
+                  <div class="transport-icon-small" [style.background-color]="getRouteColor(t.route?.type())">
+                    <lucide-icon [name]="getRouteIcon(t.route?.type())" [size]="14"></lucide-icon>
+                  </div>
+                  <div class="meta-details">
+                    <span>€{{ t.route?.estimated_cost() }}</span>
+                    <span>{{ t.route?.duration() }}h</span>
+                  </div>
+                </div>
+
+                <span class="destination">{{ t.target?.place?.name() }} ({{ t.target?.nights() }})</span>
+
+                <div class="item-actions">
+                  @if (t === nextLeg()?.traverse) {
+                    <lucide-icon name="check" [size]="18" class="active-indicator"></lucide-icon>
+                  }
+                  @if (!t.target?.included()) {
+                    <lucide-icon name="eye-off" [size]="16" class="icon-btn excluded-indicator"
+                          (click)="includeNextVisit($event, t.target?.id)"
+                          title="Click to include Visit"></lucide-icon>
+                  } @else {
+                    <lucide-icon name="eye" [size]="16" class="icon-btn included-indicator onhover"
+                          (click)="excludeNextVisit($event, t.target?.id)"
+                          title="Click to exclude Visit"></lucide-icon>
+                  }
+                  <button class="icon-btn delete-item"
+                          (click)="onDeleteTraverse($event, t.source?.id, t.target?.id)"
+                          title="Remove Connection">
+                    <lucide-icon name="x" [size]="18"></lucide-icon>
+                  </button>
+                </div>
+              </div>
             }
           </div>
         </div>
       </div>
+    } @else if (isManagingRentUntil()) {
+      <div class="view-animate">
+        <div class="manager-view">
+          <div class="manager-header">
+            <button class="icon-btn back" (click)="isManagingRentUntil.set(false)">
+              <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
+            </button>
 
-      <div class="row-slot bottom">
-        @let leg = nextLeg();
-        <div class="leg-row secondary nav-row"
-             [class.planned]="leg?.planned"
-             (click)="onFlyTo(leg?.traverse?.target?.place)"
-             (mouseenter)="highlightTraverse(leg?.traverse)"
-             (mouseleave)="clearHighlight()">
-          @if (leg) {
-            <div class="route-info prevnext"
-                 (click)="onRouteClick($event, leg?.traverse?.route)">
-              <lucide-icon [name]="getRouteIcon(leg.traverse.route?.type())" [size]="18"></lucide-icon>
-              <div class="details">
-                <span>{{ leg.traverse.route?.duration() }}h</span>
+            <span class="header-title">Rent Until...</span>
+
+            <div style="width: 32px;"></div>
+          </div>
+
+          <div class="scroll-container">
+            @for (t of visit().outgoingTraverses(); track t) {
+              <div class="manage-item simple-select"
+                   (click)="setRentUntil(t); isManagingRentUntil.set(false)"
+                   [class.active]="nextLeg()?.traverse?.rentUntilVisit() === t.target">
+
+                <span class="destination">
+                  {{ t.target?.place?.name() }}
+                </span>
+
+                <div class="item-actions">
+                  @if (nextLeg()?.traverse?.rentUntilVisit() === t.target) {
+                    <lucide-icon name="check" [size]="18" class="active-indicator"></lucide-icon>
+                  }
+                </div>
               </div>
-            </div>
-            <div class="place-name">{{ leg.traverse.target?.place?.name() }}</div>
-          }
-
-          <button class="icon-btn manage-trigger" (click)="toggleManager($event)">
-            <lucide-icon name="settings-2" [size]="16"></lucide-icon>
-          </button>
+            }
+          </div>
         </div>
       </div>
-    </div>
-
-  } @else {
-    <div class="view-stack manager-view">
-      <div class="manager-header">
-        <button class="icon-btn back" (click)="isManagingTraverses.set(false)">
-          <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
-        </button>
-
-        <span class="header-title">Next Connections</span>
-
-        <button class="icon-btn add" (click)="addNewTraverse()" title="Add Connection">
-          <lucide-icon name="plus" [size]="18"></lucide-icon>
-        </button>
-      </div>
-
-      <div class="scroll-container" cdkDropList (cdkDropListDropped)="handleDrop($event)">
-        @for (t of visit().outgoingTraverses(); track t) {
-          <div class="manage-item"
-               cdkDrag
-               cdkDragLockAxis="y"
-               cdkDragBoundary=".scroll-container"
-               (click)="moveToTop(t)"
-               (mouseenter)="highlightTraverse(t)"
-               (mouseleave)="clearHighlight()"
-               [class.active]="t === nextLeg()?.traverse"
-               [class.excluded]="!t.target?.included()">
-
-            <div class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
-              <lucide-icon name="grip-vertical" [size]="18"></lucide-icon>
-            </div>
-
-            <div class="compact-route-meta">
-              <lucide-icon [name]="getRouteIcon(t.route?.type())" [size]="22"></lucide-icon>
-              <div class="meta-details">
-                <span>€{{ t.route?.estimated_cost() }}</span>
-                <span>{{ t.route?.duration() }}h</span>
-              </div>
-            </div>
-
-            <span class="destination">{{ t.target?.place?.name() }} ({{ t.target?.nights() }}) ({{ t.target?.id }})</span>
-
-            <div class="item-actions">
-              @if (t === nextLeg()?.traverse) {
-                <lucide-icon name="check" [size]="18" class="active-indicator"></lucide-icon>
-              } @else if (!t.target?.included()) {
-                <lucide-icon name="eye-off" [size]="16" class="icon-btn excluded-indicator"
-                      (click)="includeNextVisit($event, t.target?.id)"
-                      title="Click to include Visit"></lucide-icon>
-              }
-              @if (t.target?.included()) {
-                <lucide-icon name="eye" [size]="16" class="icon-btn included-indicator onhover"
-                      (click)="excludeNextVisit($event, t.target?.id)"
-                      title="Click to exclude Visit"></lucide-icon>
-              }
-              <button class="icon-btn delete-item"
-                      (click)="onDeleteTraverse($event, t.source?.id, t.target?.id)"
-                      title="Remove Connection">
-                <lucide-icon name="x" [size]="18"></lucide-icon>
-              </button>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  }
+    }
+  </div>
 </div>
