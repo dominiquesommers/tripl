@@ -46,8 +46,8 @@ export class Season {
   reasons = computed(() => MONTH_REASON_KEYS.map(k => (this[k] as WritableSignal<string>)()));
 
   constructor(data: ISeason) {
-    this.id = data.id;
-    this.country_id = data.country_id;
+    this.id = data.id.toString();
+    this.country_id = data.country_id.toString();
     this.update(data);
   }
 

@@ -49,8 +49,12 @@ export class Place {
     data: IPlace,
     private tripService: TripService
   ) {
-    const { name, accommodation_cost, food_cost, miscellaneous_cost, ...statics } = data;
-    Object.assign(this, statics);
+    this.id = data.id.toString();
+    this.country_id = data.country_id.toString();
+    this.season_id = data.season_id.toString();
+    this.trip_id = data.trip_id.toString();
+    this.lng = data.lng;
+    this.lat = data.lat;
     this.update(data);
   }
 

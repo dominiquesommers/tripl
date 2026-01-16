@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import {computed, signal} from '@angular/core';
 import { Visit } from './visit';
 import { Route } from './route';
 import { TripService } from '../services/trip';
@@ -32,16 +32,20 @@ export class Traverse {
   cost = signal<number>(0);
   booked_days = signal<number>(0);
 
-  rentUntilVisit?: Visit;
+  readonly rentUntilVisit = computed(() => {
+    const rentUntil = this.rent_until();
+    if (!rentUntil) return null;
+    return this.tripService.plan()?.visits().get(rentUntil);
+  });
 
   constructor(
     data: ITraverse,
     private tripService: TripService
   ) {
-    this.source_visit_id = data.source_visit_id;
-    this.target_visit_id = data.target_visit_id;
-    this.route_id = data.route_id;
-    this.plan_id = data.plan_id;
+    this.source_visit_id = data.source_visit_id.toString();
+    this.target_visit_id = data.target_visit_id.toString();
+    this.route_id = data.route_id.toString();
+    this.plan_id = data.plan_id.toString();
     this.update(data);
   }
 

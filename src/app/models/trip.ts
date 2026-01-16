@@ -52,7 +52,7 @@ export class Trip {
     routes: Route[],
     private tripService: TripService
   ) {
-    this.id = data.id;
+    this.id = data.id.toString();
     this.update(data);
     this.countries.set(new Map(countries.map(c => [c.id, c])));
     this.seasons.set(new Map(seasons.map(s => [s.id, s])));

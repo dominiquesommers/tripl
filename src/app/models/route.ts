@@ -68,10 +68,10 @@ export class Route {
     data: IRoute,
     private tripService: TripService
   ) {
-    this.id = data.id;
-    this.sourceId = data.source;
-    this.targetId = data.target;
-    this.trip_id = data.trip_id;
+    this.id = data.id.toString();
+    this.sourceId = data.source.toString();
+    this.targetId = data.target.toString();
+    this.trip_id = data.trip_id.toString();
     this.update(data);
   }
 

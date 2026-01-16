@@ -21,6 +21,10 @@ export class Visit {
   nights = signal<number>(0);
   included = signal<boolean>(true);
 
+  readonly toString = computed(() => {
+    return `${this.place?.name()} (${this.nights()}) (${this.id})`;
+  })
+
   readonly outgoingTraverses = computed(() =>
     this.tripService.plan()?.traversesArray()
       .filter(t => t.source_visit_id === this.id)
@@ -96,9 +100,9 @@ export class Visit {
     data: IVisit,
     private tripService: TripService
   ) {
-    this.id = data.id;
-    this.place_id = data.place_id;
-    this.plan_id = data.plan_id;
+    this.id = data.id.toString();
+    this.place_id = data.place_id.toString();
+    this.plan_id = data.plan_id.toString();
     this.update(data);
   }
 

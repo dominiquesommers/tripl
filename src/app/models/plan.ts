@@ -32,7 +32,7 @@ export class Plan {
 
   readonly visits = signal<Map<string, Visit>>(new Map());
   readonly visitsArray = computed(() => Array.from(this.visits().values()));
-  readonly sourceVisit = computed(() => this.visits()?.get('v1')); // Hardcoded for now.
+  readonly sourceVisit = computed(() => this.visits()?.get('10582')); // Hardcoded for now.
 
   readonly traverses = signal<Map<[string, string], Traverse>>(new Map());
   readonly traversesArray = computed(() => Array.from(this.traverses().values()));
@@ -64,8 +64,8 @@ export class Plan {
   });
 
   constructor(data: IPlan, visits: Visit[], traverses: Traverse[]) {
-    this.id = data.id;
-    this.trip_id = data.trip_id;
+    this.id = data.id.toString();
+    this.trip_id = data.trip_id.toString();
     this.update(data);
     this.visits.set(new Map(visits.map(v => [v.id, v])));
     this.traverses.set(new Map(traverses.map(t => [[t.source_visit_id, t.target_visit_id], t])));
