@@ -10,37 +10,85 @@
   display: flex;
   align-items: center;
   background: rgba(45, 45, 50, 0.85);
-  backdrop-filter: blur(10px);
+  /*backdrop-filter: blur(10px);*/
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  padding: 1px 4px;
+  padding: 0px 1px;
   color: white;
   font-size: 12px;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  /*box-shadow: 0 4px 12px rgba(0,0,0,0.3);*/
   white-space: nowrap;
   cursor: pointer;
   width: max-content;
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.2s, background 0.2s;
+  will-change: transform;
+  /*transition: all 0.2s ease-in-out;*/
 }
 
 .marker-divider {
   width: 1px;
-  height: 12px;
+  height: 14px;
   background: rgba(255, 255, 255, 0.3);
-  margin: 0 2px;
+  margin: 0 -2px;
+  flex-shrink: 0;
 }
 
 .night-count {
-  padding: 3px 3px;
-  border-radius: 50%;
+  position: relative;
+  display: inline-flex;
+  padding: 0 3px;
   min-width: 14px;
   text-align: center;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  transition: all 0.2s ease;
+  height: 26px;
+  border-radius: 20px;
+  height: 24px;
+  min-width: 18px; /* Makes it look balanced */
+  padding: 0 6px;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .night-count:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  /*background: rgba(255, 255, 255, 0.1);*/
+}
+
+.night-count:active,
+.add-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.night-count.excluded {
+  opacity: 0.3;
+  color: rgba(255, 255, 255, 0.8); /* Keep text readable, let opacity handle dimming */
+}
+
+.night-count.excluded::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  right: 0%;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateY(-50%) rotate(-60deg);
+  pointer-events: none;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+.night-count.itinerary {
+  color: #ffffff;
+  font-weight: 700;
+  /*text-shadow: 0 0 8px rgba(59, 130, 246, 0.5); !* Subtle glow for itinerary *!*/
+  opacity: 1;
 }
 
 .marker-pill {
@@ -48,7 +96,47 @@
 }
 
 .marker-pill:hover {
-  /*transform: scale(1.05);*/
+  transform: scale(1.02);
   background: rgba(60, 60, 65, 0.95);
   border-color: rgba(0, 122, 255, 0.5); /* Apple Blue border on hover */
+}
+
+.status-indicator {
+  position: absolute;
+  /* Centered at the very bottom edge of the hover-pill */
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid #1e1e20;
+  z-index: 5; /* Ensure it stays above the hover background */
+}
+
+/* Status colors */
+.status-indicator.paid { background-color: #22c55e; }
+.status-indicator.pending { background-color: #f59e0b; }
+.status-indicator.unbooked { background-color: #ef4444; }
+
+.night-count.active {
+  background: #3b82f6 !important;
+  color: white !important;
+  opacity: 1 !important;
+  font-weight: 700;
+  box-shadow: 0 0 5px rgba(59, 130, 246, 0.6);
+}
+
+/* Specific styling for the plus button to keep it distinct */
+.add-btn {
+  /*color: #3b82f6; !* Blue by default to look like an "action" *!*/
+  /*font-size: 16px;*/
+  /*font-weight: 500;*/
+  /*opacity: 0.8;*/
+}
+
+.add-btn:hover {
+  opacity: 1;
+  color: #ffffff;
+  /*background: rgba(225, 225, 225, 0.1); !* Subtle blue tint on hover *!*/
 }

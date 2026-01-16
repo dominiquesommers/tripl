@@ -1,20 +1,64 @@
 <div>
-  <div class="marker-pill">
-    @let v = place().visits();
-    @if (!isHovered() && (!v || v.length === 0 || isZoomLow())) {
-<!--      <span class="night-count">.</span>-->
-    } @else {
-      @for (visit of v; track $index) {
-        <span class="night-count" (click)="handleVisitClick($event, visit)">{{ visit.nights() }}</span>
+  <div class="marker-pill" [class.hovered]="isHovered()">
+    @let visits = sortedVisits();
 
-        @if (!$last || isHovered() || isSelected() || false) {
+    @if (!isHovered() && (!visits.length || isZoomLow())) {
+  <!--    <span class="total-nights">{{ totalNights() }}</span>-->
+    } @else {
+      @for (visit of visits; track visit.id; let last = $last) {
+        <span class="night-count"
+              [class.itinerary]="!!visit.entryDate()"
+              [class.excluded]="!visit.included()"
+              [class.active]="tripService.selectedVisit()?.id === visit.id"
+              (click)="handleVisitClick($event, visit)">
+
+          {{ visit.nights() }}
+
+          @if (visit.entryDate() !== null && visit.included()) {
+            <div class="status-indicator" [class]="getBookingStatus(visit)"></div>
+          }
+        </span>
+
+        @if (!last || isHovered() || isSelected()) {
           <div class="marker-divider"></div>
         }
       }
 
-      @if (isHovered() || isSelected() || false) {
-        <span class="night-count" (click)="handleAddClick($event)">+</span>
+      @if (isHovered() || isSelected()) {
+        <span class="night-count add-btn" (click)="handleAddClick($event)">+</span>
       }
     }
   </div>
 </div>
+
+<!--<div>-->
+<!--  <div class="marker-pill">-->
+<!--    @let v = sortedVisits();-->
+<!--    @if (!isHovered() && (!v || v.length === 0 || isZoomLow())) {-->
+
+<!--    } @else {-->
+<!--      @for (visit of v; track $index) {-->
+<!--        <span class="night-count"-->
+<!--              [class.itinerary]="visit.entryDate() !== null"-->
+<!--              [class.excluded]="!visit.included()"-->
+<!--              (click)="handleVisitClick($event, visit)">-->
+
+<!--          {{ visit.nights() }}-->
+
+<!--&lt;!&ndash;          @if (visit.entryDate() !== null && visit.included()) {&ndash;&gt;-->
+<!--&lt;!&ndash;            <div class="status-indicator" [ngClass]="getBookingStatus(visit)"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;          }&ndash;&gt;-->
+<!--        </span>-->
+<!--&lt;!&ndash;        <span class="night-count" (click)="handleVisitClick($event, visit)">{{ visit.nights() }}</span>&ndash;&gt;-->
+
+<!--        @if (!$last || isHovered() || isSelected() || false) {-->
+<!--          <div class="marker-divider"></div>-->
+<!--        }-->
+<!--      }-->
+
+<!--      @if (isHovered() || isSelected() || false) {-->
+<!--        <span class="night-count" (click)="handleAddClick($event)">+</span>-->
+<!--      }-->
+<!--    }-->
+<!--  </div>-->
+<!--</div>-->

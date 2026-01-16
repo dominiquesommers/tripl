@@ -22,10 +22,26 @@ export class PlaceMarker {
   @Input() selectedVisit!: Signal<Visit | null>;
   readonly isSelected = computed(() => this.place() === this.selectedVisit()?.place);
   zoom = input.required<Signal<number>>();
-  readonly isZoomLow = computed(() => this.zoom()() < 3);
+  readonly isZoomLow = computed(() => this.zoom()() < 3.5);
   public interactionManager!: MapInteractionManager;
   private _marker = signal<Marker | null>(null);
   public marker = this._marker.asReadonly();
+
+  sortedVisits = computed(() => {
+    const visits = this.place().visits();
+    if (!visits) return [];
+    return [...visits].sort((a, b) => {
+      if (a.included() !== b.included()) {
+        return a.included() ? -1 : 1;
+      }
+      const dateA = a.entryDate()?.getTime() || Infinity;
+      const dateB = b.entryDate()?.getTime() || Infinity;
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      return a.id.localeCompare(b.id);
+    });
+  });
 
   public setResources(interactionManager: MapInteractionManager, marker: Marker) {
     this.interactionManager = interactionManager;
@@ -33,7 +49,12 @@ export class PlaceMarker {
   }
 
   private uiService = inject(UiService);
-  private tripService = inject(TripService);
+  tripService = inject(TripService);
+
+  getBookingStatus(visit: Visit) {
+    // TODO implement.
+    return 'paid';
+  }
 
   async handleVisitClick(event: MouseEvent, visit: Visit) {
     event.stopPropagation();
