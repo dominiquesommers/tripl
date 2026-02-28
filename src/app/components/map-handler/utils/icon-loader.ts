@@ -9,7 +9,7 @@ export class IconLoader {
     const iconEntries = Object.entries(ROUTE_ICONS);
     for (const [key, name] of iconEntries) {
       if (this.map.hasImage(name)) continue;
-      const url = `/icons/${name}.png`; // Loading your new 128x128 PNGs
+      const url = `./icons/${name}.png`; // Loading your new 128x128 PNGs
       const image = await new Promise<HTMLImageElement | ImageBitmap | undefined>((resolve) => {
         this.map.loadImage(url, (err, img: any) => {
           if (err) {
