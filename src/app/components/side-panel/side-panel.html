@@ -1,68 +1,34 @@
 @if (!uiService.isSidebarOpen() && !uiService.isMobile()) {
-  <button class="floating-open-btn" (click)="uiService.toggleSidebar()">
-    <div class="icon-box">
-       <div class="sidebar-icon-bar"></div>
-    </div>
+  <button class="toggle-btn floating-open-btn" (click)="uiService.toggleSidebar()">
+    <div class="icon-box"><div class="sidebar-icon-bar"></div></div>
   </button>
 }
 
 <div class="panel-container"
      [class.desktop-sidebar]="!uiService.isMobile()"
      [class.mobile-sheet]="uiService.isMobile()"
-     [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()"
-     [class.sheet-open]="sheetState === 'open' && uiService.isMobile()"
-     [class.sheet-peek]="sheetState === 'peek' && uiService.isMobile()"
-     cdkDrag
-     cdkDragLockAxis="y"
-     [cdkDragDisabled]="!uiService.isMobile()"
-     (cdkDragEnded)="onDragEnd($event)">
+     [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()">
 
-  @if (uiService.isMobile()) {
-    <div class="drag-handle" (click)="toggleMobileSheet()"></div>
-  } @else {
+  @if (!uiService.isMobile()) {
+    <h2 class="panel-title">{{ getHeaderTitle() }}</h2>
     <div class="header-actions">
-      <button class="toggle-btn" (click)="uiService.toggleSidebar()" title="Toggle Sidebar">
-        <div class="icon-box">
-          <div class="sidebar-icon-bar"></div>
-        </div>
+      <button class="toggle-btn" (click)="uiService.toggleSidebar()">
+        <div class="icon-box"><div class="sidebar-icon-bar"></div></div>
       </button>
     </div>
-  }
-
-  @if (tripService.selectedVisit(); as visit) {
-    <div class="content">
-      <h2>{{ visit.place?.name() }}</h2>
-      <p>This is where your place info will live.</p>
-    </div>
   } @else {
-    <div class="content">
-      <h2>Your Itinerary</h2>
-      <div class="itinerary-list">
-        @for (visit of tripService.plan()?.itinerary() ?? []; track visit.id) {
-          <div class="itinerary-item">
-            <div class="date-badge">
-              {{ visit.entryDate() | date:'MMM d' }} - {{ visit.exitDate() | date:'MMM d' }}
-            </div>
-
-            <div class="visit-card">
-              <strong>{{ visit.place?.name() }}</strong>
-              <p>{{ visit.nights() }} nights</p>
-            </div>
-
-            @if (visit.nextTraverse(); as traverse) {
-              @if ((traverse.route?.nights() ?? 0) > 0) {
-                <div class="transit-info">
-                  ↓ {{ traverse.route?.nights() }} nights in transit
-                </div>
-              } @else {
-                <div class="transit-line"></div>
-              }
-            }
-          </div>
-        } @empty {
-          <p>No visits planned yet. Start by adding a place!</p>
-        }
-      </div>
-    </div>
+    <div class="drag-handle" cdkDragHandle (click)="toggleMobileSheet()"></div>
   }
+
+  <div class="content">
+    @if (uiService.selectedVisit(); as visit) {
+      <app-place-panel [visit]="visit" />
+    } @else {
+      @if (uiService.selectedRoute(); as route) {
+        <app-route-panel [route]="route" />
+      } @else {
+        <app-overview-panel />
+      }
+    }
+  </div>
 </div>

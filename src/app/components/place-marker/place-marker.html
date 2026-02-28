@@ -9,7 +9,7 @@
         <span class="night-count"
               [class.itinerary]="!!visit.entryDate()"
               [class.excluded]="!visit.included()"
-              [class.active]="tripService.selectedVisit()?.id === visit.id"
+              [class.active]="uiService.selectedVisit()?.id === visit.id || uiService.hoveredVisit()?.id === visit.id"
               (click)="handleVisitClick($event, visit)">
 
           {{ visit.nights() }}

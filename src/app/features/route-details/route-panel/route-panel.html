@@ -1,0 +1,14 @@
+<div class="feature-wrapper">
+  <div class="feature-content">
+    @switch (uiService.activeTab()) {
+      @case ('bookings') { <app-bookings /> }
+      @case ('notes') { <app-notes /> }
+    }
+  </div>
+
+  <app-tab-bar
+    [tabs]="routeTabs"
+    [activeTab]="uiService.activeTab()"
+    (tabSelected)="uiService.activeTab.set($event)">
+  </app-tab-bar>
+</div>

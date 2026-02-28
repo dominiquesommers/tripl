@@ -1,0 +1,175 @@
+.overview-container {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: white;
+}
+
+.chart-wrapper {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 6px;
+  height: 250px;
+  position: relative;
+}
+
+.chart-section {
+  margin-bottom: 8px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.section-header h4 {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #8e8e93;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.bar-wrapper {
+  height: 300px; /* Taller to fit the legend */
+}
+
+.chart-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #8e8e93;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn.is-active {
+  color: #3b82f6; /* Your blue color */
+  background: rgba(59, 130, 246, 0.15); /* Subtle blue glow background */
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.toggle-btn.is-active:hover {
+  background: rgba(59, 130, 246, 0.25);
+  color: #60a5fa; /* Lighter blue on hover */
+}
+
+/* Hover for inactive state */
+.toggle-btn:not(.is-active):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.icon-btn:not(.is-active):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/*.icon-btn {*/
+/*  background: rgba(255, 255, 255, 0.1);*/
+/*  border: 1px solid rgba(255, 255, 255, 0.1);*/
+/*  color: white;*/
+/*  padding: 6px;*/
+/*  border-radius: 8px;*/
+/*  cursor: pointer;*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+/*  transition: all 0.2s;*/
+/*}*/
+
+/*.icon-btn:hover {*/
+/*  background: rgba(255, 255, 255, 0.2);*/
+/*  border-color: #3b82f6;*/
+/*  color: #3b82f6;*/
+/*}*/
+
+
+/* Table Card Styles */
+.table-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8e8e93;
+  font-weight: 600;
+}
+
+/* Country Grouping */
+.country-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.country-row .name {
+  font-size: 14px;
+}
+
+.country-row .val {
+  font-size: 13px;
+  text-align: right;
+}
+
+.country-row .actual {
+  color: #10b981; /* Green for actuals */
+}
+
+/* Place Detail Rows (Drill-down) */
+.place-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 8px 16px 8px 32px; /* Indented */
+  background: rgba(255, 255, 255, 0.01);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.place-name {
+  font-size: 13px;
+  color: #c7c7cc;
+}
+
+/* Customizing the scrollbar for the sidepanel */
+.overview-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overview-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}

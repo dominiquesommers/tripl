@@ -1,10 +1,67 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import "tailwindcss";
+@import "@angular/material/prebuilt-themes/azure-blue.css";
+
+* {
+  font-family: 'Poppins', sans-serif !important;
+}
 
 html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
+  background-color: #121212;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background: rgba(30, 30, 35, 0.8) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+
+  margin-bottom: 8px;
+  height: 37px;
+
+  /* Borders & Shapes */
+  border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 40px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /*box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;*/
+}
+
+/* Text inside the Snackbar */
+.mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+/* The 'Undo' or 'Close' Button */
+.mat-mdc-snack-bar-action button {
+  color: #007AFF !important; /* Apple Blue accent */
+  font-weight: 600 !important;
+  text-transform: none !important; /* Prevents all-caps Material look */
+  letter-spacing: normal !important;
+}
+
+/* Optional: Red accent for the Error Snackbars we defined earlier */
+.error-snackbar .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-left: 4px solid #ff453a !important; /* Apple System Red */
+}
+
+/* Completely remove any remaining attribution text/links */
+.mapboxgl-ctrl-attrib {
+    display: none !important;
+}
+
+/* Optional: Adjust the Logo position so it doesn't touch the very edge */
+.mapboxgl-ctrl-logo {
+    margin-right: 8px !important;
+    margin-bottom: 8px !important;
+    opacity: 0.6; /* Makes it subtle against your glassmorphism UI */
+    transition: opacity 0.3s;
+}
+
+.mapboxgl-ctrl-logo:hover {
+    opacity: 1;
 }
 
 /* Global styles.css or MapComponent css */

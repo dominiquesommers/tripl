@@ -1,27 +1,24 @@
 import {TripService} from '../../../services/trip';
 import {UiService} from '../../../services/ui';
-import type {Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup, Point} from 'mapbox-gl';
+import type {Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup} from 'mapbox-gl';
 import {Place} from '../../../models/place';
 import {
   effect,
   ElementRef,
-  HostListener,
   Injector,
   runInInjectionContext,
-  signal,
   Signal,
   WritableSignal
 } from '@angular/core';
 import {Route, RouteType} from '../../../models/route';
 import {Visit} from '../../../models/visit';
-import {MapHandler} from '../map-handler';
+import {filter, of, switchMap, take} from 'rxjs';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 
 export class MapInteractionManager {
   private activeVisitPopup?: Popup;
-  currentVisitPopupCoords?: LngLatLike;
   private activeRoutePopup?: Popup;
-  currentRoutePopupCoords?: LngLatLike;
   private hoverTimer?: any;
   private placeTooltip?: any;
   private hoveredMarker?: Marker | null;
@@ -46,9 +43,6 @@ export class MapInteractionManager {
     runInInjectionContext(this.injector, () => {
       effect(() => {
         const plan = this.tripService.plan();
-        // const itineraryTraverses = plan?.visitsArray()
-        //   .map(visit => visit.nextTraverse())
-        //   .filter(traverse => !!traverse) ?? [];
         const itineraryTraverses = plan?.itineraryTraverses() ?? [];
         const itineraryRouteIds = new Set(itineraryTraverses.map(traverse => traverse.route?.id));
         const map = this.map;
@@ -68,10 +62,12 @@ export class MapInteractionManager {
       });
 
       effect((onCleanup) => {
-        const visit = this.tripService.selectedVisit();
+        const visit = this.uiService.selectedVisit();
         const popupElement = this.activeVisitPopupEL();
         if (visit && popupElement) {
-          this.syncVisitPopup(visit, popupElement);
+          console.log('wiheoe');
+          const coords: [number, number] = [visit.place.lng, visit.place.lat];
+          this.syncVisitPopup(visit, popupElement, coords);
           onCleanup(() => {
             this.closeActiveVisitPopup();
           });
@@ -81,13 +77,13 @@ export class MapInteractionManager {
       });
 
       effect(() => {
-        const route = this.tripService.selectedRoute();
+        const route = this.uiService.selectedRoute();
         const popupElement = this.activeRoutePopupEL();
         this.syncRoutePopup(route, popupElement);
       });
 
       effect((onCleanup) => {
-        const hoveredRoute = this.tripService.hoveredRoute();
+        const hoveredRoute = this.uiService.hoveredRoute();
         const routeToCleanup = hoveredRoute;
         if (hoveredRoute) {
           this.handleRouteHover(hoveredRoute);
@@ -96,14 +92,30 @@ export class MapInteractionManager {
           });
         }
       });
+
+      effect(() => {
+        const plan = this.tripService.plan();
+        if (!plan || !map) return;
+        this.map.flyTo({center: [plan.lat(), plan.lng()], zoom: plan.zoom(), essential: true});
+      });
+
+      this.uiService.flyToRequested$
+        .pipe(takeUntilDestroyed())
+        .subscribe(request => {
+          if (!this.map) return;
+          this.map.flyTo({
+            center: request.center, zoom: request.zoom ?? this.map.getZoom(), essential: true, duration: 2000
+          });
+        });
     });
   }
 
   public attachGlobalListeners(centerSignal: any, zoomSignal: any) {
     this.map.on('click', (e) => {
-      if (!this.tripService.drawingState().active) {
-        this.tripService.selectedVisit.set(null);
-        this.tripService.selectedRoute.set(null);
+      if ((e.originalEvent as any)._routeClicked) return;
+
+      if (!this.uiService.drawingState().active) {
+        this.uiService.clearSelection();
         if (this.uiService.isSearchExpanded()) this.uiService.closeSearch();
       } else {
         const features = this.map.queryRenderedFeatures(e.point, {layers: ['route-icons']});
@@ -139,39 +151,36 @@ export class MapInteractionManager {
   }
 
   public handleOpenVisitPopup(visit: Visit, marker: Marker) {
-    this.tripService.selectedVisit.set(visit);
-    this.currentVisitPopupCoords = marker.getLngLat();
+    this.uiService.selectVisit(visit.id);
     this.handleMarkerUnhover();
   }
 
-  private syncVisitPopup(visit: Visit, popupElement: ElementRef) {
-    if (this.currentVisitPopupCoords) {
-      if (this.activeVisitPopup) {
-         this.activeVisitPopup.setLngLat(this.currentVisitPopupCoords);
-         return;
-      }
-      this.activeVisitPopup = new this.mapbox.Popup({
-        maxWidth: '320px',
-        offset: 25,
-        closeButton: false,
-        className: 'apple-glass-popup'
-      }).setDOMContent(popupElement.nativeElement)
-        .setLngLat(this.currentVisitPopupCoords)
-        .addTo(this.map);
-      this.activeVisitPopup?.on('close', () => {
-        if (this.tripService.selectedVisit() === visit) {
-          this.tripService.selectedVisit.set(null);
-          this.handleMarkerUnhover();
-        }
-        this.activeVisitPopup = undefined;
-      });
+  private syncVisitPopup(visit: Visit, popupElement: ElementRef, coords: [number, number]) {
+    if (this.activeVisitPopup) {
+       this.activeVisitPopup.setLngLat(coords);
+       return;
     }
+    this.activeVisitPopup = new this.mapbox.Popup({
+      maxWidth: '320px',
+      offset: 15,
+      closeButton: false,
+      className: 'apple-glass-popup'
+    }).setDOMContent(popupElement.nativeElement)
+      .setLngLat(coords)
+      .addTo(this.map);
+    this.activeVisitPopup?.on('close', () => {
+      if (this.uiService.selectedVisit() === visit) {
+        this.uiService.clearSelection();
+        this.handleMarkerUnhover();
+      }
+      this.activeVisitPopup = undefined;
+    });
   }
 
   private syncRoutePopup(route: Route | null, popupElement: ElementRef | undefined) {
-    if (route && popupElement && this.currentRoutePopupCoords) {
-      if (this.activeVisitPopup) {
-         this.activeVisitPopup.setLngLat(this.currentRoutePopupCoords);
+    if (route && popupElement) {
+      if (this.activeVisitPopup && route.popupCoords) {
+         this.activeVisitPopup.setLngLat(route.popupCoords);
          return;
       }
       this.activeRoutePopup = new this.mapbox.Popup({
@@ -180,12 +189,12 @@ export class MapInteractionManager {
         className: 'apple-glass-popup'
       })
       .setDOMContent(popupElement.nativeElement)
-      .setLngLat(this.currentRoutePopupCoords)
+      .setLngLat(route.popupCoords)
       .addTo(this.map);
 
       this.activeRoutePopup?.on('close', () => {
-        if (this.tripService.selectedRoute() === route) {
-          this.tripService.selectedRoute.set(null);
+        if (this.uiService.selectedRoute() === route) {
+          this.uiService.clearSelection();
         }
         this.activeRoutePopup = undefined;
       });
@@ -197,7 +206,6 @@ export class MapInteractionManager {
       console.log('close visit popup.')
       this.activeVisitPopup.remove();
       this.activeVisitPopup = undefined;
-      // this.tripService.selectedVisit.set(null);
       this.handleMarkerUnhover();
     }
   }
@@ -206,15 +214,15 @@ export class MapInteractionManager {
     if (this.activeRoutePopup) {
       this.activeRoutePopup.remove();
       this.activeRoutePopup = undefined;
-      this.tripService.selectedRoute.set(null);
+      this.uiService.clearSelection();
     }
   }
 
   public handleMarkerHover(place: Place, marker: Marker | null) {
     this.clearTimers();
     // Don't show tooltip if a place is already selected/clicked
-    if (this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
-    this.tripService.hoveredPlace.set(place);
+    if (this.uiService.selectedVisit() || this.uiService.selectedRoute()) return;
+    this.uiService.hoveredPlace.set(place);
     this.hoveredMarker = marker;
     if (place.visits()?.length > 0) {
       this.hoveredMarker?.setOffset([8, 0]);
@@ -241,9 +249,9 @@ export class MapInteractionManager {
 
   public handleMarkerUnhover(forceMarkerOffsetReset: boolean = false) {
     this.clearTimers();
-    this.tripService.hoveredPlace.set(null);
+    this.uiService.hoveredPlace.set(null);
     this.placeTooltip?.remove();
-    if (!this.tripService.selectedVisit()) {
+    if (!this.uiService.selectedVisit()) {
       this.hoveredMarker?.setOffset([0, 0]);
     }
   }
@@ -256,7 +264,7 @@ export class MapInteractionManager {
       );
 
       const element = this.routeTooltipEl();
-      if (!element || this.tripService.selectedVisit() || this.tripService.selectedRoute()) return;
+      if (!element || this.uiService.selectedVisit() || this.uiService.selectedRoute()) return;
 
       if (!this.routeTooltip) {
         this.routeTooltip = new this.mapbox.Popup({
@@ -285,30 +293,33 @@ export class MapInteractionManager {
       );
     }
     this.routeTooltip?.remove();
-    this.map.getCanvas().style.cursor = (this.tripService.drawingState().active) ? 'crosshair' : '';
+    this.map.getCanvas().style.cursor = (this.uiService.drawingState().active) ? 'crosshair' : '';
     this.clearTimers();
   }
 
   public attachLayerListeners() {
     this.map.on('click', ['route-icons'], (e) => {
+      (e.originalEvent as any)._routeClicked = true;
+
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
 
+      console.log('route icon clicked.', routeId, featureId);
       if (!routeId || featureId === undefined) return;
       const route = this.tripService.trip()?.routes()?.get(routeId);
-
-      if (!this.tripService.drawingState()) {
-        this.tripService.selectedRoute.set(route ?? null);
-        this.currentRoutePopupCoords = e.lngLat;
+      console.log('select.', route, this.uiService.drawingState().active);
+      if (!this.uiService.drawingState().active) {
+        this.uiService.selectRoute(route?.id ?? null, e.lngLat);
+        console.log(this.uiService.selectedRoute());
       } else if (route) {
         const targetPlace = route?.target;
-        if (targetPlace && (this.tripService.drawingState().sourceVisit?.place === route?.source)) {
-          this.tripService.drawingState.update(s => ({...s, preselectedRoute: route}));
+        if (targetPlace && (this.uiService.drawingState().sourceVisit?.place === route?.source)) {
+          this.uiService.drawingState.update(s => ({...s, preselectedRoute: route}));
           const drawingSource = this.map.getSource('drawing-line') as mapboxgl.GeoJSONSource;
           if (drawingSource) drawingSource.setData({ type: 'FeatureCollection', features: [] });
           this.map.getCanvas().style.cursor = 'pointer';
-          console.log('flying to target, drawing state:', this.tripService.drawingState().active)
+          console.log('flying to target, drawing state:', this.uiService.drawingState().active)
           this.map.flyTo({center: [targetPlace.lng, targetPlace.lat], zoom: Math.max(this.map.getZoom(), 7), essential: true});
           this.toggleMapInteractions(false);
         }
@@ -316,7 +327,7 @@ export class MapInteractionManager {
     });
 
     this.map.on('mouseenter', ['route-icons'], (e) => {
-      if (this.tripService.hoveredPlace()) return;
+      if (this.uiService.hoveredPlace()) return;
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
@@ -325,17 +336,17 @@ export class MapInteractionManager {
       this.map.getCanvas().style.cursor = 'pointer';
       this.clearTimers();
       const route = this.tripService.trip()?.routes()?.get(routeId);
-      this.tripService.hoveredRoute.set(route ?? null);
+      this.uiService.hoveredRoute.set(route ?? null);
       this.currentRouteTooltipCoords = e.lngLat;
     });
 
     this.map.on('mouseleave', ['route-icons'], () => {
-      this.tripService.hoveredRoute.set(null);
+      this.uiService.hoveredRoute.set(null);
       this.currentRouteTooltipCoords = null;
     });
 
     this.map.on('mousemove', (e) => {
-      const state = this.tripService.drawingState();
+      const state = this.uiService.drawingState();
       const sourcePlace = state.sourceVisit?.place;
       if (!state.active || !sourcePlace || state.preselectedRoute || this.selectorVisible()) return;
 
@@ -356,8 +367,8 @@ export class MapInteractionManager {
 
   async showRouteTypeSelector(point: { x: number, y: number }) {
     const source = this.map.getSource('drawing-line') as GeoJSONSource;
-    const sourcePlace = this.tripService.drawingState().sourceVisit?.place
-    const targetPlace = this.tripService.drawingState().targetVisit?.place
+    const sourcePlace = this.uiService.drawingState().sourceVisit?.place;
+    const targetPlace = this.uiService.drawingState().targetVisit?.place;
     if (source && sourcePlace && targetPlace) {
       source.setData({ type: 'Feature', geometry: { type: 'LineString',
           coordinates: [[sourcePlace.lng, sourcePlace.lat], [targetPlace.lng, targetPlace.lat]]
@@ -369,11 +380,41 @@ export class MapInteractionManager {
   }
 
   handleTypeSelection(type: RouteType) {
-    const state = this.tripService.drawingState();
-    if (state.sourceVisit && state.targetVisit) {
-      this.tripService.createTraverse(type, state.sourceVisit.id, state.targetVisit.id);
-      this.cancelDrawing();
+    const {sourceVisit, targetVisit} = this.uiService.drawingState();
+    const trip = this.tripService.trip();
+    if (!sourceVisit || !targetVisit || !trip) return this.cancelDrawing();
+    // 1. Look for existing objects
+    const existingRoute = trip.routesArray()?.find(
+      r => r.sourceId === sourceVisit.place_id && r.targetId === targetVisit.place_id && r.type() === type
+    );
+    const existingTraverse = sourceVisit.outgoingTraverses().find(t => t.route_id === existingRoute?.id);
+    // 2. Scenario A: Traverse already exists - just boost priority
+    if (existingRoute && existingTraverse) {
+      const topTraverse = sourceVisit.outgoingTraverses()[0];
+      if (topTraverse.id !== existingTraverse.id) {
+        this.tripService.updateTraverse(existingTraverse.id, {priority: topTraverse.priority() - 1}).subscribe();
+      }
     }
+    // 3. Scenario B: Route/Traverse creation
+    else {
+      const nextPriority = (sourceVisit.outgoingTraverses()[0]?.priority() ?? 1) - 1;
+      const route$ = existingRoute
+        ? of(existingRoute)
+        : this.tripService.addRoute(sourceVisit.place_id, targetVisit.place_id, type);
+
+      route$.pipe(
+        filter((route): route is Route => !!route), // Ensure we have a route
+        switchMap(route =>
+          this.tripService.addTraverse(sourceVisit.id, targetVisit.id, route.id, nextPriority)
+        ),
+        take(1)
+      ).subscribe({
+        next: () => console.log('Successfully added/linked traverse'),
+        error: (err) => console.error('Flow failed:', err)
+      });
+    }
+
+    this.cancelDrawing();
   }
 
   cancelDrawing() {
@@ -384,7 +425,7 @@ export class MapInteractionManager {
       this.selectionResolver = null;
     }
 
-    this.tripService.drawingState.set({ active: false, sourceVisit: null });
+    this.uiService.drawingState.set({ active: false, sourceVisit: null });
     this.selectorVisible.set(false);
     this.toggleMapInteractions(true);
   }

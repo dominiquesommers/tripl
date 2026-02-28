@@ -9,9 +9,9 @@
   </div>
 
 
-  <div class="map-interaction-overlay" [class.active]="tripService.drawingState().active">
+  <div class="map-interaction-overlay" [class.active]="uiService.drawingState().active">
     <div class="hint-toast">
-      @if (tripService.drawingState().preselectedRoute) {
+      @if (uiService.drawingState().preselectedRoute) {
         Select a destination visit
       } @else {
         Select a destination visit or an existing route
@@ -20,15 +20,13 @@
   </div>
 </div>
 
-@if (tripService.selectedVisit(); as selectedVisit) {
+@if (uiService.selectedVisit(); as selectedVisit) {
   <app-visit-popup
-    [visit]="selectedVisit"
-    (onSave)="handlePlaceSave($event)"
-    (onDelete)="handleVisitDelete($event)">
+    [visit]="selectedVisit">
   </app-visit-popup>
 }
 
-@if (!tripService.selectedVisit() && tripService.selectedRoute(); as selectedRoute) {
+@if (!uiService.selectedVisit() && uiService.selectedRoute(); as selectedRoute) {
   <app-route-popup
     [route]="selectedRoute"
     (onSave)="handleRouteSave($event)"
@@ -36,12 +34,12 @@
   </app-route-popup>
 }
 
-@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !tripService.hoveredRoute() && tripService.hoveredPlace()) {
-  <app-place-tooltip [place]="tripService.hoveredPlace"></app-place-tooltip>
+@if (!uiService.selectedVisit() && !uiService.selectedRoute() && !uiService.hoveredRoute() && uiService.hoveredPlace()) {
+  <app-place-tooltip [place]="uiService.hoveredPlace"></app-place-tooltip>
 }
 
-@if (!tripService.selectedVisit() && !tripService.selectedRoute() && !tripService.hoveredPlace() && tripService.hoveredRoute()) {
-  <app-route-tooltip [route]="tripService.hoveredRoute"></app-route-tooltip>
+@if (!uiService.selectedVisit() && !uiService.selectedRoute() && !uiService.hoveredPlace() && uiService.hoveredRoute()) {
+  <app-route-tooltip [route]="uiService.hoveredRoute"></app-route-tooltip>
 }
 
 <div style="position: absolute; left: -9999px;">
@@ -49,8 +47,9 @@
     @for (place of trip.placesArray(); track place.id) {
       <app-place-marker
         [place]="place"
-        [hoveredPlace]="tripService.hoveredPlace"
-        [selectedVisit]="tripService.selectedVisit"
+        [hoveredPlace]="uiService.hoveredPlace"
+        [hoveredVisit]="uiService.hoveredVisit"
+        [selectedVisit]="uiService.selectedVisit"
         [zoom]="zoom">
       </app-place-marker>
     }

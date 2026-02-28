@@ -1,0 +1,410 @@
+.activities-container {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  padding-top: 16px;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #8e8e93;
+  margin: 0 0 8px 0px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: -4px;
+}
+
+/*.activity-item {*/
+/*  background: rgba(255, 255, 255, 0.03);*/
+/*  border: 1px solid rgba(255, 255, 255, 0.08);*/
+/*  border-radius: 16px;*/
+/*  padding: 12px;*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  gap: 12px;*/
+/*}*/
+
+.activity-item.excluded {
+  opacity: 0.5;
+  filter: grayscale(0.8);
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.header-actions {
+  margin-left: auto; /* Pushes the cost pill to the far right */
+}
+
+/* Ensure the pill doesn't get too squashed in a narrow sidebar */
+app-cost-badge {
+  flex-shrink: 0;
+}
+
+.category-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8e8e93;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/*.description-box textarea {*/
+/*  width: 100%;*/
+/*  min-height: 60px;*/
+/*  background: rgba(0, 0, 0, 0.2);*/
+/*  border: 1px solid rgba(255, 255, 255, 0.1);*/
+/*  color: #fff;*/
+/*  border-radius: 6px;*/
+/*  padding: 8px;*/
+/*  font-size: 13px;*/
+/*  resize: vertical;*/
+/*}*/
+
+.display-text {
+  /*min-height: 40px;*/
+  font-size: 13px;
+  line-height: 1.5;
+  color: #c7c7cc;
+  padding: 4px;
+  cursor: text;
+}
+
+.display-text.is-loading {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.skeleton-loader {
+  font-size: 12px;
+  color: #8e8e93;
+  font-style: italic;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
+/* Ensure textarea doesn't look weird when it first appears */
+textarea {
+  outline: none;
+  border: 1px solid #3b82f6; /* Blue border when editing */
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #48484a;
+}
+
+.status-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paid-label {
+  font-size: 10px;
+  font-weight: 900;
+  color: #48484a;
+}
+
+.paid-label.is-paid {
+  color: #10b981;
+}
+
+/* --- The Modern Checkbox (Top Right) --- */
+.modern-checkbox {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.modern-checkbox input {
+  display: none;
+}
+
+.checkbox-box {
+  width: 22px;
+  height: 22px;
+  background: rgba(30, 30, 35, 1); /* Match your sidebar bg to create the "gap" */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px 16px 6px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.modern-checkbox input:checked + .checkbox-box {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+/* --- The Cost Badge (Bottom Right) --- */
+/*.cost-corner-anchor {*/
+/*  position: absolute;*/
+/*  bottom: 0px;*/
+/*  right: 0px;*/
+/*  !*background: rgba(30, 30, 35, 1); !* Creates the "gap" in the border *!*!*/
+/*  !*padding: 0 4px; !* The "gap" width *!*!*/
+/*  border-radius: 20px;*/
+/*}*/
+
+.cost-corner-anchor {
+  position: absolute;
+  bottom: -30px;
+  right: 0px;
+  /*align-self: flex-end;*/
+  /*margin-top: -1px;     !* Overlap the border of the card above it *!*/
+  /*margin-right: -1px;    !* Line up with the right border *!*/
+}
+
+/* We target the container inside app-cost-badge */
+::ng-deep .cost-corner-anchor .badge-container {
+  background: #2c2c2e; /* Slightly different shade to define the tag */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;    /* Don't double up borders where they touch */
+  padding: 4px 12px;
+  border-radius: 0 0 12px 12px; /* Round only the bottom corners */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Adjust the badge-container inside app-cost-badge if needed */
+::ng-deep .badge-container {
+  margin-right: 0 !important; /* Reset any margins */
+  /*box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); !* Makes it pop from the line *!*/
+}
+
+.description-box {
+  /*margin-right: 20px; !* Leave space so text doesn't go under the checkbox *!*/
+  /*margin-bottom: 10px; !* Leave space for the cost badge *!*/
+}
+
+/* 1. THE SEAMLESS CONTAINER */
+.seamless-text-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* 2. SHARED TEXT STYLES (for both textarea and display div) */
+.display-text,
+.seamless-text-container textarea {
+  width: 100%;
+  /*min-height: 40px;*/
+  /*padding: 12px 12px 25px 12px; !* TRBL: Top Right (checkbox space), Bottom (badge space) *!*/
+  /*padding: 12px 12px 30px 12px; !* TRBL: Top Right (checkbox space), Bottom (badge space) *!*/
+  font-size: 14px;
+  line-height: 1.6;
+  color: #efeff4;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  box-sizing: border-box; /* Crucial: ensures padding doesn't grow the card */
+}
+
+/* 3. TEXTAREA SPECIFIC */
+.seamless-text-container textarea {
+  display: block;
+  background: rgba(149, 32, 32, 0.02); /* Very subtle hint you're editing */
+}
+
+.display-text {
+  cursor: text;
+  white-space: pre-wrap; /* Preserves line breaks */
+}
+
+.display-text:empty::before {
+  content: "Add description...";
+  color: #636366;
+}
+
+.activity-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  /*padding: 12px 12px 25px 12px;*/
+  min-height: 40px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: background 0.2s ease;
+}
+/* --- Polish --- */
+.activity-item.excluded {
+  opacity: 0.4;
+  border-style: dashed;
+}
+.activity-item.editing {
+  border-color: #3b82f6 !important;
+  border-style: solid !important;
+}
+.bottom-right-radius {
+  border-bottom-right-radius: 0;
+}
+
+.grow-wrap {
+  display: grid;
+  width: 100%;
+}
+
+/* Both mirror each other exactly */
+.grow-wrap textarea,
+.grow-wrap .ghost-text,
+.display-text {
+  grid-area: 1 / 1 / 2 / 2; /* Occupy same grid cell */
+  width: 100%;
+  padding: 0;
+  /*padding: 12px 12px 25px 12px; !* TRBL: Top Right (checkbox space), Bottom (badge space) *!*/
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+/* The actual textarea */
+.grow-wrap textarea {
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  color: #efeff4;
+}
+
+/* The invisible ghost pushing the height */
+.ghost-text {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Visual cue when editing */
+/*.is-editing {*/
+/*  background: rgba(255, 255, 255, 0.02);*/
+/*}*/
+
+/* 1. THE GHOST STATE */
+.activity-item.add-ghost {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  /*min-height: 50px; !* Slimmer when not active *!*/
+  cursor: pointer;
+  justify-content: flex-start;
+  align-items: stretch;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px 12px;
+}
+
+.activity-item.add-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.add-placeholder {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* 3. THE EXPANDED EDITING STATE */
+/*.activity-item.add-ghost.is-editing {*/
+/*  background: rgba(255, 255, 255, 0.03);*/
+/*  border: 1px solid rgba(255, 255, 255, 0.08);*/
+/*  min-height: 100px;*/
+/*  cursor: default;*/
+/*  align-items: stretch;*/
+/*}*/
+
+.hint-text {
+  font-size: 10px;
+  color: #636366;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 8px;
+}
+
+.activity-actions-top {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 4px;
+  z-index: 20;
+}
+
+/* Base style for icons: hidden by default */
+.activity-actions-top .icon-btn {
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  /*background: rgba(30, 30, 35, 0.8); !* Slight backdrop for legibility *!*/
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 5px;
+  border-radius: 6px;
+}
+
+/* Show icons on hover */
+.activity-item:hover .icon-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Individual Icon Hover Colors */
+.icon-btn.visibility:hover {
+  color: #3b82f6; /* Blue for visibility */
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.icon-btn.delete:hover {
+  color: #ef4444; /* Red for delete */
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* If the item is ALREADY excluded, keep the eye-off icon visible but dim */
+.activity-item.excluded .icon-btn.visibility {
+  opacity: 0.6;
+  color: #8e8e93;
+}

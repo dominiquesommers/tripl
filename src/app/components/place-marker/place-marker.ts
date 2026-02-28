@@ -6,10 +6,10 @@ import {Marker} from 'mapbox-gl';
 import {UiService} from '../../services/ui';
 import {TripService} from '../../services/trip';
 import {RouteType} from '../../models/route';
+import {take} from 'rxjs';
 
 @Component({
   selector: 'app-place-marker',
-  imports: [],
   templateUrl: './place-marker.html',
   styleUrl: './place-marker.css',
 })
@@ -18,6 +18,7 @@ export class PlaceMarker {
 
   place = input.required<Place>();
   @Input() hoveredPlace!: Signal<Place | null>;
+  @Input() hoveredVisit!: Signal<Visit | null>;
   readonly isHovered = computed(() => this.place() === this.hoveredPlace());
   @Input() selectedVisit!: Signal<Visit | null>;
   readonly isSelected = computed(() => this.place() === this.selectedVisit()?.place);
@@ -48,7 +49,7 @@ export class PlaceMarker {
     this._marker.set(marker);
   }
 
-  private uiService = inject(UiService);
+  uiService = inject(UiService);
   tripService = inject(TripService);
 
   getBookingStatus(visit: Visit) {
@@ -58,7 +59,7 @@ export class PlaceMarker {
 
   async handleVisitClick(event: MouseEvent, visit: Visit) {
     event.stopPropagation();
-    const state = this.tripService.drawingState();
+    const state = this.uiService.drawingState();
 
     console.log('clicked visit, drawing state:', state.active);
 
@@ -78,30 +79,44 @@ export class PlaceMarker {
     const point = { x: event.clientX, y: event.clientY };
     if (visit.id === state.sourceVisit?.id) return;
     if (state.preselectedRoute && (state.preselectedRoute?.target === visit.place)) {
-      await this.tripService.createTraverse(state.preselectedRoute.type(), state.sourceVisit?.id, visit.id);
+      const sourceId = state.sourceVisit?.id;
+      if (!sourceId) return;
+      const existingOutgoingTraverses = this.tripService.plan()?.visits().get(sourceId)?.outgoingTraverses();
+      const priority = (existingOutgoingTraverses && existingOutgoingTraverses.length) ? existingOutgoingTraverses[0].priority() : 0;
+      this.tripService.addTraverse(sourceId, visit.id, state.preselectedRoute.id, priority).pipe(take(1)).subscribe({
+        next: (newTraverse) => {
+          console.log('Added traverse successfully in the server');
+        },
+        error: (err) => {
+          // Note: If your 'persist' method already shows a toast/alert,
+          // you might not even need this block!
+          console.error("Failed to add traverse:", err);
+        }
+      });
       this.interactionManager.cancelDrawing();
     } else {
-      this.tripService.drawingState.update(s => ({ ...s, targetVisit: visit }));
+      this.uiService.drawingState.update(s => ({ ...s, targetVisit: visit }));
       await this.interactionManager.showRouteTypeSelector(point);
     }
   }
 
-  async handleAddClick(event: MouseEvent) {
+  handleAddClick(event: MouseEvent): void {
     event.stopPropagation();
     //TODO check for drawing mode.
     console.log('Add new visit.')
-    try {
-      const plan = this.tripService.plan();
-      if (!plan) return;
-      const newVisitData: NewVisit = {place_id: this.place().id, plan_id: plan.id, nights: 0, included: true};
-      const newVisit = await this.tripService.addVisit(newVisitData);
-      const marker = this.marker();
-      if (marker && newVisit) {
-        this.interactionManager.handleOpenVisitPopup(newVisit, marker);
+    this.tripService.addVisit(this.place().id).pipe(take(1)).subscribe({
+      next: (newVisit) => {
+        const marker = this.marker();
+        if (marker && newVisit) {
+          this.interactionManager.handleOpenVisitPopup(newVisit, marker);
+        }
+      },
+      error: (err) => {
+        // Note: If your 'persist' method already shows a toast/alert,
+        // you might not even need this block!
+        console.error("Failed to add visit:", err);
       }
-    } catch (err) {
-      console.error("Failed to add visit:", err);
-    }
+    });
   }
 
   @HostListener('mouseenter', ['$event'])

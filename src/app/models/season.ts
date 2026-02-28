@@ -41,14 +41,19 @@ export class Season {
   jul_reason = signal<string>(''); aug_reason = signal<string>('');
   sep_reason = signal<string>(''); oct_reason = signal<string>('');
   nov_reason = signal<string>(''); dec_reason = signal<string>('');
+  reasonsLoaded: boolean;
 
   months = computed(() => MONTH_KEYS.map(k => (this[k] as WritableSignal<number>)()));
   reasons = computed(() => MONTH_REASON_KEYS.map(k => (this[k] as WritableSignal<string>)()));
 
   constructor(data: ISeason) {
     this.id = data.id.toString();
+    if (!data.country_id) {
+      console.log(data);
+    }
     this.country_id = data.country_id.toString();
     this.update(data);
+    this.reasonsLoaded = MONTH_REASON_KEYS.every(k => k in data);
   }
 
   update(data: Partial<ISeason>) {

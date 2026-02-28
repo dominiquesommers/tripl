@@ -1,0 +1,161 @@
+.cost-badge {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.badge-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  margin-right: 6px;
+  border-radius: var(--cost-badge-radius, 16px);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+}
+
+/* Pending: Orange */
+.badge-container.pending {
+  background: rgba(245, 158, 11, 0.15); /* Orange tint */
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* Done: Green */
+.badge-container.done {
+  background: rgba(16, 185, 129, 0.15); /* Green tint */
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.badge-container.done .val-input {
+  color: #d1fae5; /* Very light green text */
+}
+
+/* Error: Red */
+.badge-container.error {
+  background: rgba(239, 68, 68, 0.2); /* Red tint */
+  border-color: rgba(239, 68, 68, 0.6);
+  animation: shake 0.4s ease-in-out; /* Optional: tiny shake for errors */
+}
+
+/*!* Superscript adjustments based on state *!*/
+/*.badge-container.done .details-superscript {*/
+/*  background: #10b981; !* Match superscript to status *!*/
+/*}*/
+
+/*.badge-container.pending .details-superscript {*/
+/*  background: #f59e0b;*/
+/*}*/
+
+/* Shake animation for the error state */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.val-input {
+  border: none;
+  background: transparent;
+  width: 40px;
+  text-align: center;
+  font-weight: 600;
+  color: white;
+  outline: none;
+}
+
+.val-input.estimate {
+  font-weight: 500;
+}
+
+.pending-underline {
+  border-bottom: 1px dotted orange;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.status-icon,
+.category-icon,
+.details-icon {
+  cursor: pointer;
+  margin-left: 2px;
+}
+
+.status-icon:hover {
+  opacity: 0.8;
+}
+
+.details-icon {
+  opacity: 0.6;
+}
+.details-icon:hover {
+  opacity: 1;
+}
+.clock-icon {
+  color: orange;
+  opacity: 1;
+}
+.clock-icon:hover {
+  color: #ffc354;
+}
+
+.details-superscript {
+  position: absolute;
+  top: -3px;
+  right: -15px;
+  display: flex;
+  align-items: center;
+}
+
+.details-subscript {
+  position: absolute;
+  bottom: -3px;
+  right: -15px;
+  display: flex;
+  align-items: center;
+}
+
+.prefix.actionable {
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; /* Fixed width prevents jitter when swapping symbols */
+  height: 20px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.prefix.actionable:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Toggle visibility between € and Icon */
+.prefix.actionable .hover-icon {
+  display: none;
+  position: absolute;
+}
+
+.prefix.actionable:hover .symbol {
+  display: none;
+}
+
+.prefix.actionable:hover .hover-icon {
+  display: block;
+}
+
+/* Specific color for the Paid toggle hover */
+.prefix.toggle-paid:hover {
+  background: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.badge-container.done .prefix.toggle-paid:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444; /* Show red 'X' when hovering a 'Done' pill to undo */
+}

@@ -1,7 +1,8 @@
-import { computed, Injectable, signal } from '@angular/core';
+import {computed, inject, Injectable, PLATFORM_ID, signal} from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { environment } from '../../environments/environment';
+import {isPlatformBrowser} from '@angular/common';
 
 export const MOCK_USER = {
   uid: 'offline-dev-id',
@@ -14,6 +15,7 @@ export const MOCK_USER = {
   providedIn: 'root'
 })
 export class AuthService {
+  private platformId = inject(PLATFORM_ID);
   private auth;
 
   private _user = signal<any | null>(null);
@@ -45,7 +47,7 @@ export class AuthService {
   }
 
   private setupDevToggles() {
-    if (!environment.production) {
+    if (isPlatformBrowser(this.platformId) && !environment.production) {
       (window as any).toggleOffline = () => {
         const newState = !this.isOfflineMode();
         if (!newState) this.initFirebaseAuthListener();

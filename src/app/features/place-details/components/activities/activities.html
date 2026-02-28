@@ -1,0 +1,182 @@
+<div class="activities-container">
+<!--  <h3 class="section-title">Activities</h3>-->
+  @for (act of activities(); track act.id) {
+    <div class="activity-item bottom-right-radius" [class.excluded]="!act.included()" [class.editing]="focusedActivityId() === act.id">
+
+      <div class="activity-actions-top">
+        <button class="icon-btn visibility"
+                (click)="updateActivity(act, { included: !act.included() })"
+                [title]="act.included() ? 'Exclude from trip' : 'Include in trip'">
+          <lucide-icon [name]="act.included() ? 'eye' : 'eye-off'" [size]="14"></lucide-icon>
+        </button>
+
+        <button class="icon-btn delete" (click)="deleteActivity(act)">
+          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="seamless-text-container">
+        @if (focusedActivityId() === act.id) {
+          <div class="grow-wrap">
+            <textarea
+              #textEditor
+              [value]="act.description()"
+              (input)="mirrorText.innerText = $any($event.target).value + '\n'"
+              (blur)="blurDescription(act, $any($event.target).value);"
+              placeholder="Add description..."
+              autofocus>
+            </textarea>
+            <span #mirrorText class="ghost-text">{{ act.description() + '\n' }}</span>
+          </div>
+        } @else {
+          <div class="display-text" (click)="focusedActivityId.set(act.id)">
+            <div [innerHTML]="act.description() ? formatDescription(act.description()) : 'Add description...'"></div>
+          </div>
+        }
+      </div>
+
+      <div class="cost-corner-anchor">
+        <app-cost-badge
+          [estimatedCost]="act.estimated_cost() ?? 0"
+          [actualCost]="act.actual_cost()"
+          [isPaid]="act.paid()"
+          (togglePaid)="updateActivity(act, { paid: !act.paid() })"
+          (saveEstimated)="updateActivity(act, { estimated_cost: $event })"
+          (saveActual)="updateActivity(act, { actual_cost: $event })">
+        </app-cost-badge>
+      </div>
+    </div>
+  }
+
+  <div class="activity-item add-ghost"
+     [class.editing]="isAdding()"
+     (click)="!isAdding() && isAdding.set(true)">
+
+<!--    <div class="seamless-text-container" [class.is-editing]="isAdding()">-->
+    <div class="seamless-text-container">
+      @if (isAdding()) {
+        <div class="grow-wrap">
+          <textarea
+            #newInput
+            (input)="mirrorText.innerText = $any($event.target).value"
+            (keydown)="handleKeyDown($event)"
+            (blur)="!newInput.value && isAdding.set(false)"
+            placeholder="Add description..."
+            autofocus></textarea>
+          <span #mirrorText class="ghost-text">{{ newInput.value }}</span>
+        </div>
+      } @else {
+        <div class="display-text add-placeholder">
+          <lucide-icon name="plus" [size]="18"></lucide-icon>
+          <span>Add Activity</span>
+        </div>
+      }
+    </div>
+
+    @if (isAdding()) {
+      <div class="cost-corner-anchor">
+         <span class="hint-text">Enter to Save • Esc to Cancel</span>
+      </div>
+    }
+  </div>
+
+
+<!--  <div class="activity-item add-ghost"-->
+<!--       [class.is-editing]="isAdding()"-->
+<!--       (click)="!isAdding() && isAdding.set(true)">-->
+
+<!--    <div class="seamless-text-container">-->
+<!--      @if (isAdding()) {-->
+<!--        <div class="grow-wrap">-->
+<!--          <textarea-->
+<!--            #newInput-->
+<!--            (keydown)="handleKeyDown($event)"-->
+<!--            (blur)="!$any($event.target).value && isAdding.set(false)"-->
+<!--            autofocus>-->
+<!--          </textarea>-->
+<!--          <span class="ghost-text">{{ newInput.value + '\n' }}</span>-->
+<!--        </div>-->
+<!--      } @else {-->
+<!--        <div class="add-placeholder">-->
+<!--          <lucide-icon name="plus" [size]="18"></lucide-icon>-->
+<!--          <span>Add Activity</span>-->
+<!--        </div>-->
+<!--      }-->
+<!--    </div>-->
+
+<!--    @if (isAdding()) {-->
+<!--      <div class="cost-corner-anchor">-->
+<!--         <span class="hint-text">Enter to Save • Esc to Cancel</span>-->
+<!--      </div>-->
+<!--    }-->
+<!--  </div>-->
+</div>
+
+<!--<div class="activities-container">-->
+<!--  @for (act of activities(); track act.id) {-->
+<!--    <div class="activity-item" [class.excluded]="!act.included()">-->
+
+<!--      <div class="activity-header">-->
+<!--        <label class="checkbox-container">-->
+<!--          <input type="checkbox"-->
+<!--                 [checked]="act.included()"-->
+<!--                 (change)="updateActivity(act, { included: !act.included() })">-->
+<!--          <span class="checkmark"></span>-->
+<!--        </label>-->
+
+<!--        <span class="category-tag">{{ act.category() }}</span>-->
+
+<!--        <div class="status-group">-->
+<!--          <span class="paid-label" [class.is-paid]="act.paid()">PAID</span>-->
+<!--          <input type="checkbox"-->
+<!--                 [checked]="act.paid()"-->
+<!--                 (change)="updateActivity(act, { paid: !act.paid() })">-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="description-box">-->
+<!--        @if (focusedActivityId() === act.id) {-->
+<!--          <textarea-->
+<!--            [value]="act.description()"-->
+<!--            (blur)="focusedActivityId.set(null); updateActivity(act, { description: $any($event.target).value })"-->
+<!--            placeholder="Add description... url(link, label)"-->
+<!--            autofocus>-->
+<!--          </textarea>-->
+<!--        } @else {-->
+<!--          <div class="display-text"-->
+<!--               (click)="act.descriptionFetched() && focusedActivityId.set(act.id)"-->
+<!--               [class.is-loading]="!act.descriptionFetched()">-->
+
+<!--            @if (!act.descriptionFetched()) {-->
+<!--              <div class="skeleton-loader">Fetching details...</div>-->
+<!--            } @else {-->
+<!--              <div [innerHTML]="act.description() ? formatDescription(act.description()) : 'Click to add description...'"></div>-->
+<!--            }-->
+<!--          </div>-->
+<!--        }-->
+<!--      </div>-->
+
+<!--      <div class="cost-row">-->
+<!--        <div class="badge-group">-->
+<!--          <span class="label">EST:</span>-->
+<!--          <app-editable-badge-->
+<!--            [value]="act.estimated_cost() || 0"-->
+<!--            [prefix]="'€'"-->
+<!--            (save)="updateActivity(act, { estimated_cost: $event })">-->
+<!--          </app-editable-badge>-->
+<!--        </div>-->
+
+<!--        <div class="badge-group">-->
+<!--          <span class="label">ACTUAL:</span>-->
+<!--          <app-editable-badge-->
+<!--            [value]="act.actual_cost() || 0"-->
+<!--            [prefix]="'€'"-->
+<!--            (save)="updateActivity(act, { actual_cost: $event })">-->
+<!--          </app-editable-badge>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  } @empty {-->
+<!--    <div class="empty-state">No activities found for this place.</div>-->
+<!--  }-->
+<!--</div>-->

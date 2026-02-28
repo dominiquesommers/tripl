@@ -1,0 +1,31 @@
+<div class="bookings-container">
+  <section class="cost-section">
+    <h3 class="section-title">Estimated Daily Costs</h3>
+
+    <div class="costs-grid">
+      @for (cat of categories; track cat.id) {
+        <div class="cost-item">
+          <span class="cost-label">{{ cat.label }}</span>
+          <app-editable-badge
+            [value]="getCostValue(cat.id)"
+            [iconName]="cat.icon"
+            [prefix]="'€'"
+            [step]="5"
+            [isLargeValue]="true"
+            [iconColor]="getCategoryColor(cat.id)"
+            (save)="updateCost(cat.id, $event)">
+          </app-editable-badge>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="tickets-section">
+    <h4 class="section-title">Tickets & Documents</h4>
+    <div class="empty-docs">
+      <i-lucide name="ticket" class="big-icon"></i-lucide>
+      <p>No documents attached yet.</p>
+      <button class="add-btn">Add Ticket</button>
+    </div>
+  </section>
+</div>

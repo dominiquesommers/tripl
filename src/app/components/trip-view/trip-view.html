@@ -10,7 +10,7 @@
   <app-map></app-map>
 
   <div class="ui-overlay">
-    @if (tripService.trips() && !tripService.drawingState().active) {
+    @if (tripService.trips() && !uiService.drawingState().active) {
       <app-trip-bubble></app-trip-bubble>
     }
 

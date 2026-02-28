@@ -1,0 +1,84 @@
+<div class="overview-container">
+  <section class="chart-section">
+    <div class="section-header">
+      <h4>Spending Trend</h4>
+      <div class="header-actions">
+        <button
+          class="icon-btn toggle-btn"
+          [class.is-active]="isCumulative()"
+          (click)="isCumulative.set(!isCumulative())"
+          [title]="isCumulative() ? 'Switch to daily' : 'Switch to cumulative'">
+          <lucide-icon
+            [name]="isCumulative() ? 'sigma' : 'activity'"
+            [size]="14">
+          </lucide-icon>
+        </button>
+        <button class="icon-btn" (click)="openFullscreen('line')">
+          <lucide-icon name="maximize-2" [size]="14"></lucide-icon>
+        </button>
+      </div>
+    </div>
+    <div class="chart-wrapper">
+      <canvas baseChart [data]="lineChartData()" [options]="lineChartOptions" [type]="'line'"></canvas>
+    </div>
+  </section>
+
+  <section class="chart-section">
+    <div class="section-header">
+      <h4>Daily Cost per Country</h4>
+      <div class="header-actions">
+        <button
+          class="icon-btn toggle-btn"
+          [class.is-active]="isBarCumulative()"
+          (click)="isBarCumulative.set(!isBarCumulative())"
+          [title]="isBarCumulative() ? 'Switch to daily' : 'Switch to total'">
+          <lucide-icon
+            [name]="isBarCumulative() ? 'sigma' : 'activity'"
+            [size]="14">
+          </lucide-icon>
+        </button>
+        <button class="icon-btn" (click)="openFullscreen('bar')">
+          <lucide-icon name="maximize-2" [size]="14"></lucide-icon>
+        </button>
+      </div>
+    </div>
+    <div class="chart-wrapper bar-wrapper">
+      <canvas baseChart [data]="barChartData()" [options]="barChartOptions" [type]="'bar'"></canvas>
+    </div>
+  </section>
+  <section class="chart-section">
+    <div class="section-header">
+      <h4>Daily Cost per Country</h4>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <span>Country</span>
+        <span>Est.</span>
+        <span>Act.</span>
+      </div>
+
+      <div class="table-body">
+        @for (country of visitedCountries(); track country.id) {
+          <div class="country-group">
+            <div class="country-row">
+              <span class="name">{{ country.name }}</span>
+              <span class="val">{{ country.cost().estimated.total | currency }}</span>
+              <span class="val actual">{{ country.cost().actual.total | currency }}</span>
+            </div>
+
+  <!--          @for (visit of country.visits(); track visit.id) {-->
+  <!--            <div class="place-row">-->
+  <!--              <span class="place-name">{{ visit.place.name() }}</span>-->
+  <!--              <app-editable-badge-->
+  <!--                 [value]="visit.place.accommodation_cost()"-->
+  <!--                 [prefix]="'€'"-->
+  <!--                 (save)="updateVisitCost(visit, $event)">-->
+  <!--              </app-editable-badge>-->
+  <!--            </div>-->
+  <!--          }-->
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+</div>

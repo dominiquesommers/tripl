@@ -3,6 +3,10 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+::ng-deep .apple-glass-popup .mapboxgl-popup-tip {
+  display: none !important;
+}
+
 .visit-card {
   border-radius: 18px;
   width: 320px;
@@ -11,6 +15,7 @@
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
 }
 
 /*.visit-card.managing {*/
@@ -30,7 +35,8 @@
   color: white;
   border-radius: 18px;
   border: 0.5px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  /*box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);*/
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
 }
 
 /* SPINE */
@@ -216,8 +222,10 @@
 
 .line-1 {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-start;
   gap: 8px;
+  min-height: 30px;
 }
 
 .name-input-editable {
@@ -234,90 +242,6 @@
   min-height: 30px;
   font-family: inherit;
 }
-
-.nights-badge {
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 4px;
-  border-radius: 15px;
-  gap: 1px;
-  height: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s;
-}
-
-.nights-badge:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.icon-stack {
-  position: relative;
-  width: 18px;
-  height: 24px; /* Slightly taller for the vertical buttons */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stepper-controls {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.nights-badge:hover .stepper-controls {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.nights-badge:hover .moon-icon {
-  opacity: 0;
-}
-
-.step-btn {
-  background: none;
-  border: none;
-  color: white;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 12px;
-  opacity: 0.6;
-}
-
-.step-btn:hover {
-  opacity: 1;
-  color: #3b82f6; /* Highlight color when hovering the specific arrow */
-}
-
-.nights-val {
-  border: none;
-  background: transparent;
-  color: white;
-  width: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: textfield; /* Firefox remove arrows */
-}
-
-/* Remove arrows from number input */
-.nights-val::-webkit-outer-spin-button,
-.nights-val::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.moon-icon { color: #f1c40f; }
 
 .line-2 {
   display: flex;
@@ -359,6 +283,10 @@
   transition: opacity 0.2s;
 }
 .hoverable-row:hover .config-btn-wrapper {
+  opacity: 1;
+}
+
+.rent_until-row:hover .config-btn-wrapper {
   opacity: 1;
 }
 

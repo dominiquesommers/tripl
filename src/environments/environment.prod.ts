@@ -1,6 +1,8 @@
 export const environment = {
   production: true,
   useOfflineMode: false,
+  apiUrl: 'https://tripl-566360457200.europe-west1.run.app',
+  useMock: false,
   mapboxToken: 'pk.eyJ1IjoiZG9taW5pcXVlc29tbWVycyIsImEiOiJjbWNoeHNnZG4wMHk1MmtzOGtodnluZHJzIn0.j0bybMxwa2BK4UgPIhxpQw',
   firebase: {
     apiKey: "AIzaSyBKjHTxlaa6D7icnxhp1Unz9uTCcuJLWSc",

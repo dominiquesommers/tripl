@@ -1,0 +1,79 @@
+
+<div class="badge-container" [class]="costStatus()">
+
+  <!-- Estimated Cost -->
+  @let cost = actualCost();
+  <span class="prefix actionable"
+        (click)="toggleActualExistence()"
+        [title]="cost === null ? 'Add actual cost' : 'Remove actual cost'">
+    <span class="symbol">~€</span>
+    <lucide-icon [name]="(cost === null) ? 'plus' : 'x'" class="hover-icon" [size]="12"></lucide-icon>
+  </span>
+
+<!--  <span class="prefix">~€</span>-->
+  <input
+    #estimateInput
+    type="number"
+    class="val-input estimate"
+    [value]="estimatedCost()"
+    [style.opacity]="estimateOpacity()"
+    (blur)="onEstimateBlur()"
+    (keydown)="onEstimateKeyDown($event)"
+    (paste)="handleEstimatePaste($event)" />
+
+  <!-- Actual Cost (optional) -->
+  @if(cost !== null) {
+    <span class="prefix actionable toggle-paid"
+          (click)="onTogglePaid()"
+          [title]="isPaid() ? 'Mark as unpaid' : 'Mark as paid'">
+      <span class="symbol">€</span>
+      <lucide-icon [name]="isPaid() ? 'x' : 'check'" class="hover-icon" [size]="12"></lucide-icon>
+    </span>
+<!--    <span class="prefix">€</span>-->
+    <input
+      #actualInput
+      type="number"
+      class="val-input actual"
+      [value]="cost"
+      (blur)="onActualBlur()"
+      (keydown)="onActualKeyDown($event)"
+      (paste)="handleActualPaste($event)" />
+  }
+
+  @if(note() || referenceUrl() || true) {
+    <div class="details-superscript" (click)="openDetails.emit()">
+      <lucide-icon name="info" class="details-icon" [size]="14"></lucide-icon>
+    </div>
+  }
+
+  @if((!isPaid() && actualCost())) {
+    <div class="details-subscript" (click)="openDetails.emit()">
+      <lucide-icon name="clock" class="details-icon clock-icon" [size]="14"></lucide-icon>
+    </div>
+  }
+</div>
+
+
+<!--    @if(!isPaid()) {-->
+<!--      <span class="pending-underline"></span>-->
+<!--    }-->
+<!--  }-->
+
+  <!-- Paid / Pending Status Icon -->
+<!--  <lucide-icon-->
+<!--    [name]="isPaid() ? 'check' : 'clock'"-->
+<!--    [size]="16"-->
+<!--    [style.color]="isPaid() ? 'green' : 'orange'"-->
+<!--    class="status-icon"-->
+<!--    (click)="onTogglePaid()">-->
+<!--  </lucide-icon>-->
+
+  <!-- Category Icon (optional) -->
+<!--  @if(categoryIcon(); as icon) {-->
+<!--    <lucide-icon-->
+<!--      [name]="icon"-->
+<!--      [size]="18"-->
+<!--      [style.color]="categoryIconColor()"-->
+<!--      class="category-icon">-->
+<!--    </lucide-icon>-->
+<!--  }-->

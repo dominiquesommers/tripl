@@ -1,0 +1,17 @@
+<div class="tab-bar-container">
+  @for (tab of tabs(); track tab) {
+    <button
+      class="tab-item"
+      [class.active]="activeTab() === tab"
+      (click)="handleTabClick(tab)"
+      [attr.aria-label]="'Select ' + tab">
+
+      <div class="tab-icon">
+        <lucide-icon [name]="getIconName(tab)" [size]="22"></lucide-icon>
+      </div>
+
+      <span class="tab-label">{{ tab | titlecase }}</span>
+    </button>
+  }
+</div>
+

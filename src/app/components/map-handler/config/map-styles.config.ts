@@ -30,6 +30,13 @@ export const ROUTE_ICONS = {
   icon_marker: 'icon_marker',
 } as const;
 
+export const ROUTE_LUCIDE_ICONS = {
+  flying: 'plane',
+  bus: 'bus',
+  train: 'train-front',
+  driving: 'car',
+  boat: 'ship'
+} as const;
 
 // 2. Mapbox Style Expressions
 // Moving these here prevents your LayerManager from having "magic strings"

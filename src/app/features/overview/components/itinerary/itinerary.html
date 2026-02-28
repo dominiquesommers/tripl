@@ -1,0 +1,47 @@
+<div class="itinerary-container">
+  @for (visit of tripService.plan()?.itinerary() ?? []; track visit.id; let last = $last) {
+    <div class="itinerary-node">
+
+      <div class="timeline-visual">
+        <div class="node-dot"></div>
+        @if (!last) { <div class="node-line"></div> }
+      </div>
+
+      <div class="node-content">
+        <div class="node-header">
+          <span class="date-range">
+            {{ visit.entryDate() | date:'MMM d' }} — {{ visit.exitDate() | date:'MMM d' }}
+          </span>
+          <span class="cost-tag">{{ visit.cost().estimated.total }}€</span>
+        </div>
+
+        <div class="visit-details" (click)="onVisitClick(visit)">
+          <h3 class="place-name">{{ visit.place.name() }}</h3>
+          <p class="stay-duration">{{ visit.nights() }} nights</p>
+        </div>
+
+        @if (visit.nextTraverse(); as traverse) {
+          <div class="transit-section">
+            <div class="transit-icon-box">
+              <i-lucide [name]="getTransportIcon(traverse.route.type())" class="t-icon"></i-lucide>
+            </div>
+            <div class="transit-info">
+              <span class="transit-text">
+                {{ traverse.route.type() | titlecase }}
+                @if (traverse.route.nights() > 0) {
+                  • {{ traverse.route.nights() }} nights transit
+                }
+              </span>
+              <span class="transit-cost">{{ traverse.cost_().estimated.total }}€</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @empty {
+    <div class="empty-state">
+      <i-lucide name="map" class="empty-icon"></i-lucide>
+      <p>No visits planned yet.</p>
+    </div>
+  }
+</div>

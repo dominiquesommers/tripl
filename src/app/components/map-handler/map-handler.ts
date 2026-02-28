@@ -43,15 +43,12 @@ import {RoutePopup} from '../route-popup/route-popup';
   styleUrls: ['./map-handler.css']
 })
 export class MapHandler implements OnInit, OnDestroy {
-  // 1. Injected Services
   private authService = inject(AuthService);
   readonly tripService = inject(TripService);
-  private uiService = inject(UiService);
+  readonly uiService = inject(UiService);
   private platformId = inject(PLATFORM_ID);
-  // private cdr = inject(ChangeDetectorRef);
   private injector = inject(Injector);
 
-  // 2. Map Elements (The "Hands")
   private mapbox: any;
   map = signal<MapboxMap | null>(null);
   center = signal<[number, number]>(INITIAL_CENTER);
@@ -112,7 +109,9 @@ export class MapHandler implements OnInit, OnDestroy {
       style: `mapbox://styles/mapbox/${MAP_STYLES.LOGGED_OUT}`,
       center: this.center(),
       zoom: this.zoom(),
-      config: { basemap: { lightPreset: 'night' } }
+      config: { basemap: { lightPreset: 'night' } },
+      logoPosition: 'bottom-right',
+      attributionControl: false
     });
 
     map.on('load', () => {
@@ -143,7 +142,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncDrawer() {
-    const state = this.tripService.drawingState();
+    const state = this.uiService.drawingState();
     const isReady = this.layersReady();
     const map = this.map();
     if (!isReady || !map) return; // TODO handle via layerManager
@@ -177,7 +176,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncSelectedVisit() {
-    const selectedPlace = this.tripService.selectedVisit();
+    const selectedPlace = this.uiService.selectedVisit();
     if (!selectedPlace) return;
     this.interactionManager.handleMarkerUnhover();
   }
@@ -185,34 +184,42 @@ export class MapHandler implements OnInit, OnDestroy {
   private syncMarkers() {
     const map = this.map();
     const trip = this.tripService.trip();
+    console.log('syncMarkers!', trip?.placesArray().length);
     // TODO delete existing markers if no places.
     if (!map || !trip) return;
+    // console.log('syncMarkers111!', trip?.placesArray().length);
     // TODO this should no need a timeout as this.markerElements is a signal, but without, it doesn't seem to work.
     setTimeout(() => {
       const components = this.markerElements();
+      // console.log('syncMarkers222!', trip?.placesArray().length);
       if (!components || components.length === 0) return;
+      // console.log('syncMarkers333!', trip?.placesArray().length);
       this.updateMarkers(trip.placesArray() ?? [], components);
-    }, 0);
+    }, 500);
   }
 
   private syncRoutes() {
     const routesData = this.tripService.trip()?.routesGeoJson();
     const isReady = this.layersReady();
+    // console.log('sync routes');
     if (isReady && routesData && this.layerManager) {
+      console.log(routesData);
       this.layerManager.updateRouteData(routesData);
     }
   }
 
   @HostListener('window:keydown.escape', ['$event'])
   handleEsc(event: any) {
-    if (this.tripService.drawingState().active) {
+    if (this.uiService.drawingState().active) {
       this.interactionManager?.cancelDrawing();
     }
   }
 
   private updateMarkers(places: Place[], components: readonly PlaceMarker[]) {
     const map = this.map();
+    // console.log('trying to update markers!!!', !map, !this.interactionManager)
     if (!map || !this.interactionManager) return;
+    // console.log('updating markers!!!')
     components.forEach((component) => {
       const el = (component as any).elementRef.nativeElement;
       const place = component.place();
@@ -242,14 +249,14 @@ export class MapHandler implements OnInit, OnDestroy {
     console.log('place saved from its popup.', updatePlace);
     // this.tripService.savePlace(place);
     // Optionally close the popup after save
-    this.tripService.selectedVisit.set(null);
+    this.uiService.clearSelection();
   }
 
   handleVisitDelete(visitId: string) {
     console.log('visit deleted from its popup.');
     if (confirm('Are you sure?')) {
+      this.uiService.clearSelection();
       // this.tripService.deletePlace(place);
-      this.tripService.selectedVisit.set(null);
     }
   }
 

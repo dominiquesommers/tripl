@@ -2,6 +2,7 @@ import {IPlace, Place} from './place';
 import {computed, signal, untracked} from '@angular/core';
 import {TripService} from '../services/trip';
 import {Traverse} from './traverse';
+import {CostBreakdown, CostComparison} from './cost';
 
 export interface IVisit {
   id: string;
@@ -12,7 +13,7 @@ export interface IVisit {
 }
 
 export type NewVisit = Omit<IVisit, 'id'>;
-export type UpdateVisit = Partial<Omit<IVisit, 'id' | 'place_id' | 'plan_id'>>;
+export type UpdateVisit = Partial<Pick<IVisit, 'nights' | 'included'>>;
 
 export class Visit {
   id: string;
@@ -83,6 +84,10 @@ export class Visit {
     return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
+  readonly inItinerary = computed((): boolean => {
+    return !!this.entryDate();
+  });
+
   readonly exitDate = computed(() => {
     const start = this.entryDate();
     if (!start) return null;
@@ -96,6 +101,39 @@ export class Visit {
     return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
+  readonly activeRentalSource = computed<Traverse | null>(() => {
+    const plan = this.tripService.plan();
+    if (!plan) return null;
+    const itinerary = plan.itinerary();
+    let currentRental: Traverse | null = null;
+    for (const visit of itinerary) {
+      if (currentRental?.rent_until() === visit.id) currentRental = null;
+      if (visit.id === this.id) return currentRental;
+      const traverse = visit.nextTraverse()!;
+      if (traverse.rent_until()) currentRental = traverse;
+    }
+    return null;
+  });
+
+  readonly cost = computed<CostComparison>(() => {
+    if (!this.inItinerary()) {
+      return CostComparison.empty();
+    }
+    const n = this.nights() || 0;
+    const p = this.place;
+    const rental = this.activeRentalSource();
+    // If there's an active rental that includes accommodation, we set the "base" accommodation cost to 0.
+    const shouldChargeAcc = !(rental && rental.includes_accommodation());
+    // console.log(this.place.name(), shouldChargeAcc);
+    const est = new CostBreakdown(
+      shouldChargeAcc ? n * (p.accommodation_cost() ?? 0) : 0,
+      0, n * (p.food_cost() ?? 0), 0, n * (p.miscellaneous_cost() ?? 0));
+    const act = est.clone();
+    // TODO add actual costs.
+    // console.log(this.place.name(), est.total);
+    return new CostComparison(est, act);
+  });
+
   constructor(
     data: IVisit,
     private tripService: TripService
@@ -106,8 +144,10 @@ export class Visit {
     this.update(data);
   }
 
-  get place(): Place | undefined {
-    return this.tripService.trip()?.places().get(this.place_id);
+  get place(): Place {
+    const place = this.tripService.trip()?.places().get(this.place_id);
+    if (!place) throw new Error(`Invariant Violation: Visit ${this.id} references non-existent Place ${this.place_id}`);
+    return place;
   }
 
   update(data: Partial<IVisit>) {

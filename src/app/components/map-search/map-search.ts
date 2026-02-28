@@ -8,6 +8,7 @@ import {VisitPopup} from '../visit-popup/visit-popup';
 import {PlaceTooltip} from '../place-tooltip/place-tooltip';
 import {RouteTooltip} from '../route-tooltip/route-tooltip';
 import {UiService} from '../../services/ui';
+import {TripService} from '../../services/trip';
 
 
 @Component({
@@ -19,6 +20,7 @@ import {UiService} from '../../services/ui';
 })
 export class MapSearch {
   uiService = inject(UiService);
+  tripService = inject(TripService);
 
   @Input({ required: true }) map!: MapboxMap;
 
@@ -94,7 +96,12 @@ export class MapSearch {
     // this.searchBoxElement.clear();
     this.searchBoxElement.blur();
     // this.topSuggestion = null;
-    console.log('searched for', feature);
-    // ... map-handler.flyTo logic
+    const name = feature.properties.name;
+    const countryName = feature.properties.context.country.name;
+    this.tripService.addPlace({ name, lng: feature.geometry.coordinates[0], lat: feature.geometry.coordinates[1], countryName })
+      .subscribe({
+        next: (addedPlace) => console.log('Place successfully added.'),
+        error: (err) => console.error('Failed to add place', err)
+      });
   }
 }

@@ -1,0 +1,71 @@
+.bookings-container {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #8e8e93;
+  margin: 0 0 8px 0px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.costs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cost-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.cost-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #8e8e93;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+app-editable-badge {
+  display: flex;
+  justify-content: center;
+}
+
+.empty-docs {
+  padding: 30px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #8e8e93;
+
+  .big-icon { width: 32px; height: 32px; margin-bottom: 8px; }
+  .add-btn {
+    margin-top: 12px;
+    background: #0a84ff;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}

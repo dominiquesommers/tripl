@@ -1,0 +1,36 @@
+<div class="badge-container">
+  @if (prefix()) {
+    <span class="prefix">{{ prefix() }}</span>
+  }
+
+  <input #numInput
+         type="number"
+         [class.wide-val]="isLargeValue() || prefix()"
+         [min]="min()"
+         [value]="value()"
+         class="val-input"
+         (keydown)="onKeyDown($event)"
+         (paste)="handlePaste($event)"
+         (blur)="onBlur()" />
+
+  <div class="icon-stack">
+    @if (iconName(); as iconName) {
+      <lucide-icon [name]="iconName"
+             [size]="18"
+             [style.color]="iconColor()"
+             class="main-icon">
+      </lucide-icon>
+    }
+
+    <div class="stepper-controls">
+      <button class="step-btn" (click)="adjust(1)" type="button">
+        <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
+      </button>
+      <button class="step-btn"
+              [style.visibility]="value() ?? 0 > min() ? 'visible' : 'hidden'"
+              (click)="adjust(-1)" type="button">
+        <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
+      </button>
+    </div>
+  </div>
+</div>
