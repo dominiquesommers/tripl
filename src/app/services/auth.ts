@@ -21,7 +21,11 @@ export class AuthService {
   private _user = signal<any | null>(null);
   readonly user = computed(() => this.isOfflineMode() ? MOCK_USER : this._user());
   private firebaseListenerStarted = false;
-  readonly isOfflineMode = signal<boolean>(environment.useOfflineMode || !navigator.onLine);
+  // readonly isOfflineMode = signal<boolean>(environment.useOfflineMode || !navigator.onLine);
+  readonly isOfflineMode = signal<boolean>(
+  environment.useOfflineMode ||
+  (isPlatformBrowser(this.platformId) ? !navigator.onLine : false)
+);
 
   constructor() {
     const app = initializeApp(environment.firebase);
