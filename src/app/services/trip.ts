@@ -345,19 +345,22 @@ export class TripService {
 
   addRoute(sourceId: string, targetId: string, type: RouteType = 'driving'): Observable<Route | null> {
     const currentTrip = this.trip();
-    if (!currentTrip || !currentTrip.places().has(sourceId) || !currentTrip.places().has(targetId)) {
-      return of(null);
-    }
+    if (!currentTrip) return of(null);
+    const source = currentTrip.places().get(sourceId);
+    const target = currentTrip.places().get(targetId);
+    if (!source || !target) return of(null);
+
     const existingRoute = Array.from(currentTrip.routes().values())
       .find(r => r.sourceId === sourceId && r.targetId === targetId);
     if (existingRoute) return of(existingRoute);
 
+    const routeString = `[[${source.lat},${source.lng}}],[${target.lat},${target.lng}]]`;
     const newRouteData: any = {
       source: sourceId,
       destination: targetId,
       trip_id: currentTrip.id,
       type: type,
-      distance: 0, duration: 0, estimated_cost: 0, nights: 0, route: '', actual_cost: 0, paid: false
+      distance: 0, duration: 0, estimated_cost: 0, nights: 0, route: routeString, actual_cost: 0, paid: false
     };
 
     return this.persist(
