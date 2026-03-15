@@ -1,0 +1,36 @@
+.bookings-container {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #8e8e93;
+  margin: 0 0 8px 0px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.empty-docs {
+  padding: 30px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #8e8e93;
+
+  .big-icon { width: 32px; height: 32px; margin-bottom: 8px; }
+  .add-btn {
+    margin-top: 12px;
+    background: #0a84ff;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}

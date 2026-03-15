@@ -1,7 +1,43 @@
+/*:host {*/
+/*  display: block;*/
+/*}*/
+
+/*::ng-deep .hover-tooltip .mapboxgl-popup-content {*/
+/*  background: rgba(20, 20, 20, 0.8) !important;*/
+/*  color: white;*/
+/*  backdrop-filter: blur(10px);*/
+/*  -webkit-backdrop-filter: blur(10px);*/
+/*  border: 0.5px solid rgba(255, 255, 255, 0.1);*/
+/*  padding: 4px 10px;*/
+/*  font-size: 12px;*/
+/*  font-weight: 500;*/
+/*  box-shadow: 0 4px 12px rgba(0,0,0,0.3);*/
+/*  white-space: nowrap;*/
+/*  border-radius: 20px !important;*/
+/*  !*height: 37px;*!*/
+/*  margin-bottom: 3px;*/
+/*  pointer-events: none; !* Ensure the tooltip doesn't flicker by blocking the mouse *!*/
+/*}*/
+
+/*!* Hide the arrow for the hover tooltip for a cleaner 'floating' look *!*/
+/*::ng-deep .hover-tooltip .mapboxgl-popup-tip {*/
+/*  display: none;*/
+/*}*/
+
+/*.tooltip-text {*/
+/*  color: white !important;*/
+/*  font-size: 12px;*/
+/*  font-weight: 500;*/
+/*  padding: 20px;*/
+/*  white-space: nowrap;*/
+/*}*/
+
+
 :host {
   display: block;
 }
 
+/* Mapbox Popup Overrides */
 ::ng-deep .hover-tooltip .mapboxgl-popup-content {
   background: rgba(20, 20, 20, 0.8) !important;
   color: white;
@@ -12,22 +48,80 @@
   font-size: 12px;
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  white-space: nowrap;
   border-radius: 20px !important;
-  /*height: 37px;*/
-  margin-bottom: 3px;
-  pointer-events: none; /* Ensure the tooltip doesn't flicker by blocking the mouse */
+  pointer-events: none;
 }
 
-/* Hide the arrow for the hover tooltip for a cleaner 'floating' look */
+.tooltip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.route-header {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 2px;
+  width: fit-content;
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.route-header.has-traverses {
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.route-path {
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+}
+
+.route-cost {
+  font-weight: 300;
+}
+
+.traverse-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.traverse-row {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  font-weight: 300;
+}
+
 ::ng-deep .hover-tooltip .mapboxgl-popup-tip {
   display: none;
 }
 
-.tooltip-text {
-  color: white !important;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 20px;
+.route-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+.route-details {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 300;
   white-space: nowrap;
+}
+
+.detail-separator {
+  opacity: 0.4;
 }

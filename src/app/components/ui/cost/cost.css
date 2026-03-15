@@ -1,0 +1,8 @@
+.cost-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  /* Must be visible so the absolutely-positioned popup escapes
+     any overflow:hidden on parent cards */
+  overflow: visible;
+}

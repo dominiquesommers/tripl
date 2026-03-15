@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { TripService } from '../../../../services/trip';
 import { UiService } from '../../../../services/ui';
 import { LucideAngularModule } from 'lucide-angular';
-import { ROUTE_LUCIDE_ICONS } from '../../../../components/map-handler/config/map-styles.config';
+import {
+  ROUTE_COLORS,
+  ROUTE_ICON_MAP,
+  ROUTE_LUCIDE_ICONS
+} from '../../../../components/map-handler/config/map-styles.config';
 
 @Component({
   selector: 'app-itinerary',
@@ -13,11 +17,21 @@ import { ROUTE_LUCIDE_ICONS } from '../../../../components/map-handler/config/ma
   styleUrl: './itinerary.css'
 })
 export class Itinerary {
-  // Inject the services to access the global trip state and UI state
   public tripService = inject(TripService);
-  private uiService = inject(UiService);
+  public uiService = inject(UiService);
 
   private readonly iconConfig = ROUTE_LUCIDE_ICONS;
+
+  getRouteIcon(type: string | undefined | null): string {
+    if (!type) return 'milestone';
+    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
+  }
+
+  getRouteColor(type: string | undefined | null): string {
+    if (!type) return ROUTE_COLORS.undefined;
+    // @ts-ignore
+    return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+  }
 
   /**
    * Navigates to the details of a specific visit.
@@ -28,6 +42,11 @@ export class Itinerary {
     this.uiService.selectVisit(visit.id);
     // Note: Since side-panel.html listens to selectedVisit(),
     // it will automatically swap the component for us.
+  }
+
+  onRouteClick(event: MouseEvent, route: any) {
+    event.stopPropagation();
+    this.uiService.selectRoute(route.id);
   }
 
   /**

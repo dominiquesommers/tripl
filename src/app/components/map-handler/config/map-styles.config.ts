@@ -20,6 +20,15 @@ export const ROUTE_COLORS = {
 } as const;
 
 
+export const ROUTE_ICON_MAP: Record<string, string> = {
+  'flying': 'plane',
+  'bus': 'bus',
+  'train': 'train-front',
+  'driving': 'car',
+  'boat': 'ship',
+};
+
+
 export const ROUTE_ICONS = {
   driving: 'icon_driving',
   flying: 'icon_flying',

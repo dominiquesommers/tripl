@@ -1,0 +1,165 @@
+.cost-popup-view {
+  border-radius: 20px;
+  width: 320px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(30, 30, 35, 0.97);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.manager-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  padding: 2px 8px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  opacity: 0.7;
+}
+
+/* ── Scroll container ───────────────────────────────────── */
+.scroll-container {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 0 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── Row base ───────────────────────────────────────────── */
+.ledger-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ledger-row {
+  display: grid;
+  grid-template-columns: 52px 52px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 12px;
+}
+
+.ledger-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ledger-row.editing,
+.ledger-row.adding {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  cursor: default;
+}
+
+/* ── Cell types ─────────────────────────────────────────── */
+.exp-date {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.exp-amount {
+  font-weight: 600;
+  color: #fff;
+  text-align: right;
+}
+
+.exp-details {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Inline inputs ──────────────────────────────────────── */
+.edit-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  padding: 0;
+  width: 100%;
+}
+
+.edit-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+
+.date-input {
+  color-scheme: dark;
+}
+
+.amount-input {
+  text-align: right;
+}
+
+.details-input {
+  min-width: 0;
+}
+
+/* ── Row actions ────────────────────────────────────────── */
+.row-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ledger-row:hover .row-actions,
+.ledger-row.editing .row-actions,
+.ledger-row.adding .row-actions {
+  opacity: 1;
+}
+
+/* ── Empty state ────────────────────────────────────────── */
+.empty-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  padding: 8px 0 4px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Icon buttons ───────────────────────────────────────── */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.icon-btn:hover             { color: #fff; background: rgba(255,255,255,0.1); }
+.icon-btn.delete-item:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+.icon-btn.confirm:hover     { color: #10b981; background: rgba(16,185,129,0.1); }

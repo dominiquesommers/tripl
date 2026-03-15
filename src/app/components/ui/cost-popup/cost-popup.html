@@ -1,0 +1,99 @@
+<div class="bubble-dropdown cost-popup-view">
+
+  <div class="manager-header">
+    <div style="width: 32px;"></div>
+    <span class="header-title">Payments</span>
+    <button class="icon-btn" (click)="isAdding.set(true)" title="Add payment">
+      <lucide-icon name="plus" [size]="18"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="scroll-container">
+
+    <!-- Expense rows -->
+    @if (expenses().length > 0) {
+      <div class="ledger-rows">
+        @for (exp of expensesOrdered(); track exp.id) {
+
+          @if (editingId() === exp.id) {
+            <!-- Inline edit row -->
+            <div class="ledger-row editing">
+              <input
+                type="date"
+                class="edit-input date-input"
+                [value]="editDate()"
+                (change)="editDate.set($any($event.target).value)" />
+              <input
+                type="number"
+                class="edit-input amount-input"
+                [value]="editAmount()"
+                (change)="editAmount.set($any($event.target).valueAsNumber)"
+                placeholder="0" />
+              <input
+                type="text"
+                class="edit-input details-input"
+                [value]="editDetails()"
+                (input)="editDetails.set($any($event.target).value)"
+                placeholder="Details..." />
+              <div class="row-actions">
+                <button class="icon-btn confirm" (click)="confirmEdit(exp)" title="Save">
+                  <lucide-icon name="check" [size]="13"></lucide-icon>
+                </button>
+                <button class="icon-btn" (click)="editingId.set(null)" title="Cancel">
+                  <lucide-icon name="x" [size]="13"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+          } @else {
+            <!-- Display row -->
+            <div class="ledger-row" (click)="startEdit(exp)">
+              <span class="exp-date">{{ exp.date() | date:'MMM d' }}</span>
+              <span class="exp-amount">€{{ exp.amount() }}</span>
+              <span class="exp-details">{{ exp.details() || '—' }}</span>
+              <div class="row-actions">
+                <button class="icon-btn delete-item" (click)="onDelete(exp, $event)" title="Delete">
+                  <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          }
+
+        }
+      </div>
+    } @else {
+      <p class="empty-hint">No payments recorded yet.</p>
+    }
+
+    <!-- Add row -->
+    @if (isAdding()) {
+      <div class="ledger-row adding">
+        <input
+          type="date"
+          class="edit-input date-input"
+          [value]="todayISO()"
+          (change)="newDate.set($any($event.target).value)" />
+        <input
+          type="number"
+          class="edit-input amount-input"
+          placeholder="0"
+          (change)="newAmount.set($any($event.target).valueAsNumber)" />
+        <input
+          type="text"
+          class="edit-input details-input"
+          placeholder="Details..."
+          (input)="newDetails.set($any($event.target).value)" />
+        <div class="row-actions">
+          <button class="icon-btn confirm" (click)="confirmAdd()" title="Add">
+            <lucide-icon name="check" [size]="13"></lucide-icon>
+          </button>
+          <button class="icon-btn" (click)="isAdding.set(false)" title="Cancel">
+            <lucide-icon name="x" [size]="13"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+  </div>
+
+</div>

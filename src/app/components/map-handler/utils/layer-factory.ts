@@ -109,8 +109,8 @@ export class MapLayerManager {
           'icon-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false], 1,
-            ['boolean', ['feature-state', 'disabled'], false], 0.1,
-            0.8
+            ['boolean', ['feature-state', 'disabled'], false], 0.05,
+            0.3
           ]
         }
       });
@@ -149,8 +149,8 @@ export class MapLayerManager {
           'icon-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false], 1,
-            ['boolean', ['feature-state', 'disabled'], false], 0.2,
-            0.8
+            ['boolean', ['feature-state', 'disabled'], false], 0.04,
+            0.5
           ]
         }
       });

@@ -1,1 +1,24 @@
-<span class="tooltip-text">{{ place()?.name() }}</span>
+<!--<span class="tooltip-text">{{ place().name() }}</span>-->
+
+@if (place(); as place) {
+  <div class="tooltip-container">
+    <div class="place-header" [class.has-visits]="sortedVisits().length > 0">
+      <span class="place-name">{{ place.name() }}</span>
+      <span class="place-cost">(€{{ place.cost().estimated.total }})</span>
+    </div>
+
+    @if (sortedVisits().length > 0) {
+      <div class="visit-list">
+        @for (visit of sortedVisits(); track visit.id) {
+          <div class="visit-row">
+            @if (visit.entryDateString() === visit.exitDateString()) {
+              {{ visit.entryDateString() }}
+            } @else {
+              {{ visit.entryDateString() }} - {{ visit.exitDateString() }}
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

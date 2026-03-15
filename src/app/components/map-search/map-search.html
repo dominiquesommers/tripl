@@ -1,12 +1,25 @@
-<div class="search-container"
-     [class.expanded]="uiService.isSearchExpanded()"
-     [style.left.px]="uiService.sidePanelWidth() + 12">
 
-  <button class="search-toggle-btn" (click)="$event.stopPropagation(); toggleSearch()">
-    <lucide-icon [name]="SearchIcon" [size]="18" color="white"></lucide-icon>
-  </button>
+<div class="search-layout-wrapper" [style.left.px]="uiService.sidePanelWidth() + 12">
+  <div class="search-container" [class.expanded]="uiService.isSearchExpanded()">
+<!--       [style.left.px]="uiService.sidePanelWidth() + 12">-->
 
-  <div class="search-input-wrapper" [class.show]="uiService.isSearchExpanded()">
-    <div #searchWrapper class="search-wrapper"></div>
+    <button class="search-toggle-btn" (click)="$event.stopPropagation(); toggleSearch()">
+      <lucide-icon [name]="SearchIcon" [size]="18" color="white"></lucide-icon>
+    </button>
+
+    <div class="search-input-wrapper" [class.show]="uiService.isSearchExpanded()">
+      <div #searchWrapper class="search-wrapper"></div>
+    </div>
   </div>
+
+  @if (uiService.isSearchExpanded()) {
+    <div class="custom-mode-btn-wrapper">
+      <button
+        class="custom-mode-btn"
+          [class.active]="uiService.isCustomSearchActive()"
+          (click)="toggleCustomMode()">
+        <lucide-icon name="crosshair" [size]="18" [color]="uiService.isCustomSearchActive() ? '#007AFF' : 'white'">></lucide-icon>
+      </button>
+    </div>
+  }
 </div>

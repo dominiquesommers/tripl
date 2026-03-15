@@ -60,6 +60,26 @@ export class Traverse {
     return plan.itinerary().some(v => v.nextTraverse()?.id === this.id);
   });
 
+  readonly entryDate = computed((): Date | null => {
+    if (!this.inItinerary()) return null;
+    return this.source.exitDate();
+  });
+
+  readonly entryDateString = computed(() => {
+    const date = this.entryDate();
+    return date ? date.toLocaleDateString('nl-NL') : '';
+  });
+
+  readonly exitDate = computed((): Date | null => {
+    if (!this.inItinerary()) return null;
+    return this.target.entryDate();
+  });
+
+  readonly exitDateString = computed(() => {
+    const date = this.exitDate();
+    return date ? date.toLocaleDateString('nl-NL') : '';
+  });
+
   // TODO refactor cost (attribute) to actual_cost such that this computed can be named 'cost'
   readonly cost_ = computed<CostComparison>(() => {
     if (!this.inItinerary()) return CostComparison.empty();

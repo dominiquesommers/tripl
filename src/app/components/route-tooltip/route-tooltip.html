@@ -1,8 +1,34 @@
-<!--<span class="tooltip-text">{{ route.source?.name() }} → {{ route.target?.name() }}</span>-->
-<!--<div class="tooltip-card">-->
-@if (route(); as r) {
-  <span class="tooltip-text">
-    {{ r.source.name() }} → {{ r.target.name() }}
-  </span>
+@if (route(); as route) {
+  <div class="tooltip-container">
+    <div class="route-header" [class.has-traverses]="sortedTraverses().length > 0">
+      <span class="route-path">
+        {{ route.source.name() }} → {{ route.target.name() }}
+      </span>
+      <div class="route-details">
+        <span class="detail-item">€{{ route.cost().estimated.total }}</span>
+        @if (route.duration() !== null) {
+          <span class="detail-separator">•</span>
+          <span class="detail-item">{{ formatDuration(route.duration()) }}</span>
+        }
+        @if (route.distance() !== null) {
+          <span class="detail-separator">•</span>
+          <span class="detail-item">{{ formatDistance(route.distance()) }}</span>
+        }
+      </div>
+    </div>
+
+    @if (sortedTraverses().length > 0) {
+      <div class="traverse-list">
+        @for (t of sortedTraverses(); track t.id) {
+          <div class="traverse-row">
+            @if (t.entryDateString() === t.exitDateString()) {
+              {{ t.entryDateString() }}
+            } @else {
+              {{ t.entryDateString() }} - {{ t.exitDateString() }}
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
 }
-<!--</div>-->

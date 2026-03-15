@@ -5,21 +5,23 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import {TripService} from '../../../../services/trip';
 import {CostBadge} from '../../../../components/ui/cost-badge/cost-badge';
-import {Visit} from '../../../../models/visit';
+import {Cost} from '../../../../components/ui/cost/cost';
+import {Place} from '../../../../models/place';
 import {Activity, IActivity, UpdateActivity} from '../../../../models/activity';
+import {NewExpense, UpdateExpense} from '../../../../models/expense';
 
 
 @Component({
   selector: 'app-activities',
   standalone: true,
-  imports: [CommonModule, FormsModule, CostBadge, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, Cost],
   templateUrl: './activities.html',
   styleUrl: './activities.css'
 })
 export class Activities {
   private sanitizer = inject(DomSanitizer);
 
-  visit = input.required<Visit>();
+  place = input.required<Place>();
   tripService = inject(TripService);
 
   // Track which activity description has focus for the URL parser
@@ -27,12 +29,15 @@ export class Activities {
   isAdding = signal(false);
 
   activities = computed<Activity[]>(() => {
-    return this.visit().place.activities();
+    return this.place().activities();
   });
+
+  mirrorTexts = signal<Map<string, string>>(new Map());
+  addingMirrorText = signal<string>('');
 
   constructor() {
     effect(() => {
-      const place = this.visit().place;
+      const place = this.place();
       const activities = place.activities();
       const needsFetching = activities.length > 0 && activities.some(a => !a.descriptionFetched());
       if (needsFetching) {
@@ -40,6 +45,14 @@ export class Activities {
           this.tripService.fetchActivityDescriptions(place.id).subscribe();
         });
       }
+    });
+  }
+
+  updateMirror(activityId: string, value: string) {
+    this.mirrorTexts.update(m => {
+      const newMap = new Map(m);
+      newMap.set(activityId, value);
+      return newMap;
     });
   }
 
@@ -67,7 +80,7 @@ export class Activities {
   }
 
   handleKeyDown(event: KeyboardEvent) {
-    const placeId = this.visit().place.id;
+    const placeId = this.place().id;
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.submitQuickAdd(event, placeId);
@@ -87,7 +100,8 @@ export class Activities {
     if (!text) return '';
     // Replaces url(https://link.com, Label) with <a href="...">Label</a>
     const html = text.replace(/url\(([^,]+),\s*([^)]+)\)/g,
-      '<a href="$1" target="_blank" style="color: #3b82f6; text-decoration: underline;">$2</a>');
+      '<a href="$1" target="_blank" style="color: #93b4d4; text-decoration: underline;">$2</a>');
+      // '<a href="$1" target="_blank" style="color: #3b82f6; text-decoration: underline;">$2</a>');
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
@@ -107,5 +121,39 @@ export class Activities {
         error: (err) => console.error('Failed to remove activity...', err)
       });
     }
+  }
+
+  removeActual(activity: Activity) {
+    console.log('removeActual', activity.id);
+    const expenses = activity.expenses();
+    const hasExpenses = expenses.length > 0;
+    const total = expenses.reduce((s, e) => s + e.amount(), 0);
+
+    const message = hasExpenses
+      ? `This will also remove ${expenses.length} payment(s) totalling €${total}. Are you sure?`
+      : `Remove actual cost for this activity?`;
+
+    if (confirm(message)) {
+      this.updateActivity(activity, { actual_cost: null });
+      expenses.forEach(e => this.deleteExpense(e.id));
+    }
+  }
+
+  addExpense(activity: Activity, expense: NewExpense) {
+    this.tripService.addExpense({
+      ...expense,
+      activity_id: activity.id,
+      trip_id: activity.trip_id,
+      category: 'activity',
+    }).subscribe();
+  }
+
+  updateExpense(expense: UpdateExpense & { id: string }) {
+    this.tripService.updateExpense(expense.id, expense).subscribe();
+  }
+
+  deleteExpense(id: string) {
+    const expense = this.tripService.trip()?.expenses().get(id);
+    if (expense) this.tripService.removeExpense(expense).subscribe();
   }
 }

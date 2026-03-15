@@ -31,14 +31,14 @@ import {MapInteractionManager} from './utils/interaction-handler';
 import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICONS} from './config/map-styles.config';
 import { MapSearch } from '../map-search/map-search';
 import {RoutePopup} from '../route-popup/route-popup';
+import {NotificationService} from '../../services/notification';
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule,
-    MapSearch],
+  imports: [CommonModule, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
   templateUrl: './map-handler.html',
   styleUrls: ['./map-handler.css']
 })
@@ -46,6 +46,7 @@ export class MapHandler implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   readonly tripService = inject(TripService);
   readonly uiService = inject(UiService);
+  readonly notifierService = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
   private injector = inject(Injector);
 
@@ -93,6 +94,21 @@ export class MapHandler implements OnInit, OnDestroy {
     effect(() => this.syncDrawer());
   }
 
+  @HostListener('window:visibilitychange')
+  @HostListener('window:beforeunload')
+  onPersistMapState() {
+    const plan = this.tripService.plan();
+    if (!plan) return;
+    const hasMoved = plan.lat !== this.center()[0] || plan.lng !== this.center()[1] || plan.zoom !== this.zoom();
+    if (hasMoved && (document.visibilityState === 'hidden' || event?.type === 'beforeunload')) {
+      this.tripService.updatePlanSilently(plan.id, {
+        lat: this.center()[0],
+        lng: this.center()[1],
+        zoom: this.zoom()
+      });
+    }
+  }
+
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       await this.initializeMap();
@@ -116,19 +132,19 @@ export class MapHandler implements OnInit, OnDestroy {
 
     map.on('load', () => {
      this.interactionManager = new MapInteractionManager(
-       map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl,
-       this.placeTooltipEl, this.routeTooltipEl, this.selectorVisible, this.selectorPos, this.injector
+       map, this.mapbox, this.tripService, this.uiService, this.notifierService, this.visitPopupEl, this.routePopupEl,
+       this.placeTooltipEl, this.routeTooltipEl, this.selectorVisible, this.selectorPos, this.layersReady, this.injector
      );
      this.interactionManager.attachGlobalListeners(this.center, this.zoom);
     });
 
     map.on('style.load', async () => {
-      this.layersReady.set(false); // Reset while we rebuild
+      this.layersReady.set(false);
       if (!this.iconLoader) this.iconLoader = new IconLoader(map);
       if (!this.layerManager) this.layerManager = new MapLayerManager(map, this.authService);
       if (!this.interactionManager) this.interactionManager = new MapInteractionManager(
-        map, this.mapbox, this.tripService, this.uiService, this.visitPopupEl, this.routePopupEl,
-        this.placeTooltipEl, this.routeTooltipEl, this.selectorVisible, this.selectorPos, this.injector
+        map, this.mapbox, this.tripService, this.uiService, this.notifierService, this.visitPopupEl, this.routePopupEl,
+        this.placeTooltipEl, this.routeTooltipEl, this.selectorVisible, this.selectorPos, this.layersReady, this.injector
       );
       await this.iconLoader.loadRouteIcons();
       const currentData = untracked(() => this.tripService.trip()?.routesGeoJson());
@@ -212,6 +228,9 @@ export class MapHandler implements OnInit, OnDestroy {
   handleEsc(event: any) {
     if (this.uiService.drawingState().active) {
       this.interactionManager?.cancelDrawing();
+    }
+    if (this.uiService.isCustomSearchActive()) {
+      this.uiService.toggleCustomSearchActive();
     }
   }
 

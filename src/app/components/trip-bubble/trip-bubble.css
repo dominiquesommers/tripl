@@ -1,11 +1,9 @@
 :host {
-  display: block;
   margin-top: 12px;
   display: flex;
   justify-content: center;
 }
 
-/* MAIN PILL - Matching your existing glassmorphism */
 .bubble-pill {
   display: flex;
   align-items: center;
@@ -78,235 +76,268 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* DROPDOWN MENU - Styled as a floating "Panel Child" */
+.bubble-pill-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+}
+
+/* Apply the specific Visit Card dimensions to your dropdowns */
 .bubble-dropdown {
   position: absolute;
-  top: 60px;
+  top: calc(100% + 8px);
   left: 50%;
-  z-index: 1002;
   transform: translateX(-50%);
+  width: 320px;
+  /*height: 200px;*/
+  max-height: 1200px;
+  z-index: 1000;
 
-  /* Matches your Panel styling exactly */
-  background: rgba(45, 45, 50, 0.85);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: rgba(30, 30, 35, 0.7);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
 
-  border-radius: 20px; /* Matching .desktop-sidebar radius */
-  width: 300px;
-  padding: 12px;
+  /* Matches .desktop-sidebar border & shadow */
   border: 0.5px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
-  color: white;
-}
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
-.dropdown-header {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-  padding: 4px 12px 12px 12px;
-  letter-spacing: 0.8px;
-  font-weight: 600;
-}
-
-.drag-list {
-  display: block;
-  min-height: 50px; /* Prevents collapse if list is emptied temporarily */
-}
-
-/* LIST ITEMS */
-.drag-item {
+  /* The Glass Effect from your Visit Card */
+  /*background: rgba(30, 30, 35, 0.85);*/
+  /*backdrop-filter: blur(20px) saturate(180%);*/
+  /*-webkit-backdrop-filter: blur(20px) saturate(180%);*/
+  border-radius: 18px;
+  /*border: 0.5px solid rgba(255, 255, 255, 0.15);*/
   display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: transparent;
-  margin-bottom: 4px;
-  transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideIn 0.2s ease-out;
 }
 
-.drag-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.drag-item.selected {
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.1);
-}
-
-/* DRAG HANDLE - Matching your sidebar's pill style but smaller for rows */
-.drag-handle {
-  cursor: grab;
-  margin-right: 12px;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 18px;
-  user-select: none;
-  display: flex;
-  align-items: center;
-}
-
-/* EDITABLE INPUT */
-.edit-input {
+/* Align inputs with your existing "destination" text style */
+.edit-input-transparent {
   flex: 1;
   background: transparent;
-  border: 1px solid transparent;
-  color: white;
-  font-size: 14px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  outline: none;
-  font-family: inherit;
-  transition: background 0.2s;
-}
-
-.edit-input:focus {
-  background: rgba(0, 0, 0, 0.2);
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
-}
-
-/* ACTION BUTTON */
-.select-btn {
-  background: rgba(255, 255, 255, 0.1);
   border: none;
   color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  padding: 0;
+  cursor: text;
+}
+
+/* Ensure indicators and actions match the visit-card exactly */
+.active-indicator {
+  color: #3b82f6;
+}
+
+.manage-item.simple-select:hover .destination {
+  color: #3b82f6;
+}
+
+/* MANAGER / CONFIG VIEW STYLING */
+.manager-view {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  /*height: 100%;*/
+  /*background: rgba(30, 30, 35, 0.75);*/
+  /*backdrop-filter: blur(30px) saturate(180%);*/
+  /*-webkit-backdrop-filter: blur(30px) saturate(180%);*/
+  border-radius: 18px;
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+}
+
+.manager-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  transition: background 0.2s, transform 0.1s;
+  justify-content: space-between;
+  color: #ffffff;
+  padding: 2px 8px;
+  /*border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);*/
+  margin-bottom: 8px;
+  /*height: 32px;*/
 }
 
-.select-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.header-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  opacity: 0.7;
 }
 
-.select-btn:active {
-  transform: scale(0.95);
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 2px;
+  margin-right: -2px;
 }
-/* 1. Fix the 'Shrinking' - The placeholder must have height! */
-.cdk-drag-placeholder {
-  /* Instead of opacity 0, make it a transparent 'hole' with the same height */
-  opacity: 0.1;
+
+.manage-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-
-  /* Crucial: Match the height of your .drag-item */
-  min-height: 51px;
   margin-bottom: 4px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  color: rgb(237, 237, 237);
 }
 
-/* 2. Fix the Preview Width */
-.cdk-drag-preview {
-  background: rgba(45, 45, 50, 0.95) !important;
-  backdrop-filter: blur(30px) saturate(180%);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-  border-radius: 12px;
-  color: white;
-  padding: 8px 12px;
-  border: 0.5px solid rgba(255,255,255,0.2);
+.manage-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.manage-item.active {
+  background: rgba(0, 122, 255, 0.15);
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+.manage-item.excluded {
+  opacity: 0.6;
+  background: rgba(21, 21, 21, 0.3);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.scroll-container::-webkit-scrollbar,
+.name-input-editable::-webkit-scrollbar { width: 4px; }
+
+.scroll-container::-webkit-scrollbar-thumb,
+.name-input-editable::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+/* Add this to your existing manager styles */
+.manage-item.simple-select {
+  cursor: pointer;
+  /*padding: 10px 12px;*/
+  transition: background 0.15s ease;
+}
+
+.manage-item.simple-select:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.manage-item.simple-select.active {
+  background: rgba(59, 130, 246, 0.1); /* Slight blue tint for selected item */
+}
+
+/* Ensure the text doesn't overflow */
+.manage-item .destination {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 40px; /* Force visibility for testing */
   display: flex;
-  align-items: center;
-  font-family: -apple-system, sans-serif;
-
-  /* Force the preview to match the width of the dropdown menu */
-  width: 280px;
-  box-sizing: border-box;
+  flex-direction: column;
 }
 
-.item-actions {
-  display: flex;
-  gap: 4px;
-  margin-left: 8px;
+.edit-input-transparent {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff !important; /* Force white text */
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  padding: 4px 8px;
+  cursor: text;
+  width: 100%; /* Ensure it takes available space */
 }
 
-/* Copy Button Styling */
+/* Make sure the text in the Plan list is also visible */
+.manage-item .destination {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px); /* Keep the -50% X while animating Y */
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .icon-btn {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.icon-btn:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Add New Plan Button */
-.add-btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.add-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.add-btn .plus {
-  margin-right: 6px;
-  font-size: 16px;
-}
-
-.drag-item {
+  padding: 2px;
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  border-radius: 12px;
-  gap: 10px;
-
-  /* The whole row now acts as a handle */
-  cursor: grab;
-  user-select: none; /* Prevents text selection while dragging */
-  transition: background 0.2s, transform 0.2s;
+  justify-content: center;
 }
+.icon-btn:hover { color: white; }
+.icon-btn.delete:hover { color: #ef4444; }
 
-.drag-item:active {
-  cursor: grabbing;
-}
-
-.drag-indicator {
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-/* Make sure the input tells the user it's for text,
-   overriding the row's grab cursor */
-.edit-input {
-  cursor: text;
+.input-wrapper {
+  display: flex;
   flex: 1;
+  /*flex: 0 1 auto; !* Allows shrinking and growing based on content *!*/
+  /*min-width: 50px;*/
+  min-width: 0;
+}
+
+.edit-input-transparent {
+  width: 100%; /* Fills the wrapper */
   background: transparent;
   border: none;
   color: white;
+  font-size: 14px;
   outline: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: text;
 }
 
-/* Highlighting the 'Grabbed' state */
-.cdk-drag-preview {
-  cursor: grabbing !important;
-  opacity: 0.9;
-  transform: scale(1.02); /* Slight 'lift' effect */
+.edit-input-transparent:focus {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.edit-input, .item-actions {
-  pointer-events: auto;
+/* 2. Item Actions Layout */
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: fit-content;
+}
+
+/* 3. Hover Visibility Logic */
+.delete-item, .copy-item {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.manage-item:hover .delete-item,
+.manage-item:hover .copy-item {
+  opacity: 1;
+}
+
+.delete-item:hover { color: #ff4d4d; }
+.copy-item:hover { color: #3b82f6; }
+
+.active-indicator {
+  color: #3b82f6;
 }

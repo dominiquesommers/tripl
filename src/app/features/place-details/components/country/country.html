@@ -1,1 +1,82 @@
-<p>country works!</p>
+<div class="notes-container">
+  <h3 class="section-title">Notes</h3>
+  @for (act of notes(); track act.id) {
+    <div class="note-item bottom-right-radius" [class.excluded]="!act.included()" [class.editing]="focusedNoteId() === act.id">
+
+      <div class="note-actions-top">
+        <button class="icon-btn visibility"
+                (click)="updateNote(act, { included: !act.included() })"
+                [title]="act.included() ? 'Exclude from trip' : 'Include in trip'">
+          <lucide-icon [name]="act.included() ? 'eye' : 'eye-off'" [size]="14"></lucide-icon>
+        </button>
+
+        <button class="icon-btn delete" (click)="deleteNote(act)">
+          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="seamless-text-container">
+        @if (focusedNoteId() === act.id) {
+          <div class="grow-wrap">
+            <textarea
+              #textEditor
+              [value]="act.description()"
+              (input)="mirrorText.innerText = $any($event.target).value + '\n'"
+              (blur)="blurDescription(act, $any($event.target).value);"
+              placeholder="Add description..."
+              autofocus>
+            </textarea>
+            <span #mirrorText class="ghost-text">{{ act.description() + '\n' }}</span>
+          </div>
+        } @else {
+          <div class="display-text" (click)="focusedNoteId.set(act.id)">
+            <div [innerHTML]="act.description() ? formatDescription(act.description()) : 'Add description...'"></div>
+          </div>
+        }
+      </div>
+
+      <div class="cost-corner-anchor">
+        <app-cost-badge
+          [estimatedCost]="act.estimated_cost() ?? 0"
+          [actualCost]="act.actual_cost()"
+          [isPaid]="act.paid()"
+          (togglePaid)="updateNote(act, { paid: !act.paid() })"
+          (saveEstimated)="updateNote(act, { estimated_cost: $event })"
+          (saveActual)="updateNote(act, { actual_cost: $event })">
+        </app-cost-badge>
+      </div>
+    </div>
+  }
+
+  <div class="note-item add-ghost"
+     [class.editing]="isAdding()"
+     (click)="!isAdding() && isAdding.set(true)">
+
+<!--    <div class="seamless-text-container" [class.is-editing]="isAdding()">-->
+    <div class="seamless-text-container">
+      @if (isAdding()) {
+        <div class="grow-wrap">
+          <textarea
+            #newInput
+            (input)="mirrorText.innerText = $any($event.target).value"
+            (keydown)="handleKeyDown($event)"
+            (blur)="!newInput.value && isAdding.set(false)"
+            placeholder="Add description..."
+            autofocus></textarea>
+          <span #mirrorText class="ghost-text">{{ newInput.value }}</span>
+        </div>
+      } @else {
+        <div class="display-text add-placeholder">
+          <lucide-icon name="plus" [size]="18"></lucide-icon>
+          <span>Add Note</span>
+        </div>
+      }
+    </div>
+
+    @if (isAdding()) {
+      <div class="cost-corner-anchor">
+         <span class="hint-text">Enter to Save • Esc to Cancel</span>
+      </div>
+    }
+  </div>
+</div>

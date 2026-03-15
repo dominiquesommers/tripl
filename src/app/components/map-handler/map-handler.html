@@ -9,28 +9,32 @@
   </div>
 
 
-  <div class="map-interaction-overlay" [class.active]="uiService.drawingState().active">
+  <div class="map-interaction-overlay"
+       [class.active]="uiService.drawingState().active || uiService.isCustomSearchActive()">
+
     <div class="hint-toast">
-      @if (uiService.drawingState().preselectedRoute) {
-        Select a destination visit
-      } @else {
-        Select a destination visit or an existing route
+      @if (uiService.isCustomSearchActive()) {
+        Click any label or location on the map to add it (ESC to cancel)
+      } @else if (uiService.drawingState().active) {
+        @if (uiService.drawingState().preselectedRoute) {
+          Select a destination visit
+        } @else {
+          Select a destination visit or an existing route
+        }
       }
     </div>
   </div>
 </div>
 
 @if (uiService.selectedVisit(); as selectedVisit) {
-  <app-visit-popup
-    [visit]="selectedVisit">
+  <app-visit-popup [visit]="selectedVisit">
   </app-visit-popup>
 }
 
 @if (!uiService.selectedVisit() && uiService.selectedRoute(); as selectedRoute) {
-  <app-route-popup
-    [route]="selectedRoute"
-    (onSave)="handleRouteSave($event)"
-    (onDelete)="handleRouteDelete($any($event))">
+  <app-route-popup [route]="selectedRoute">
+<!--    (onSave)="handleRouteSave($event)"-->
+<!--    (onDelete)="handleRouteDelete($any($event))">-->
   </app-route-popup>
 }
 

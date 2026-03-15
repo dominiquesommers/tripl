@@ -10,6 +10,7 @@ import {Country} from '../../../../models/country';
 import {LucideAngularModule} from 'lucide-angular';
 import {Place} from '../../../../models/place';
 import {CostComparison} from '../../../../models/cost';
+import {COUNTRY_FLAGS} from '../../../../components/map-handler/config/countries.config';
 
 Chart.register(...registerables);
 
@@ -66,7 +67,9 @@ export class Cost {
       estValues.push(cur2.estimated.total);
       actValues.push(cur2.actual.total);
       savValues.push(70000 - cur2.actual.total);
-      meta.push({name: visit.place.name(), flag: this.countryFlags[visit.place.country.name] || '🏳️'});
+
+      meta.push({name: visit.place.name(), flag: COUNTRY_FLAGS[visit.place.country.name] || '🏳️'});
+      // meta.push({name: visit.place.name(), flag: this.countryFlags[visit.place.country.name] || '🏳️'});
       currentDate.setDate(currentDate.getDate() + visit.nights());
 
 
@@ -84,7 +87,7 @@ export class Cost {
           data: estValues,
           label: 'Estimate',
           stepped: isCum ? false : 'middle',
-          borderColor: '#3b82f6',
+          borderColor: '#93b4d4', // '#3b82f6',
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
           fill: true,
           pointRadius: 0,
@@ -253,7 +256,7 @@ export class Cost {
           color: '#8e8e93',
           callback: (value, index) => {
             const country = this.visitedCountries()[index];
-            const flag = this.countryFlags[country.name] || '';
+            const flag = COUNTRY_FLAGS[country.name] || '';
             return `${flag} ${country.name}`;
           }
         }
@@ -306,11 +309,11 @@ export class Cost {
     });
   }
 
-  private countryFlags: Record<string, string> = {
-    "Australia": "🇦🇺", "Bolivia": "🇧🇴", "Chile": "🇨🇱", "Colombia": "🇨🇴",
-    "Costa Rica": "🇨🇷", "Ecuador": "🇪🇨", "Indonesia": "🇮🇩", "Laos": "🇱🇦",
-    "Netherlands": "🇳🇱", "Nicaragua": "🇳🇮", "Panama": "🇵🇦", "Peru": "🇵🇪",
-    "Philippines": "🇵🇭", "Singapore": "🇸🇬", "Thailand": "🇹🇭", "Vietnam": "🇻🇳",
-    "Argentina": "🇦🇷", "Malaysia": "🇲🇾"
-  };
+  // private countryFlags: Record<string, string> = {
+  //   "Australia": "🇦🇺", "Bolivia": "🇧🇴", "Chile": "🇨🇱", "Colombia": "🇨🇴",
+  //   "Costa Rica": "🇨🇷", "Ecuador": "🇪🇨", "Indonesia": "🇮🇩", "Laos": "🇱🇦",
+  //   "Netherlands": "🇳🇱", "Nicaragua": "🇳🇮", "Panama": "🇵🇦", "Peru": "🇵🇪",
+  //   "Philippines": "🇵🇭", "Singapore": "🇸🇬", "Thailand": "🇹🇭", "Vietnam": "🇻🇳",
+  //   "Argentina": "🇦🇷", "Malaysia": "🇲🇾"
+  // };
 }

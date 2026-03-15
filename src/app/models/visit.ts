@@ -101,6 +101,44 @@ export class Visit {
     return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
+  readonly totalDays = computed(() => {
+    const start = this.entryDate();
+    const end = this.exitDate();
+    if (!start || !end) return 0;
+    return this.daysBetween(start, end);
+  });
+
+  readonly monthDays = computed(() => {
+    const start = this.entryDate();
+    const end = this.exitDate();
+    const results: Record<string, number> = {
+      jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0,
+      jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
+    };
+    if (!start || !end) return results;
+    const monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    let current = new Date(start);
+    const stopDate = new Date(end);
+    while (current < stopDate) {
+      const monthIndex = current.getMonth();
+      results[monthKeys[monthIndex]]++;
+      current.setDate(current.getDate() + 1);
+    }
+    return results;
+  });
+
+  readonly calculateSeasonScore = computed(() => {
+    const season = this.place.season;
+    const daysMap = this.monthDays();
+    if (!season) return 0;
+    const monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    return monthKeys.reduce((total, m) => {
+      const days = daysMap[m];
+      const score = (season as any)[m]();
+      return total + (days * score);
+    }, 0);
+  });
+
   readonly activeRentalSource = computed<Traverse | null>(() => {
     const plan = this.tripService.plan();
     if (!plan) return null;
@@ -116,22 +154,111 @@ export class Visit {
   });
 
   readonly cost = computed<CostComparison>(() => {
-    if (!this.inItinerary()) {
-      return CostComparison.empty();
-    }
+    if (!this.inItinerary()) return CostComparison.empty();
+
     const n = this.nights() || 0;
     const p = this.place;
     const rental = this.activeRentalSource();
+    const entry  = this.entryDate();
+    const exit   = this.exitDate();
     // If there's an active rental that includes accommodation, we set the "base" accommodation cost to 0.
     const shouldChargeAcc = !(rental && rental.includes_accommodation());
     // console.log(this.place.name(), shouldChargeAcc);
     const est = new CostBreakdown(
       shouldChargeAcc ? n * (p.accommodation_cost() ?? 0) : 0,
       0, n * (p.food_cost() ?? 0), 0, n * (p.miscellaneous_cost() ?? 0));
-    const act = est.clone();
-    // TODO add actual costs.
-    // console.log(this.place.name(), est.total);
+
+    if (!entry || !exit) return new CostComparison(est, est.clone());
+    if (!this.tripService.trip()) return new CostComparison(est, est.clone());
+
+    // ── Accommodation ─────────────────────────────────────────────────────
+    let actualAccommodation: number;
+    if (!shouldChargeAcc) {
+      actualAccommodation = 0;
+    } else if (!this.overlappingBookings().length) {
+      actualAccommodation = est.accommodation;
+    } else {
+      actualAccommodation = this.overlappingBookings().reduce((sum, b) => {
+        const bIn  = new Date(b.check_in()!  + 'T00:00:00');
+        const bOut = new Date(b.check_out()! + 'T00:00:00');
+        const overlapNights = this.daysBetween(this.clampDate(bIn, entry, exit), this.clampDate(bOut, entry, exit));
+        const bookingNights = this.daysBetween(bIn, bOut);
+        if (!bookingNights) return sum;
+        const nightlyRate = (b.final_price()! * (1 - b.food_pct() / 100)) / bookingNights;
+        return sum + overlapNights * nightlyRate;
+      }, 0);
+    }
+
+    // ── Food ──────────────────────────────────────────────────────────────
+    const foodFromExpenses = this.foodExpenses().reduce((sum, e) => sum + e.amount(), 0);
+    const foodFromBookings = this.overlappingBookings()
+      .filter(b => b.includes_food())
+      .reduce((sum, b) => {
+        const bIn  = new Date(b.check_in()!  + 'T00:00:00');
+        const bOut = new Date(b.check_out()! + 'T00:00:00');
+        const overlapNights = this.daysBetween(this.clampDate(bIn, entry, exit), this.clampDate(bOut, entry, exit));
+        const bookingNights = this.daysBetween(bIn, bOut);
+        if (!bookingNights) return sum;
+        return sum + overlapNights * (b.final_price()! * (b.food_pct() / 100)) / bookingNights;
+      }, 0);
+    const elapsed   = this.nightsElapsed();
+    const remaining = n - elapsed;
+    const dailyFoodEst = p.food_cost() ?? 0;
+    const actualFood = foodFromExpenses + foodFromBookings + remaining * dailyFoodEst;
+    const actualMisc = this.miscExpenses()
+      .reduce((sum, e) => sum + e.amount(), 0)
+      + remaining * (p.miscellaneous_cost() ?? 0);
+
+    const act = new CostBreakdown(actualAccommodation, 0, actualFood, 0, actualMisc);
     return new CostComparison(est, act);
+  });
+
+  readonly foodExpenses = computed(() => {
+    const entry = this.entryDate();
+    const exit  = this.exitDate();
+    if (!entry || !exit) return [];
+    return Array.from(this.tripService.trip()?.expenses().values() ?? [])
+      .filter(e => {
+        if (e.place_id !== this.place_id || e.category() !== 'food') return false;
+        const d = new Date(e.date() + 'T00:00:00');
+        return d >= entry && d < exit;
+      });
+  });
+
+  readonly miscExpenses = computed(() => {
+    const entry = this.entryDate();
+    const exit  = this.exitDate();
+    if (!entry || !exit) return [];
+    return Array.from(this.tripService.trip()?.expenses().values() ?? [])
+      .filter(e => {
+        if (e.place_id !== this.place_id || e.category() !== 'miscellaneous') return false;
+        const d = new Date(e.date() + 'T00:00:00');
+        return d >= entry && d < exit;
+      });
+  });
+
+  readonly overlappingBookings = computed(() => {
+    const entry = this.entryDate();
+    const exit  = this.exitDate();
+    if (!entry || !exit) return [];
+    return Array.from(this.tripService.trip()?.placeBookings().values() ?? [])
+      .filter(b => {
+        if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
+        const bIn  = new Date(b.check_in()!  + 'T00:00:00');
+        const bOut = new Date(b.check_out()! + 'T00:00:00');
+        return bIn < exit && bOut > entry;
+      });
+  });
+
+  readonly nightsElapsed = computed(() => {
+    const entry = this.entryDate();
+    const exit  = this.exitDate();
+    if (!entry || !exit) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (today <= entry) return 0;               // visit hasn't started
+    if (today >= exit)  return this.nights();   // visit fully passed
+    return this.daysBetween(entry, today);      // partially elapsed
   });
 
   constructor(
@@ -148,6 +275,22 @@ export class Visit {
     const place = this.tripService.trip()?.places().get(this.place_id);
     if (!place) throw new Error(`Invariant Violation: Visit ${this.id} references non-existent Place ${this.place_id}`);
     return place;
+  }
+
+  private daysBetween(start: Date, end: Date): number {
+    return Math.max(0, Math.floor(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    ));
+  }
+
+  private clampDate(date: Date, min: Date, max: Date): Date {
+    if (date < min) return min;
+    if (date > max) return max;
+    return date;
+  }
+
+  private expenseDateToDate(dateStr: string): Date {
+    return new Date(dateStr + 'T00:00:00');
   }
 
   update(data: Partial<IVisit>) {

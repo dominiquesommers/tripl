@@ -5,6 +5,8 @@ import {Place} from './place';
 import {IVisit} from './visit';
 import {CostComparison} from './cost';
 import {TripService} from '../services/trip';
+import {COUNTRY_FLAGS} from '../components/map-handler/config/countries.config';
+import {Season} from './season';
 
 export interface PlanDataPackage {
   readonly plan: IPlan;
@@ -25,18 +27,22 @@ export interface IPlan {
 }
 
 export type NewPlan = Omit<IPlan, 'id'>;
-export type UpdatePlan = Partial<Omit<IPlan, 'id' | 'trip_id'>>;
+export type UpdatePlan = Partial<Pick<IPlan, 'name' | 'start_date' | 'note' | 'priority'>>;
+export type PersistentUpdatePlan = Partial<Pick<IPlan, 'lat' | 'lng' | 'zoom'>>;
 
 export class Plan {
   id!: string;
   trip_id!: string;
+  lng!: number;
+  lat!: number;
+  zoom!: number;
   name = signal<string>('');
   start_date = signal<Date | null>(null);
   note = signal<string>('');
   priority = signal<number>(0);
-  lng = signal<number>(0);
-  lat = signal<number>(0);
-  zoom = signal<number>(0);
+  // lng = signal<number>(0);
+  // lat = signal<number>(0);
+  // zoom = signal<number>(0);
 
   readonly visits = signal<Map<string, Visit>>(new Map());
   readonly visitsArray = computed(() => Array.from(this.visits().values()));
@@ -88,6 +94,22 @@ export class Plan {
     return total;
   });
 
+  readonly itinerarySeasons = computed(() => {
+    const sequence = this.itinerary();
+    const uniqueSeasons: Season[] = [];
+
+    sequence.forEach((visit) => {
+      const season = visit.place.season;
+      if (!season || visit.totalDays() <= 0) return;
+      const lastSeason = uniqueSeasons[uniqueSeasons.length - 1];
+      if (lastSeason?.id !== season.id) {
+        uniqueSeasons.push(season);
+      }
+    });
+
+    return uniqueSeasons;
+  });
+
   constructor(
     data: IPlan,
     visits: Visit[],
@@ -96,6 +118,9 @@ export class Plan {
   ) {
     this.id = data.id.toString();
     this.trip_id = data.trip_id.toString();
+    this.lat = data.lat;
+    this.lng = data.lng;
+    this.zoom = data.zoom;
     this.update(data);
     this.visits.set(new Map(visits.map(v => [v.id, v])));
     this.traverses.set(new Map(traverses.map(t => [t.id, t])));
@@ -106,9 +131,9 @@ export class Plan {
     if ('start_date' in data) this.start_date.set(data.start_date ? new Date(data.start_date) : null);
     if ('note' in data) this.note.set(data.note ?? '');
     if ('priority' in data) this.priority.set(data.priority ?? 0);
-    if ('lat' in data) this.lat.set(data.lat ?? 0);
-    if ('lng' in data) this.lng.set(data.lng ?? 0);
-    if ('zoom' in data) this.zoom.set(data.zoom ?? 0);
+    // if ('lat' in data) this.lat.set(data.lat ?? 0);
+    // if ('lng' in data) this.lng.set(data.lng ?? 0);
+    // if ('zoom' in data) this.zoom.set(data.zoom ?? 0);
   }
 
   addVisit(visit: Visit) {
@@ -162,9 +187,9 @@ export class Plan {
       start_date: this.start_date()?.toISOString().split('T')[0] ?? null,
       note: this.note(),
       priority: this.priority(),
-      lat: this.lat(),
-      lng: this.lng(),
-      zoom: this.zoom()
+      lat: this.lat,
+      lng: this.lng,
+      zoom: this.zoom
     } as IPlan;
   }
 }

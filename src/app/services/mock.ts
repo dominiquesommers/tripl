@@ -14,6 +14,9 @@ import {IRouteNote} from '../models/route-note';
 import {IActivity} from '../models/activity';
 import {IPlaceNote} from '../models/place-note';
 import {ICountryNote} from '../models/country-note';
+import {IExpense} from '../models/expense';
+import {IPlaceBooking} from '../models/place-booking';
+import {IRouteBooking} from '../models/route-booking';
 
 @Injectable({ providedIn: 'root' })
 export class MockService {
@@ -36,7 +39,10 @@ export class MockService {
       routeNotes: this.apiService.get<IRouteNote[]>(`route_notes?trip_id=${tripId}`),
       countries: this.apiService.get<ICountry[]>(`countries`),
       countryNotes: this.apiService.get<ICountryNote[]>(`country_notes?trip_id=${tripId}`),
-      seasons: this.apiService.get<ISeason[]>(`seasons`)
+      seasons: this.apiService.get<ISeason[]>(`seasons`),
+      expenses: this.apiService.get<IExpense[]>(`expenses?trip_id=${tripId}`),
+      placeBookings: this.apiService.get<IPlaceBooking[]>(`place_bookings?trip_id=${tripId}`),
+      routeBookings: this.apiService.get<IRouteBooking[]>(`route_bookings?trip_id=${tripId}`),
     });
   }
 

@@ -1,4 +1,6 @@
 import {computed, signal, WritableSignal} from '@angular/core';
+import {TripService} from '../services/trip';
+import {Country} from './country';
 
 export interface ISeason {
   id: string;
@@ -46,7 +48,43 @@ export class Season {
   months = computed(() => MONTH_KEYS.map(k => (this[k] as WritableSignal<number>)()));
   reasons = computed(() => MONTH_REASON_KEYS.map(k => (this[k] as WritableSignal<string>)()));
 
-  constructor(data: ISeason) {
+  readonly visits = computed(() => {
+    const plan = this.tripService.plan();
+    if (!plan) return [];
+    return plan.itinerary().filter(v => v.place.season_id === this.id);
+  });
+
+  readonly numberOfDaysVisited = computed(() => {
+    return this.visits().reduce((sum, v) => sum + v.totalDays(), 0);
+  });
+
+  readonly numberOfDaysVisitedPerMonth = computed(() => {
+    const totalMap: Record<string, number> = {
+      jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0,
+      jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
+    };
+
+    this.visits().forEach(v => {
+      Object.entries(v.monthDays()).forEach(([m, d]) => {
+        totalMap[m] += d;
+      });
+    });
+    return totalMap;
+  });
+
+  readonly weightedScoreInPlan = computed(() => {
+    return this.visits().reduce((sum, v) => sum + v.calculateSeasonScore(), 0);
+  });
+
+  readonly averageScoreInPlan = computed(() => {
+    const days = this.numberOfDaysVisited();
+    return days > 0 ? this.weightedScoreInPlan() / days : 0;
+  });
+
+  constructor(
+    data: ISeason,
+    private tripService: TripService
+  ) {
     this.id = data.id.toString();
     if (!data.country_id) {
       console.log(data);
@@ -54,6 +92,12 @@ export class Season {
     this.country_id = data.country_id.toString();
     this.update(data);
     this.reasonsLoaded = MONTH_REASON_KEYS.every(k => k in data);
+  }
+
+  get country(): Country {
+    const country = this.tripService.trip()?.countries().get(this.country_id);
+    if (!country) throw new Error(`Invariant Violation: Season ${this.id} references non-existent Country ${this.country_id}`);
+    return country;
   }
 
   update(data: Partial<ISeason>) {

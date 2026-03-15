@@ -1,12 +1,13 @@
 import {Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
 import {LucideAngularModule } from 'lucide-angular';
-import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';import { Visit } from '../../models/visit';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { Visit } from '../../models/visit';
 import {TripService} from '../../services/trip';
 import {Traverse} from '../../models/traverse';
 import {CommonModule} from '@angular/common';
 import {Route} from '../../models/route';
 import {CdkTextareaAutosize} from '@angular/cdk/text-field';
-import {ROUTE_COLORS} from '../map-handler/config/map-styles.config';
+import {ROUTE_COLORS, ROUTE_ICON_MAP} from '../map-handler/config/map-styles.config';
 import {UiService} from '../../services/ui';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {Place} from '../../models/place';
@@ -25,15 +26,6 @@ export class VisitPopup {
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);
   isManagingRentUntil = signal(false);
-
-  // TODO move to config.
-  private readonly routeIconMap: Record<string, string> = {
-    'flying': 'plane',
-    'bus': 'bus',
-    'train': 'train-front',
-    'driving': 'car',
-    'boat': 'ship',
-  };
 
   constructor() {
     effect(() => {
@@ -90,7 +82,7 @@ export class VisitPopup {
 
   getRouteIcon(type: string | undefined | null): string {
     if (!type) return 'milestone';
-    return this.routeIconMap[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
   }
 
   getRouteColor(type: string | undefined | null): string {

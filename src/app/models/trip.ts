@@ -8,6 +8,9 @@ import {Activity, IActivity} from './activity';
 import {IPlaceNote, PlaceNote} from './place-note';
 import {IRouteNote, RouteNote} from './route-note';
 import {CountryNote, ICountryNote} from './country-note';
+import { Expense, IExpense } from './expense';
+import { PlaceBooking, IPlaceBooking } from './place-booking';
+import { RouteBooking, IRouteBooking } from './route-booking';
 
 export interface TripDataPackage {
   readonly trip: ITrip;
@@ -19,6 +22,9 @@ export interface TripDataPackage {
   readonly countries: ICountry[];
   readonly countryNotes: ICountryNote[];
   readonly seasons: ISeason[];
+  readonly expenses: IExpense[];
+  readonly placeBookings: IPlaceBooking[];
+  readonly routeBookings: IRouteBooking[];
 }
 
 export interface ITrip {
@@ -43,6 +49,9 @@ export class Trip {
   readonly routes = signal<Map<string, Route>>(new Map());
   readonly routesArray = computed(() => Array.from(this.routes().values()));
   readonly routeNotes = signal<Map<string, RouteNote>>(new Map());
+  readonly expenses      = signal<Map<string, Expense>>(new Map());
+  readonly placeBookings = signal<Map<string, PlaceBooking>>(new Map());
+  readonly routeBookings = signal<Map<string, RouteBooking>>(new Map());
 
   readonly routesGeoJson = computed(() => {
     const routes = this.routes() ?? new Map();
@@ -73,6 +82,9 @@ export class Trip {
     placeNotes: PlaceNote[],
     routes: Route[],
     routeNotes: RouteNote[],
+    expenses: Expense[],
+    placeBookings: PlaceBooking[],
+    routeBookings: RouteBooking[],
     private tripService: TripService
   ) {
     this.id = data.id.toString();
@@ -85,6 +97,9 @@ export class Trip {
     this.placeNotes.set(new Map(placeNotes.map(n => [n.id, n])));
     this.routes.set(new Map(routes.map(r => [r.id, r])));
     this.routeNotes.set(new Map(routeNotes.map(n => [n.id, n])));
+    this.expenses.set(new Map(expenses.map(e => [e.id, e])));
+    this.placeBookings.set(new Map(placeBookings.map(b => [b.id, b])));
+    this.routeBookings.set(new Map(routeBookings.map(b => [b.id, b])));
   }
 
   update(data: Partial<ITrip>) {
@@ -237,6 +252,42 @@ export class Trip {
 
   removeRouteNote(note: RouteNote) {
     this.routeNotes.update(ns => { const newMap = new Map(ns); newMap.delete(note.id); return newMap; });
+  }
+
+  addExpense(expense: Expense) {
+    this.expenses.update(es => { const m = new Map(es); m.set(expense.id, expense); return m; });
+  }
+
+  removeExpense(expense: Expense) {
+    this.expenses.update(es => { const m = new Map(es); m.delete(expense.id); return m; });
+  }
+
+  addPlaceBooking(booking: PlaceBooking) {
+    this.placeBookings.update(bs => { const m = new Map(bs); m.set(booking.id, booking); return m; });
+  }
+
+  removePlaceBooking(booking: PlaceBooking) {
+    this.placeBookings.update(bs => { const m = new Map(bs); m.delete(booking.id); return m; });
+    // Also remove linked expenses
+    this.expenses.update(es => {
+      const m = new Map(es);
+      m.forEach((e, id) => { if (e.place_booking_id === booking.id) m.delete(id); });
+      return m;
+    });
+  }
+
+  addRouteBooking(booking: RouteBooking) {
+    this.routeBookings.update(bs => { const m = new Map(bs); m.set(booking.id, booking); return m; });
+  }
+
+  removeRouteBooking(booking: RouteBooking) {
+    this.routeBookings.update(bs => { const m = new Map(bs); m.delete(booking.id); return m; });
+    // Also remove linked expenses
+    this.expenses.update(es => {
+      const m = new Map(es);
+      m.forEach((e, id) => { if (e.route_booking_id === booking.id) m.delete(id); });
+      return m;
+    });
   }
 
   toJSON(): ITrip {

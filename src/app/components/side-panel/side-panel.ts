@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UiService } from '../../services/ui';
 import { TripService } from '../../services/trip';
@@ -29,6 +29,18 @@ export class SidePanel {
   // For the mobile bottom sheet state logic
   sheetState: 'open' | 'peek' | 'closed' = 'peek';
 
+  headerTitle = computed(() => {
+    const selectedVisit = this.uiService.selectedVisit();
+    const selectedRoute = this.uiService.selectedRoute();
+    if (selectedVisit) {
+      return this.uiService.activeTab() === 'country' ? selectedVisit.place.country.name : selectedVisit.place.name();
+    } else if (selectedRoute) {
+      return `${selectedRoute.source.name()} → ${selectedRoute.target.name()}`;
+    } else {
+      return 'Your Itinerary';
+    }
+  });
+
   /**
    * Logic to determine the title in the floating header.
    * This updates automatically because it's based on signals.
@@ -38,7 +50,7 @@ export class SidePanel {
     const selectedRoute = this.uiService.selectedRoute();
 
     if (selectedVisit) {
-      return selectedVisit.place.name();
+      return this.uiService.activeTab() === 'Country' ? selectedVisit.place.country.name : selectedVisit.place.name();
     } else if (selectedRoute) {
       return `${selectedRoute.source.name()} → ${selectedRoute.target.name()}`;
     } else {

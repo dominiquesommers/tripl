@@ -61,6 +61,7 @@
   /*background: rgba(30, 30, 35, 0.05);*/
   border: none !important;
   box-shadow: none !important;
+  width: 320px;
 }
 
 /* Tip (the little arrow at the bottom) */

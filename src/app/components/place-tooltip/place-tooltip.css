@@ -1,6 +1,6 @@
-:host {
-  display: block;
-}
+/*:host {*/
+/*  display: block;*/
+/*}*/
 
 ::ng-deep .hover-tooltip .mapboxgl-popup-content {
   background: rgba(20, 20, 20, 0.8) !important;
@@ -19,15 +19,87 @@
   pointer-events: none; /* Ensure the tooltip doesn't flicker by blocking the mouse */
 }
 
-/* Hide the arrow for the hover tooltip for a cleaner 'floating' look */
-::ng-deep .hover-tooltip .mapboxgl-popup-tip {
-  display: none;
+/*!* Hide the arrow for the hover tooltip for a cleaner 'floating' look *!*/
+/*::ng-deep .hover-tooltip .mapboxgl-popup-tip {*/
+/*  display: none;*/
+/*}*/
+
+/*.tooltip-text {*/
+/*  color: white !important;*/
+/*  font-size: 12px;*/
+/*  font-weight: 500;*/
+/*  padding: 20px;*/
+/*  white-space: nowrap;*/
+/*}*/
+
+
+:host {
+  display: block;
 }
 
-.tooltip-text {
-  color: white !important;
+/* Mapbox Popup Overrides */
+::ng-deep .hover-tooltip .mapboxgl-popup-content {
+  background: rgba(20, 20, 20, 0.8) !important;
+  color: white;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
   font-size: 12px;
   font-weight: 500;
-  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-radius: 20px !important;
+  pointer-events: none;
+}
+
+.tooltip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.place-header {
   white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  gap: 6px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.place-header.has-visits {
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.place-cost {
+  /*color: #3b82f6; !* Blue accent for the price *!*/
+  font-weight: 300;
+}
+
+.visit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-row {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  font-weight: 300;
+  align-items: center;
+}
+
+.duration {
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.45); /* Slightly dimmer than the dates */
+  font-weight: 300;
+}
+
+/* Hide arrow for cleaner floating look */
+::ng-deep .hover-tooltip .mapboxgl-popup-tip {
+  display: none;
 }

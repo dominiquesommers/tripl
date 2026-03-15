@@ -1,5 +1,5 @@
 import { TripService } from '../services/trip';
-import { signal } from '@angular/core';
+import {computed, signal} from '@angular/core';
 import {Country} from './country';
 
 
@@ -31,6 +31,20 @@ export class CountryNote {
   actual_cost = signal<number | null>(null);
   paid = signal<boolean>(false);
   descriptionFetched = signal<boolean>(false);
+
+
+  readonly expenses = computed(() =>
+    Array.from(this.tripService.trip()?.expenses().values() ?? [])
+      .filter(e => e.country_note_id === this.id)
+  );
+
+  readonly paidAmount = computed(() =>
+    this.expenses().reduce((sum, e) => sum + e.amount(), 0)
+  );
+
+  readonly isPaid = computed(() =>
+    this.actual_cost() !== null && this.paidAmount() >= this.actual_cost()!
+  );
 
   constructor(
     data: ICountryNote,

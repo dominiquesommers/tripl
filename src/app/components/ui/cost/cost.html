@@ -1,0 +1,16 @@
+<div class="cost-anchor">
+  <app-cost-badge
+    [estimatedCost]="estimatedCost()"
+    [actualCost]="actualTotal()"
+    [hasExpenses]="hasExpenses()"
+    [isPaid]="isPaid()"
+    [iconName]="iconName()"
+    [iconColor]="iconColor()"
+    [step]="step()"
+    [min]="min()"
+    (saveEstimated)="saveEstimated.emit($event)"
+    (saveActual)="saveActual.emit($event)"
+    (removeActual)="removeActual.emit()"
+    (openDetails)="onOpenDetails()">
+  </app-cost-badge>
+</div>

@@ -1,106 +1,163 @@
-:host {
-  display: block;
-  padding-top: 10px;
-}
-
-.itinerary-node {
-  display: flex;
-  gap: 16px;
-  min-height: 100px;
-}
-
-/* Timeline Visuals */
-.timeline-visual {
+.itinerary-container {
   display: flex;
   flex-direction: column;
+  /*background: rgba(25, 25, 30, 0.8);*/
+  color: white;
+  padding: 10px 0;
+}
+
+.itinerary-row {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  /*min-height: 44px;*/
+  position: relative;
+}
+
+/* SPINE & ALIGNMENT */
+.spine-column {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.spine-line {
+  position: absolute;
+  width: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/*.spine-line.full { top: 0; bottom: 0; }*/
+
+/* This starts exactly where the node is anchored (12px from top) */
+.spine-line.bottom-half { top: 14px; bottom: 0; }
+.spine-line.top-half {
+  top: 0;
+  height: 14px; /* Matches your spine-node-anchor top offset */
+}
+.spine-line.hidden { display: none; }
+
+/* ALIGN NODE WITH PLACE NAME */
+.spine-node-anchor {
+  position: absolute;
+  top: 14px;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+}
+
+/*.node-small {*/
+/*  width: 8px;*/
+/*  height: 8px;*/
+/*  border-radius: 50%;*/
+/*  background: #1e1e24;*/
+/*  border: 1.5px solid rgba(255, 255, 255, 0.8);*/
+/*  box-shadow: 0 0 0 2px rgba(25, 25, 30, 1); !* Creates a tiny gap around the dot for clarity *!*/
+/*}*/
+
+.node-small {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(30, 30, 35, 1);
+}
+
+/* TRANSIT NODE - CENTERED VERTICALLY IN ITS SMALL ROW */
+.spine-node-container {
+  z-index: 2;
+  display: flex;
   align-items: center;
-  width: 20px;
+  justify-content: center;
+  height: 100%;
+}
+
+.transport-icon-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+/* CONTENT COLUMN & COST ALIGNMENT */
+.content-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 6px;
+}
+
+.main-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.place-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.place-name {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  min-width: 0;
+}
+
+.flag-icon {
+  font-size: 22px;
+  line-height: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
   flex-shrink: 0;
 }
 
-.node-dot {
-  width: 12px;
-  height: 12px;
-  background: #0a84ff; /* Apple Blue */
-  border-radius: 50%;
-  margin-top: 6px;
-  box-shadow: 0 0 10px rgba(10, 132, 255, 0.5);
-  z-index: 2;
-}
-
-.node-line {
-  flex: 1;
-  width: 2px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 4px 0;
-}
-
-/* Content Styling */
-.node-content {
-  flex: 1;
-  padding-bottom: 32px;
-}
-
-.node-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.date-range {
-  font-size: 12px;
-  font-weight: 600;
-  color: #8e8e93;
-  text-transform: uppercase;
+.cost-tag, .transit-cost {
+  color: #10b981;
+  text-align: right;
+  flex-shrink: 0;
+  padding-left: 10px;
 }
 
 .cost-tag {
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 12px;
-  color: #fff;
+  font-weight: 300;
 }
 
-.place-name {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
+.transit-cost {
+  font-size: 11px;
+  font-weight: 200;
 }
 
-.stay-duration {
-  margin: 2px 0 0 0;
-  font-size: 14px;
-  color: #8e8e93;
+.transit-details {
+  justify-content: flex-end; /* Force transit cost to the far right */
+  align-items: right;
 }
 
-/* Transit Section Styling */
-.transit-section {
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
+.transit-row {
+  min-height: 22px;
 }
 
-.t-icon {
-  width: 16px;
-  height: 16px;
-  color: #0a84ff;
+.sub-line {
+  margin-top: -4px;
+  margin-bottom: -22px;
 }
 
-.transit-info {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 500;
+.date-range {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
 }
-
-.transit-text { color: rgba(255, 255, 255, 0.7); }
-.transit-cost { color: rgba(255, 255, 255, 0.5); }

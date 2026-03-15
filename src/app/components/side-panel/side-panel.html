@@ -10,7 +10,7 @@
      [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()">
 
   @if (!uiService.isMobile()) {
-    <h2 class="panel-title">{{ getHeaderTitle() }}</h2>
+    <h2 class="panel-title">{{ headerTitle() }}</h2>
     <div class="header-actions">
       <button class="toggle-btn" (click)="uiService.toggleSidebar()">
         <div class="icon-box"><div class="sidebar-icon-bar"></div></div>

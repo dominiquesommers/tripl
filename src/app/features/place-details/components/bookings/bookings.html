@@ -3,18 +3,37 @@
     <h3 class="section-title">Estimated Daily Costs</h3>
 
     <div class="costs-grid">
-      @for (cat of categories; track cat.id) {
+      <div class="cost-item">
+        <span class="cost-label">Accommodation</span>
+        <app-cost-badge
+          [estimatedCost]="getCostValue('accommodation')"
+          [isPaid]="false"
+          [iconName]="'hotel'"
+          [iconColor]="getCategoryColor('accommodation')"
+          [step]="10"
+          [min]="0"
+          (save)="updateCost('accommodation', $event)">
+        </app-cost-badge>
+      </div>
+
+      @for (cat of simpleCategories; track cat.id) {
         <div class="cost-item">
           <span class="cost-label">{{ cat.label }}</span>
-          <app-editable-badge
-            [value]="getCostValue(cat.id)"
+          <app-cost
+            mode="simple"
+            [estimatedCost]="getCostValue(cat.id)"
+            [isPaid]="false"
+            [actualTotal]="null"
+            [expenses]="[]"
             [iconName]="cat.icon"
-            [prefix]="'€'"
-            [step]="5"
-            [isLargeValue]="true"
             [iconColor]="getCategoryColor(cat.id)"
-            (save)="updateCost(cat.id, $event)">
-          </app-editable-badge>
+            [step]="5"
+            [min]="0"
+            (saveEstimated)="updateCost(cat.id, $event)"
+            (addExpense)="addDailyExpense(cat.id, $event)"
+            (updateExpense)="updateDailyExpense($event)"
+            (deleteExpense)="deleteDailyExpense($event)">
+          </app-cost>
         </div>
       }
     </div>

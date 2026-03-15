@@ -1,11 +1,14 @@
 import {computed} from '@angular/core';
 import {TripService} from '../services/trip';
 import {CostBreakdown, CostComparison} from './cost';
+import {COUNTRY_ABBREVIATIONS, COUNTRY_FLAGS} from '../components/map-handler/config/countries.config';
 
 export interface ICountry { id: string; name: string; }
 export class Country implements ICountry {
   id: string;
   name: string;
+  abbreviation: string;
+  flag: string;
 
   readonly notes = computed(() =>
     [...this.tripService.trip()?.countryNotes().values() ?? []].filter(a => a.country_id === this.id) ?? []
@@ -50,5 +53,7 @@ export class Country implements ICountry {
   ) {
     this.id = data.id.toString();
     this.name = data.name;
+    this.abbreviation = COUNTRY_ABBREVIATIONS[this.name];
+    this.flag = COUNTRY_FLAGS[this.name];
   }
 }

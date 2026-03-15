@@ -4,17 +4,21 @@ import { FormsModule } from '@angular/forms';
 import { TripService } from '../../../../services/trip';
 import { LucideAngularModule } from 'lucide-angular';
 import {EditableBadge} from '../../../../components/ui/editable-badge/editable-badge';
+import {Place} from '../../../../models/place';
+import {Cost} from '../../../../components/ui/cost/cost';
+import {CostBadge} from '../../../../components/ui/cost-badge/cost-badge';
+
 
 @Component({
   selector: 'app-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge],
+  imports: [CommonModule, FormsModule, LucideAngularModule, CostBadge, Cost],
   templateUrl: './bookings.html',
   styleUrl: './bookings.css'
 })
 export class Bookings {
   public tripService = inject(TripService);
-  visit = input.required<any>();
+  place = input.required<Place>();
 
   getCategoryColor(id: string): string {
     switch (id) {
@@ -26,7 +30,7 @@ export class Bookings {
   }
 
   getCostValue(id: string): number {
-    const p = this.visit().place; // Assuming place is a signal
+    const p = this.place();
     switch (id) {
       case 'accommodation': return p.accommodation_cost() ?? 0;
       case 'food': return p.food_cost() ?? 0;
@@ -38,7 +42,7 @@ export class Bookings {
   updateCost(id: string, newValue: number) {
     // Map the category ID back to the update call
     const updateData = { [`${id}_cost`]: newValue };
-    this.tripService.updatePlace(this.visit().place.id, updateData).subscribe();
+    this.tripService.updatePlace(this.place().id, updateData).subscribe();
   }
 
   // Map our display categories to your service's expected keys
@@ -47,6 +51,20 @@ export class Bookings {
     { id: 'food', label: 'Food & Drink', icon: 'utensils' },
     { id: 'miscellaneous', label: 'Miscellaneous', icon: 'shopping-bag' }
   ];
+
+  simpleCategories = [
+    { id: 'food', label: 'Food & Drink', icon: 'utensils' },
+    { id: 'miscellaneous', label: 'Miscellaneous', icon: 'shopping-bag' }
+  ];
+
+  addDailyExpense(categoryId: string, expense: any) {
+    // wire up later
+    console.log('addDailyExpense', categoryId, expense);
+  }
+
+  updateDailyExpense(expense: any) {}
+  deleteDailyExpense(id: number | string) {}
+
   //
   // updateCost(category: string, newValue: string) {
   //   const amount = parseFloat(newValue) || 0;

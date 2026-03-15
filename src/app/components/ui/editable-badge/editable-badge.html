@@ -5,10 +5,11 @@
 
   <input #numInput
          type="number"
-         [class.wide-val]="isLargeValue() || prefix()"
+         class="val-input"
+         [style.width.ch]="width()"
          [min]="min()"
          [value]="value()"
-         class="val-input"
+         (input)="draft.set($any($event.target).value)"
          (keydown)="onKeyDown($event)"
          (paste)="handlePaste($event)"
          (blur)="onBlur()" />
@@ -20,6 +21,8 @@
              [style.color]="iconColor()"
              class="main-icon">
       </lucide-icon>
+    } @else if (postfix()) {
+      <span class="postfix main-icon">{{ postfix() }}</span>
     }
 
     <div class="stepper-controls">

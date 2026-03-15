@@ -1,4 +1,4 @@
-import {Component, Input, input, Signal} from '@angular/core';
+import {Component, computed, Input, input, Signal} from '@angular/core';
 import {Place} from '../../models/place';
 
 @Component({
@@ -10,5 +10,14 @@ import {Place} from '../../models/place';
 })
 export class PlaceTooltip {
   @Input() place!: Signal<Place | null>;
-  // name = input.required<string | undefined>();
+
+  sortedVisits = computed(() => {
+    return this.place()?.visits()
+      .filter(v => v.entryDate() !== null)
+      .sort((a, b) => {
+        const dateA = a.entryDate()?.getTime() ?? 0;
+        const dateB = b.entryDate()?.getTime() ?? 0;
+        return dateA - dateB;
+      }) ?? [];
+  });
 }

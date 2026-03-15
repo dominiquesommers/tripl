@@ -1,1 +1,36 @@
-<p>seasonality works!</p>
+<div class="seasonality-card">
+  <div class="table-header">
+    <div class="label-col total-score" [style.color]="getColor(totalScore(), 1)">
+      {{ (totalScore() * 10) | number:'1.1-1' }}
+    </div>
+    @for (m of monthKeys; track m) {
+      <div class="month-col">{{ m }}</div>
+    }
+    <div class="avg-col">Avg</div>
+  </div>
+
+  <div class="table-body">
+    @for (row of rows(); track $index) {
+      <div class="season-row">
+        <div class="label-col" [title]="row.season.description()">
+          <span class="flag-icon">{{ row.flag }}</span>
+          <span class="season-abbr">{{ row.abbr }}</span>
+<!--          {{ row.label }}-->
+        </div>
+
+        @for (m of monthKeys; track $index) {
+          <div class="month-cell"
+               [style.background]="getBackground(row, $index)"
+               (mouseenter)="ensureReasonsLoaded(row.season)"
+               (mouseleave)="cancelHover()"
+               [title]="getReason(row.season, $index)">
+          </div>
+        }
+
+        <div class="avg-col" [style.background]="getColor(row.sumScore / row.days, 0.3)">
+          {{ ((row.sumScore / row.days) * 10) | number:'1.1-1' }}
+        </div>
+      </div>
+    }
+  </div>
+</div>

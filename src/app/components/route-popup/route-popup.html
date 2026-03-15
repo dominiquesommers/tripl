@@ -1,7 +1,73 @@
-<div class="apple-popup">
-  <input #nameInput [value]="route().source.name()" class="popup-input" (keydown.enter)="save(nameInput.value)" />
-  <div class="popup-actions">
-    <button class="save-btn" (click)="save(nameInput.value)">Save</button>
-    <button class="delete-btn" (click)="delete()">Delete</button>
+<div class="visit-card route-popup">
+    <span tabindex="0" class="sr-only"></span>
+
+    <div class="view-wrapper">
+      <div class="view-animate">
+        <div class="view-stack">
+
+          <div class="spine-cell">
+            <div class="spine-line bottom-half" [style.background-color]="getRouteColor(route().type())"></div>
+            <div class="spine-center full-row-content">
+              <div class="node-small source-node"></div>
+            </div>
+          </div>
+          <div class="content-cell">
+            <span class="text-truncate location-name">From: {{ route().source.name() }}</span>
+          </div>
+
+          <div class="spine-cell">
+            <div class="spine-line full" [style.background-color]="getRouteColor(route().type())"></div>
+            <div class="spine-center full-row-content">
+              <div class="transport-icon static" [style.background-color]="getRouteColor(route().type())">
+                <lucide-icon [name]="getRouteIcon(route().type())" [size]="16"></lucide-icon>
+              </div>
+            </div>
+          </div>
+          <div class="content-cell badge-row">
+            <app-editable-badge
+              [value]="duration()"
+              postfix="h"
+              (save)="updateRoute(route(), {duration: $event})">
+<!--              iconName="clock"-->
+<!--              iconColor="#60a5fa"-->
+            </app-editable-badge>
+
+            <app-editable-badge
+              [value]="distance()"
+              postfix="km"
+              (save)="updateRoute(route(), {distance: $event})">
+<!--              [isLargeValue]="true"-->
+<!--              iconName="map"-->
+<!--              iconColor="#a855f7"-->
+            </app-editable-badge>
+
+            <app-editable-badge
+              [value]="route().estimated_cost()"
+              prefix="€"
+              (save)="updateRoute(route(), {estimated_cost: $event})">
+<!--            iconName="euro"-->
+<!--            iconColor="#4ade80"-->
+            </app-editable-badge>
+
+            <app-editable-badge
+              [value]="route().nights()"
+              iconName="moon"
+              iconColor="#f1c40f"
+              (save)="updateRoute(route(), {nights: $event})">
+            </app-editable-badge>
+          </div>
+
+          <div class="spine-cell">
+            <div class="spine-line top-half" [style.background-color]="getRouteColor(route().type())"></div>
+            <div class="spine-center full-row-content">
+              <div class="node-small target-node"></div>
+            </div>
+          </div>
+          <div class="content-cell">
+            <span class="text-truncate location-name">To: {{ route().target.name() }}</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
   </div>
-</div>

@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, Input, signal, Signal, ViewChild} from '@angular/core';
+import {Component, effect, ElementRef, inject, Input, signal, Signal, ViewChild} from '@angular/core';
 import {environment} from '../../../environments/environment';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { LucideAngularModule, Search } from 'lucide-angular';
@@ -30,6 +30,14 @@ export class MapSearch {
 
   private searchBoxElement: any;
 
+  constructor() {
+    effect(() => {
+      const isCustomSearchActive = this.uiService.isCustomSearchActive();
+      if (!this.map) return;
+      this.map.getCanvas().style.cursor = isCustomSearchActive ? 'crosshair' : '';
+    })
+  }
+
   async ngOnInit() {
     const { MapboxSearchBox } = await import('@mapbox/search-js-web');
     this.searchBoxElement = new MapboxSearchBox();
@@ -38,10 +46,12 @@ export class MapSearch {
 
     this.searchBoxElement.theme = {
       variables: {
-        colorBackground: 'rgba(30, 30, 35, 0.7)',
-        backdropFilter: 'blur(30px) saturate(180%)',
+        colorBackground: 'transparent',
+        backdropFilter: 'none',
+        // colorBackground: 'rgba(30, 30, 35, 0.7)',
+        // backdropFilter: 'blur(30px) saturate(180%)',
         colorText: '#fff',
-        borderRadius: '20px',
+        borderRadius: '18.5px',
         width: '100%',
         boxShadow: 'none'
       },
@@ -50,31 +60,50 @@ export class MapSearch {
           display: none !important;
         }
         .Input {
+          background: transparent !important;
           width: 100% !important;
-          padding-left: 12px !important;
+          padding-left: 2px !important;
           color: #fff !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
         }
         ::placeholder {
           color: #fff !important;
         }
         .Results {
+          left: 40px;
           bottom: 53px !important;
           top: auto !important;
-          margin-bottom: 6px !important;
-          margin-top: 0 !important;
+          background: rgba(30, 30, 35, 0.7) !important;
+          backdrop-filter: blur(20px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+          border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+          border-radius: 16px !important;
+          margin-bottom: 8px !important;
           transform: translateX(-37px) !important;
+          width: 300px !important;
+          overflow: hidden !important;
+          margin-top: 0 !important;
         }
         .Suggestion {
-          color: #fff !important;          /* suggestion text white */
-          background-color: rgba(0, 0, 0, 0.25) !important; /* hover background */
+          color: #fff !important;
+          background: transparent !important;
+          border-bottom: 0.5px solid rgba(255, 255, 255, 0.05) !important;
         }
         .Suggestion:hover,
         .Suggestion[aria-selected="true"] {
-          background-color: rgba(0, 0, 0, 0.5) !important; /* selected item */
+        background: rgba(255, 255, 255, 0.1) !important;
         }
       `
     };
-
+    // .results
+    // margin-bottom: 6px !important;
+    // transform: translateX(-37px) !important;
+    // .Suggestion
+    // background-color: rgba(0, 0, 0, 0.25) !important; /* hover background */
+    // .Suggestion:hover
+    // background-color: rgba(0, 0, 0, 0.5) !important; /* selected item */
 
     this.searchWrapper.nativeElement.appendChild(this.searchBoxElement);
     this.searchBoxElement.addEventListener('retrieve', (e: any) => {
@@ -87,6 +116,10 @@ export class MapSearch {
     if (this.uiService.isSearchExpanded()) {
       setTimeout(() => this.searchBoxElement.focus(), 100);
     }
+  }
+
+  toggleCustomMode() {
+    this.uiService.toggleCustomSearchActive();
   }
 
   handleSearchResult(event: any) {

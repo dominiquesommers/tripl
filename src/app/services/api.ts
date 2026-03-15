@@ -1,16 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, delay } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth';
-import { ITrip } from '../models/trip';
-import {IPlace, NewPlace, Place} from '../models/place';
-import { IPlan } from '../models/plan';
-import { IVisit } from '../models/visit';
-import { ICountry } from '../models/country';
-import { ISeason } from '../models/season';
-import { IRoute } from '../models/route';
-import { ITraverse } from '../models/traverse';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -62,7 +54,21 @@ export class ApiService {
     return this.http.delete<T>(`${this.baseUrl}/${path}`);
   }
 
+  fireAndForget(path: string, body: any): void {
+    const url = `${this.baseUrl}/${path}`;
 
+    fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body),
+      keepalive: true
+    }).catch(err => {
+      // Silent fail, as we can't provide UI feedback during unload anyway
+      console.warn('Fire-and-forget persist failed:', err);
+    });
+  }
 
 
 

@@ -1,4 +1,4 @@
-import { Component, input, output, ElementRef, ViewChild } from '@angular/core';
+import {Component, input, output, ElementRef, ViewChild, computed, signal} from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -11,12 +11,20 @@ import { LucideAngularModule } from 'lucide-angular';
 export class EditableBadge {
   // Inputs
   value = input<number | null>(null);
-  isLargeValue = input<boolean>(false);
+  // isLargeValue = input<boolean>(false);
   iconName = input<string | null>(null); // Default icon
-  iconColor = input<string>('#f1c40f');
+  iconColor = input<string>('#bdbdbd');
   prefix = input<string>('');        // e.g., '€'
+  postfix = input<string>('');        // e.g., 'h/km'
   step = input<number>(1);           // Customizable step
   min = input<number>(0);
+
+  draft = signal<string>('');
+
+  width = computed(() => {
+    const str = this.draft() || String(Math.round(this.value() ?? 0));
+    return Math.max(str.length, 1) + 1;
+  });
 
   // Outputs
   save = output<number>();           // For the blur/save callback
@@ -36,6 +44,7 @@ export class EditableBadge {
       ? this.min()
       : Math.max(this.min(), Math.floor(Number(rawValue)));
     this.inputRef.nativeElement.value = sanitizedValue.toString();
+    this.draft.set('');
     this.save.emit(sanitizedValue);
     // const val = parseInt(this.inputRef.nativeElement.value, 10);
     // this.save.emit(isNaN(val) ? this.min() : val);

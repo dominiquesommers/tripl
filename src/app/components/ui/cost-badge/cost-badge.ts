@@ -1,4 +1,6 @@
-import {Component, input, output, ElementRef, ViewChild, computed} from '@angular/core';
+import {
+  Component, input, output, ElementRef, ViewChild, computed, signal
+} from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { EditableBadge } from '../editable-badge/editable-badge';
 
@@ -10,101 +12,91 @@ import { EditableBadge } from '../editable-badge/editable-badge';
   styleUrls: ['./cost-badge.css', '../editable-badge/editable-badge.css'],
 })
 export class CostBadge extends EditableBadge {
-  // ------------------------
-  // Inputs
-  // ------------------------
+
+  // ─── Inputs ───────────────────────────────────────────────
   estimatedCost = input.required<number>();
-  isPaid = input.required<boolean>();
+  isPaid        = input.required<boolean>();
+  actualCost    = input<number | null>(null);
+  hasExpenses   = input<boolean>(false);  // drives the info icon visibility
 
-  actualCost = input<number | null>(null);
-  paidDate = input<Date | null>(null);
-  note = input<string | null>(null);
-  referenceUrl = input<string | null>(null);
-  categoryIcon = input<string | null>(null);
-  categoryIconColor = input<string>('#f1c40f');
-
-  // ------------------------
-  // Outputs
-  // ------------------------
+  // ─── Outputs ──────────────────────────────────────────────
   saveEstimated = output<number>();
-  saveActual = output<number>();
-  togglePaid = output<boolean>();
-  openDetails = output<void>();
+  saveActual    = output<number | null>();
+  removeActual    = output<void>();
+  // togglePaid    = output<boolean>();
+  openDetails   = output<void>();
 
-  // ------------------------
-  // ViewChild references
-  // ------------------------
+  // ─── Draft signals for dynamic width ──────────────────────
+  estimateDraft = signal<string>('');
+  actualDraft   = signal<string>('');
+
+  // ─── ViewChild refs ───────────────────────────────────────
   @ViewChild('estimateInput') estimateInputRef!: ElementRef<HTMLInputElement>;
-  @ViewChild('actualInput') actualInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('actualInput')   actualInputRef!:   ElementRef<HTMLInputElement>;
 
+  // ─── Computed ─────────────────────────────────────────────
   costStatus = computed(() => {
     const actual = this.actualCost();
-    const paid = this.isPaid();
-
+    const paid   = this.isPaid();
     if (actual === null && !paid) return 'default';
     if (actual !== null && !paid) return 'pending';
-    if (actual !== null && paid) return 'done';
-    if (actual === null && paid) return 'error';
-
+    if (actual !== null &&  paid) return 'done';
+    if (actual === null &&  paid) return 'error';
     return 'default';
   });
 
-  // ------------------------
-  // Handlers
-  // ------------------------
+  estimateOpacity = computed(() => this.actualCost() != null ? 0.6 : 1);
 
-  onTogglePaid() {
-    this.togglePaid.emit(!this.isPaid());
-  }
+  estimateWidth = computed(() => {
+    const str = this.estimateDraft() || String(Math.round(this.estimatedCost()));
+    return Math.max(str.length, 1);
+  });
+
+  actualWidth = computed(() => {
+    const val = this.actualCost();
+    const str = this.actualDraft() || (val !== null ? String(Math.round(val)) : '');
+    return Math.max(str.length, 1);
+  });
+
+  // ─── Handlers ─────────────────────────────────────────────
 
   toggleActualExistence() {
-    const currentActual = this.actualCost();
-    if (currentActual === null) {
+    const current = this.actualCost();
+    console.log('toggleActualExistence', current);
+    if (current === null) {
       this.saveActual.emit(this.estimatedCost());
       setTimeout(() => {
-        if (this.actualInputRef) {
-          const input = this.actualInputRef.nativeElement;
-          input.focus();
-          input.select();
-        }
+        const input = this.actualInputRef?.nativeElement;
+        if (input) { input.focus(); input.select(); }
       }, 0);
     } else {
-      console.log('save actual to null.')
-      this.saveActual.emit(null as any);
+      console.log('removeActual')
+      this.removeActual.emit();
     }
   }
 
-  estimateOpacity() {
-    return this.actualCost() != null ? 0.6 : 1;
-  }
-
-  // ------------------------
-  // Reuse EditableBadge methods
-  // ------------------------
-
-  // Save estimated value
+  // ─── EditableBadge overrides ──────────────────────────────
   onEstimateBlur() {
     this.inputRef = this.estimateInputRef;
     super.onBlur();
+    this.estimateDraft.set('');
     this.saveEstimated.emit(this.estimateInputRef.nativeElement.valueAsNumber);
   }
 
-  // Save actual value
   onActualBlur() {
     if (!this.actualInputRef) return;
     this.inputRef = this.actualInputRef;
     super.onBlur();
+    this.actualDraft.set('');
     this.saveActual.emit(this.actualInputRef.nativeElement.valueAsNumber);
   }
 
-  // Adjust estimated
   adjustEstimate(direction: number) {
     this.inputRef = this.estimateInputRef;
     super.adjust(direction);
     this.saveEstimated.emit(this.estimateInputRef.nativeElement.valueAsNumber);
   }
 
-  // Adjust actual
   adjustActual(direction: number) {
     if (!this.actualInputRef) return;
     this.inputRef = this.actualInputRef;
@@ -112,7 +104,6 @@ export class CostBadge extends EditableBadge {
     this.saveActual.emit(this.actualInputRef.nativeElement.valueAsNumber);
   }
 
-  // KeyDown / Paste wrappers
   onEstimateKeyDown(event: KeyboardEvent) {
     this.inputRef = this.estimateInputRef;
     super.onKeyDown(event);

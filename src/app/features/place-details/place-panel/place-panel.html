@@ -1,10 +1,10 @@
 <div class="feature-wrapper">
   <div class="feature-content">
     @switch (uiService.activeTab()) {
-      @case ('bookings') { <app-bookings [visit]="visit()" /> }
-      @case ('activities') { <app-activities [visit]="visit()" /> }
-      @case ('notes') { <app-notes /> }
-      @case ('country') { <app-country /> }
+      @case ('bookings') { <app-bookings [place]="visit().place" /> }
+      @case ('activities') { <app-activities [place]="visit().place" /> }
+      @case ('notes') { <app-notes [place]="visit().place"/> }
+      @case ('country') { <app-country [country]="visit().place.country"/> }
     }
   </div>
 

@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, inject, input, signal} from '@angular/core';
+import {Component, computed, ElementRef, HostListener, inject, input, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
@@ -6,11 +6,13 @@ import { TripService } from '../../services/trip';
 import { Plan } from '../../models/plan';
 import {Trip} from '../../models/trip';
 import {IUserPlan, IUserTrip} from '../../models/user';
+import {LucideAngularModule } from 'lucide-angular';
+
 
 @Component({
   selector: 'app-trip-bubble',
   standalone: true,
-  imports: [CommonModule, DragDropModule], // DragDropModule is required here
+  imports: [CommonModule, DragDropModule, LucideAngularModule], // DragDropModule is required here
   templateUrl: './trip-bubble.html',
   styleUrls: ['./trip-bubble.css']
 })
@@ -22,6 +24,11 @@ export class TripBubble {
   showPlanMenu = false;
   showTripMenu = false;
   activeMenuId = signal<string | null>(null);
+
+  sortedPlans = computed(() => {
+    const plans = this.tripService.plans() || [];
+    return [...plans].sort((a, b) => a.priority - b.priority);
+  });
 
   constructor() {}
 
@@ -45,6 +52,7 @@ export class TripBubble {
     event.stopPropagation();
     this.showPlanMenu = false;
     this.showTripMenu = !this.showTripMenu;
+    console.log(this.showTripMenu);
   }
 
   togglePlanMenu(event: Event) {
@@ -126,7 +134,18 @@ export class TripBubble {
   // }
 
   addTrip() {
-    console.log('add trip')
+    console.log('add trip');
+    // const currentTrip = this.tripService.trip();
+    // if (currentTrip) {
+      // Call your service to create a new plan
+      // After the API returns, the signals will auto-update the list
+      // this.tripService.addNewPlan(currentTrip.id);
+    // }
+  }
+
+  deleteTrip(event: PointerEvent, trip: IUserTrip) {
+    console.log('delete trip');
+    event.stopPropagation();
     // const currentTrip = this.tripService.trip();
     // if (currentTrip) {
       // Call your service to create a new plan
@@ -143,6 +162,17 @@ export class TripBubble {
       // After the API returns, the signals will auto-update the list
       // this.tripService.addNewPlan(currentTrip.id);
     }
+  }
+
+  deletePlan(event: PointerEvent, plan: IUserPlan) {
+    console.log('delete plan')
+    event.stopPropagation();
+    // const currentTrip = this.tripService.trip();
+    // if (currentTrip) {
+      // Call your service to create a new plan
+      // After the API returns, the signals will auto-update the list
+      // this.tripService.addNewPlan(currentTrip.id);
+    // }
   }
 
   copyPlan(plan: IUserPlan, event: Event) {

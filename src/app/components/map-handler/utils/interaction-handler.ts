@@ -1,5 +1,6 @@
 import {TripService} from '../../../services/trip';
 import {UiService} from '../../../services/ui';
+import { ISO_TO_COUNTRY } from '../config/countries.config';
 import type {Map as MapboxMap, GeoJSONSource, LngLatLike, Marker, Popup} from 'mapbox-gl';
 import {Place} from '../../../models/place';
 import {
@@ -14,6 +15,7 @@ import {Route, RouteType} from '../../../models/route';
 import {Visit} from '../../../models/visit';
 import {filter, of, switchMap, take} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {NotificationService} from '../../../services/notification';
 
 
 export class MapInteractionManager {
@@ -32,12 +34,14 @@ export class MapInteractionManager {
     private mapbox: any,
     private tripService: TripService,
     private uiService: UiService,
+    private notifierService: NotificationService,
     private activeVisitPopupEL: Signal<ElementRef | undefined>,
     private activeRoutePopupEL: Signal<ElementRef | undefined>,
     private placeTooltipEl: Signal<ElementRef | undefined>,
     private routeTooltipEl: Signal<ElementRef | undefined>,
     private selectorVisible: WritableSignal<boolean>,
     private selectorPos: WritableSignal<{ x: number, y: number }>,
+    private layersReady: Signal<boolean>,
     private injector: Injector
   ) {
     runInInjectionContext(this.injector, () => {
@@ -45,27 +49,39 @@ export class MapInteractionManager {
         const plan = this.tripService.plan();
         const itineraryTraverses = plan?.itineraryTraverses() ?? [];
         const itineraryRouteIds = new Set(itineraryTraverses.map(traverse => traverse.route?.id));
-        const map = this.map;
-        if (!map) return;
-        // TODO check if the timeout can be avoided.
-        setTimeout(() => {
-          if (!map.getSource('all-routes')) return;
-          const allRoutes = this.tripService.trip()?.routes() ?? new Map();
-          allRoutes.forEach((route, id) => {
-            const isActive = itineraryRouteIds.has(id);
-            map.setFeatureState(
-              { source: 'all-routes', id: id },
-              { disabled: !isActive }
-            );
-          });
-        }, 500);
+
+        const layersReady = this.layersReady();
+        if (!layersReady || !this.map.getSource('all-routes')) return;
+        const allRoutes = this.tripService.trip()?.routes() ?? new Map();
+        allRoutes.forEach((route, id) => {
+          const isActive = itineraryRouteIds.has(id);
+          this.map.setFeatureState(
+            { source: 'all-routes', id },
+            { disabled: !isActive }
+          );
+        });
+
+
+        // const map = this.map;
+        // if (!map) return;
+        // // TODO check if the timeout can be avoided.
+        // setTimeout(() => {
+        //   if (!map.getSource('all-routes')) return;
+        //   const allRoutes = this.tripService.trip()?.routes() ?? new Map();
+        //   allRoutes.forEach((route, id) => {
+        //     const isActive = itineraryRouteIds.has(id);
+        //     map.setFeatureState(
+        //       { source: 'all-routes', id: id },
+        //       { disabled: !isActive }
+        //     );
+        //   });
+        // }, 500);
       });
 
       effect((onCleanup) => {
         const visit = this.uiService.selectedVisit();
         const popupElement = this.activeVisitPopupEL();
         if (visit && popupElement) {
-          console.log('wiheoe');
           const coords: [number, number] = [visit.place.lng, visit.place.lat];
           this.syncVisitPopup(visit, popupElement, coords);
           onCleanup(() => {
@@ -96,7 +112,7 @@ export class MapInteractionManager {
       effect(() => {
         const plan = this.tripService.plan();
         if (!plan || !map) return;
-        this.map.flyTo({center: [plan.lat(), plan.lng()], zoom: plan.zoom(), essential: true});
+        this.map.flyTo({center: [plan.lat, plan.lng], zoom: plan.zoom, essential: true});
       });
 
       this.uiService.flyToRequested$
@@ -113,6 +129,54 @@ export class MapInteractionManager {
   public attachGlobalListeners(centerSignal: any, zoomSignal: any) {
     this.map.on('click', (e) => {
       if ((e.originalEvent as any)._routeClicked) return;
+
+      if (this.uiService.isCustomSearchActive()) {
+        const allFeatures = this.map.queryRenderedFeatures(e.point);
+        const styleKey = this.map.getStyle().name?.includes('standard') ? 'standard' : 'outdoors-v12';
+        const getName = (f: any) => {
+          const props = styleKey === 'standard' ? f._vectorTileFeature?.properties : f.properties;
+          return props?.name_en || props?.name;
+        };
+        const getCountryIso = (f: any) => {
+          const props = styleKey === 'standard' ? f._vectorTileFeature?.properties : f.properties;
+          return props?.iso_3166_1;
+        };
+        const validFeatures = allFeatures.filter(f => getName(f) && getCountryIso(f));
+
+        if (validFeatures.length > 0) {
+          const feature = validFeatures[0];
+          const placeName = getName(feature);
+          const isoCode = getCountryIso(feature);
+          const countryName = ISO_TO_COUNTRY[isoCode?.toUpperCase()]?.[0];
+          if (!countryName) {
+            this.notifierService.notify(`Unknown country code ${isoCode?.toUpperCase()}.`, true);
+            console.log(`Unknown country code ${isoCode?.toUpperCase()}.`);
+          } else {
+            console.log(`Add place ${placeName} in ${countryName} (${isoCode})`);
+            this.tripService.addPlace({
+              name: placeName,
+              lat: e.lngLat.lat,
+              lng: e.lngLat.lng,
+              countryName: countryName
+            }).subscribe({
+              next: () => {
+                this.uiService.closeSearch();
+                // TODO Add first visit? Open popup.
+                // const marker = this.marker();
+                // if (marker && newVisit) {
+                //   this.interactionManager.handleOpenVisitPopup(newVisit, marker);
+                // }
+              },
+              error: (err) => console.error('Failed to add place:', err)
+            });
+          }
+        } else {
+          this.notifierService.notify('No (valid) label clicked.', true);
+          console.log('No valid label clicked.');
+        }
+        this.uiService.closeSearch();
+        return;
+      }
 
       if (!this.uiService.drawingState().active) {
         this.uiService.clearSelection();
@@ -184,13 +248,13 @@ export class MapInteractionManager {
          return;
       }
       this.activeRoutePopup = new this.mapbox.Popup({
+        maxWidth: '320px',
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
-      })
-      .setDOMContent(popupElement.nativeElement)
-      .setLngLat(route.popupCoords)
-      .addTo(this.map);
+      }).setDOMContent(popupElement.nativeElement)
+        .setLngLat(route.popupCoords)
+        .addTo(this.map);
 
       this.activeRoutePopup?.on('close', () => {
         if (this.uiService.selectedRoute() === route) {

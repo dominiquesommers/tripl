@@ -53,13 +53,18 @@ export class Place {
 
   readonly oneTimeCost = computed<CostComparison>(() => {
     if (!this.inItinerary()) return CostComparison.empty();
+    const includedActivities = this.activities().filter(a => a.included());
+    const includedNotes = this.notes().filter(n => n.included());
     const est = new CostBreakdown(
       0, 0, 0,
-      this.activities().filter(a => a.included()).reduce((sum, a) => sum + (a.estimated_cost() ?? 0), 0),
-      this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.estimated_cost() ?? 0), 0)
+      includedActivities.reduce((sum, a) => sum + (a.estimated_cost() ?? 0), 0),
+      includedNotes.reduce((sum, n) => sum + (n.estimated_cost() ?? 0), 0)
     );
-    const act = est.clone();
-    // TODO add actual costs.
+    const act = new CostBreakdown(
+      0, 0, 0,
+      includedActivities.reduce((sum, a) => sum + (a.actual_cost() ?? a.estimated_cost() ?? 0), 0),
+      includedNotes.reduce((sum, n) => sum + (n.actual_cost() ?? n.estimated_cost() ?? 0), 0)
+    );
     return new CostComparison(est, act);
   });
 
@@ -70,6 +75,23 @@ export class Place {
       total = total.add(v.cost());
     });
     return total;
+  });
+
+  readonly foodExpenses = computed(() =>
+    Array.from(this.tripService.trip()?.expenses().values() ?? [])
+      .filter(e => e.place_id === this.id && e.category() === 'food')
+  );
+
+  readonly miscExpenses = computed(() =>
+    Array.from(this.tripService.trip()?.expenses().values() ?? [])
+      .filter(e => e.place_id === this.id && e.category() === 'miscellaneous')
+  );
+
+  readonly nightsSpent = computed(() => {
+    const today = new Date();
+    return this.visits()
+      .filter(v => v.entryDate() && new Date(v.entryDate()!) <= today)
+      .reduce((sum, v) => sum + (v.nights() ?? 0), 0) || 1;
   });
 
   constructor(

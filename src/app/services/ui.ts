@@ -33,6 +33,7 @@ export class UiService {
   readonly isSidebarOpen: WritableSignal<boolean> = signal(true);
   readonly isLoading: WritableSignal<boolean> = signal(false);
   readonly isSearchExpanded: WritableSignal<boolean> = signal(false);
+  readonly isCustomSearchActive: WritableSignal<boolean> = signal(false);
 
   // --- Interaction State (Moved from TripService) ---
   selectedVisitId = signal<string | null>(null);
@@ -148,8 +149,13 @@ export class UiService {
     this.isSearchExpanded.update(v => !v);
   }
 
+  toggleCustomSearchActive() {
+    this.isCustomSearchActive.update(v => !v);
+  }
+
   closeSearch() {
     this.isSearchExpanded.set(false);
+    this.isCustomSearchActive.set(false);
   }
 
   setLoading(state: boolean) {

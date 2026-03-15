@@ -31,6 +31,14 @@
   margin-right: -2px;
 }
 
+.postfix {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  user-select: none;
+  margin-left: -2px;
+}
+
 .icon-stack {
   position: relative;
   width: 18px;
@@ -80,8 +88,8 @@
   border: none;
   background: transparent;
   color: white;
-  /*min-width: 20px;*/
-  width: 22px;
+  min-width: 1ch;
+  /*width: 22px;*/
   /*max-width: 45px;*/
   flex-shrink: 0;
   padding: 0;
@@ -94,7 +102,7 @@
   -moz-appearance: textfield; /* Firefox remove arrows */
 
   &:focus {
-    color: #3b82f6; /* Subtle glow when typing */
+    color: #93b4d4;
   }
   &.wide-val {
     width: 38px;

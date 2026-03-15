@@ -29,6 +29,9 @@ jobs:
         run: |
           npm run build -- --configuration production --base-href /tripl/
 
+      - name: Create 404.html for SPA routing
+        run: cp dist/tripl/browser/index.html dist/tripl/browser/404.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:

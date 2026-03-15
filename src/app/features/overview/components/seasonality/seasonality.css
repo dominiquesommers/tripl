@@ -1,0 +1,119 @@
+.seasonality-card {
+  margin-top: 6px;
+  margin-left: -1px;
+  border-radius: 8px;
+  color: white;
+  font-family: inherit;
+}
+
+.table-header, .season-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 23px;
+  margin-bottom: 2px;
+}
+
+.table-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  margin-bottom: 4px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+.table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.label-col {
+  display: flex;
+  width: 62px;
+  align-items: center;
+  gap: 3px;
+  margin-left: 0px;
+  overflow: hidden;
+}
+
+.flag-icon {
+  margin-left: -3px;
+  font-size: 22px;
+  line-height: 1;
+  display: inline-block;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+}
+
+.season-abbr {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 500;
+  /*text-transform: uppercase;*/
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.total-score {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 2px;
+  color: white !important;
+}
+
+.month-col, .month-cell {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.month-col {
+  font-size: 10.5px;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+
+.month-cell {
+  border-radius: 2px;
+  cursor: help;
+  position: relative;
+}
+
+.avg-col {
+  flex: 1;
+  /*width: 24px;*/
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  text-align: right;
+  align-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding-right: 3.5px;
+  /*margin-right: -3px;*/
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.month-col:nth-child(2), .month-cell:nth-child(2) {
+  /*margin-left: 2px; !* 1px gap + 1px margin = 2px total *!*/
+}
+.month-col:nth-child(4), .month-cell:nth-child(4), /* End of Q1 */
+.month-col:nth-child(7), .month-cell:nth-child(7), /* End of Q2 */
+.month-col:nth-child(10), .month-cell:nth-child(10) /* End of Q3 */ {
+  margin-right: 2px; /* Adding 1px to the existing 1px gap */
+}
+.month-col:nth-child(13), .month-cell:nth-child(13) {
+  margin-right: 2px;
+}
