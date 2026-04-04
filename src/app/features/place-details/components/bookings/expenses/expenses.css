@@ -1,0 +1,239 @@
+.expenses-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #8e8e93;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ── Expense row ────────────────────────────────────────── */
+.expense-row {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: background 0.15s ease;
+  overflow: hidden;
+}
+
+.expense-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.expense-row.is-expanded {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Main row layout ────────────────────────────────────── */
+/* date | badge | chevron | details */
+.row-main {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  column-gap: 4px;
+  padding: 5px;
+  position: relative;
+}
+
+/* ── Badge wrap — fixed width for alignment ─────────────── */
+.badge-wrap {
+  width: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  margin-right: -7px;
+}
+
+/* Override editable-badge width to fill the fixed cell */
+.badge-wrap ::ng-deep .badge-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.badge-wrap ::ng-deep .val-input {
+  /*width: 52px;   !* fixed width for up to 4 digits *!*/
+  /*min-width: 52px;*/
+  /*text-align: right;*/
+}
+
+/* ── Chevron button ─────────────────────────────────────── */
+.chevron-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  align-self: flex-end;
+  /*border-radius: 4px;*/
+  padding-bottom: 2px;
+  transition: background 0.15s ease;
+}
+
+.chevron-icon {
+  color: rgba(255, 255, 255, 0.2);
+  transition: color 0.15s ease;
+}
+
+.chevron-btn:hover .chevron-icon,
+.is-expanded .chevron-icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Details input ──────────────────────────────────────── */
+.details-input {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  padding: 2px 4px;
+  width: 100%;
+  min-width: 0;
+  border-radius: 4px;
+  font-style: italic;
+  transition: all 0.15s ease;
+}
+
+.details-input::-webkit-input-placeholder { color: rgba(255, 255, 255, 0.18); }
+.details-input::-moz-placeholder          { color: rgba(255, 255, 255, 0.18); }
+.details-input:-ms-input-placeholder      { color: rgba(255, 255, 255, 0.18); }
+.details-input::placeholder               { color: rgba(255, 255, 255, 0.18); }
+::ng-deep .details-input::placeholder {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.details-input:focus {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  font-style: normal;
+}
+
+/* ── Subcategory row ────────────────────────────────────── */
+.subcategory-row {
+  padding: 0 5px 5px 5px;
+}
+
+.subcategory-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  padding: 2px 0;
+  width: 100%;
+  transition: border-color 0.15s ease;
+}
+
+.subcategory-input::placeholder {
+  color: rgba(255, 255, 255, 0.18);
+  font-style: italic;
+}
+
+.subcategory-input:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Icon buttons ───────────────────────────────────────── */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.add-btn {
+  opacity: 1;
+}
+
+.delete-floating {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* Styling to make it pop when covering other content */
+  opacity: 0;
+  /*background: rgba(20, 20, 20, 0.8) !important; !* Dark background to cover icons *!*/
+  /*backdrop-filter: blur(4px);*/
+  /*border: 1px solid rgba(239, 68, 68, 0.2) !important;*/
+  /*color: #ef4444 !important;*/
+  /*color: #ef4444;*/
+  /*background: rgba(239,68,68,0.1);*/
+  padding: 3px;
+  /*border-radius: 6px;*/
+  /*box-shadow: -4px 0 12px rgba(0, 0, 0, 0.5);*/
+  transition: opacity 0.15s ease, visibility 0.15s;
+  visibility: hidden;
+  z-index: 10;
+  opacity: 1;
+}
+
+.expense-row:hover .delete-floating {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Extra pop on button hover */
+.delete-floating:hover {
+  /*background: #ef4444 !important;*/
+  /*color: #fff !important;*/
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+}
+
+/* Ensure the spacer prevents the grid from being too small */
+.ms-auto {
+  min-width: 20px;
+}
+
+/* Delete hidden until hover */
+/*.delete-item {*/
+/*  opacity: 0;*/
+/*  margin-left: -4px;*/
+/*  padding: 2px;*/
+/*}*/
+
+/*.expense-row:hover .delete-item {*/
+/*  opacity: 1;*/
+/*}*/
+
+.icon-btn:hover             { color: #fff; background: rgba(255,255,255,0.1); }
+.icon-btn.delete-floating:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+/* ── Empty hint ─────────────────────────────────────────── */
+.empty-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}

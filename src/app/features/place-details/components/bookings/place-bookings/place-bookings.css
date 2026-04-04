@@ -1,0 +1,377 @@
+.bookings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #8e8e93;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ── Booking row ────────────────────────────────────────── */
+.booking-row {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: background 0.15s ease;
+  overflow: hidden;
+}
+
+.booking-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.booking-row.is-expanded {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.booking-row.tentative {
+  border-color: rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.06);
+  /*border: rgba(245, 158, 11, 0.2) dashed;*/
+}
+
+/* ── Collapsed row layout ───────────────────────────────── */
+/* date-range | price | status-badges | spacer */
+.row-main {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  align-items: center;
+  column-gap: 4px;
+  /*gap: 8px;*/
+  padding: 5px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* ── Price cell ─────────────────────────────────────────── */
+.price-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tentative-tag {
+  font-size: 13px;
+  color: #f59e0b;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* ── Status badges ──────────────────────────────────────── */
+.status-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-icon { opacity: 0.6; }
+.shield-icon { color: #60a5fa; }
+.clock-icon  { color: #f59e0b; }
+
+/* ── Chevron ────────────────────────────────────────────── */
+.chevron-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  align-self: flex-end;
+  padding-bottom: 3px;
+}
+
+.chevron-btn:hover { background: transparent; }
+
+.chevron-icon {
+  color: rgba(255, 255, 255, 0.2);
+  transition: color 0.15s ease;
+}
+
+.chevron-btn:hover .chevron-icon,
+.is-expanded .chevron-icon {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Delete (hover only) ────────────────────────────────── */
+/* ── Delete (hover only) ────────────────────────────────── */
+.delete-floating {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* Styling to make it pop when covering other content */
+  opacity: 0;
+  /*background: rgba(20, 20, 20, 0.8) !important; !* Dark background to cover icons *!*/
+  /*backdrop-filter: blur(4px);*/
+  /*border: 1px solid rgba(239, 68, 68, 0.2) !important;*/
+  /*color: #ef4444 !important;*/
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+  padding: 2px;
+  /*border-radius: 6px;*/
+  /*box-shadow: -4px 0 12px rgba(0, 0, 0, 0.5);*/
+  transition: opacity 0.15s ease, visibility 0.15s;
+  visibility: hidden;
+  z-index: 10;
+}
+
+.booking-row:hover .delete-floating {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Extra pop on button hover */
+.delete-floating:hover {
+  /*background: #ef4444 !important;*/
+  /*color: #fff !important;*/
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+}
+
+.delete-item {
+  opacity: 0;
+  padding: 2px;
+}
+
+.booking-row:hover .delete-item {
+  opacity: 1;
+}
+
+/* ── Expanded details ───────────────────────────────────── */
+.booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 5px 5px 5px;
+  /*padding: 8px 12px 12px;*/
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.detail-row.stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* Three-column row: food | cancel | pay */
+.detail-row.three-col {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.detail-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.detail-icon {
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
+.food-icon  { color: #58d68d; }
+.shield-icon { color: #60a5fa; }
+.pay-icon   { color: #f59e0b; }
+
+/* ── Food select ────────────────────────────────────────── */
+.food-select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color 0.15s ease;
+}
+
+.food-select:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Toggle switch ──────────────────────────────────────── */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle input { display: none; }
+
+.toggle-track {
+  width: 32px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.toggle input:checked + .toggle-track {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(14px);
+  background: #3b82f6;
+}
+
+/* ── Details textarea ───────────────────────────────────── */
+.details-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 6px 8px;
+  outline: none;
+  color-scheme: dark;
+  transition: border-color 0.15s ease;
+}
+
+.details-textarea:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Icon buttons ───────────────────────────────────────── */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.add-btn { opacity: 1; }
+
+.icon-btn:hover             { color: #fff; background: rgba(255,255,255,0.1); }
+.icon-btn.delete-floating:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+/* ── Empty hint ─────────────────────────────────────────── */
+.empty-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.icon-strike-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.icon-strike-wrap.struck::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -1px;
+  right: -1px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.4);
+  transform: rotate(-45deg) translateY(-50%);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* Icon states */
+.detail-icon {
+  opacity: 0.5;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.detail-icon.active {
+  opacity: 0.8;
+}
+
+.link-icon {
+  color: #afafb8;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.link-icon:hover {
+  opacity: 1;
+}
+
+.icon-strike-wrap:hover .detail-icon {
+  opacity: 0.7;
+}
+
+.icon-strike-wrap:hover.struck .detail-icon {
+  opacity: 0.6;
+}
+
+.tentative-icon { color: #a78bfa; }
+
+.ms-auto { margin-left: auto; }

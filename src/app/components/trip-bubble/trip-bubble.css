@@ -247,18 +247,18 @@
   flex-direction: column;
 }
 
-.edit-input-transparent {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: #ffffff !important; /* Force white text */
-  font-size: 14px;
-  font-weight: 500;
-  outline: none;
-  padding: 4px 8px;
-  cursor: text;
-  width: 100%; /* Ensure it takes available space */
-}
+/*.edit-input-transparent {*/
+/*  flex: 1;*/
+/*  background: transparent;*/
+/*  border: none;*/
+/*  color: #ffffff !important; !* Force white text *!*/
+/*  font-size: 14px;*/
+/*  font-weight: 500;*/
+/*  outline: none;*/
+/*  padding: 4px 8px;*/
+/*  cursor: text;*/
+/*  width: 100%; !* Ensure it takes available space *!*/
+/*}*/
 
 /* Make sure the text in the Plan list is also visible */
 .manage-item .destination {
@@ -290,29 +290,34 @@
 .icon-btn:hover { color: white; }
 .icon-btn.delete:hover { color: #ef4444; }
 
-.input-wrapper {
-  display: flex;
+/*.input-wrapper {*/
+/*  display: flex;*/
+/*  !*flex: 1;*!*/
+/*  flex: 0 1 auto; !* Allows shrinking and growing based on content *!*/
+/*  !*min-width: 50px;*!*/
+/*  min-width: 0;*/
+/*}*/
+
+.spacer {
+  /* This is the magic ingredient */
   flex: 1;
-  /*flex: 0 1 auto; !* Allows shrinking and growing based on content *!*/
-  /*min-width: 50px;*/
-  min-width: 0;
 }
 
 .edit-input-transparent {
-  width: 100%; /* Fills the wrapper */
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 14px;
-  outline: none;
-  padding: 2px 4px;
+  /*width: 100%; !* Fills the wrapper *!*/
+  /*background: transparent;*/
+  /*border: none;*/
+  /*color: white;*/
+  /*font-size: 14px;*/
+  /*outline: none;*/
+  /*padding: 2px 4px;*/
   border-radius: 4px;
-  cursor: text;
+  /*cursor: text;*/
 }
 
-.edit-input-transparent:focus {
-  background: rgba(255, 255, 255, 0.1);
-}
+/*.edit-input-transparent:focus {*/
+/*  background: rgba(255, 255, 255, 0.1);*/
+/*}*/
 
 /* 2. Item Actions Layout */
 .item-actions {
@@ -340,4 +345,46 @@
 
 .active-indicator {
   color: #3b82f6;
+}
+
+.input-wrapper {
+  display: inline-grid;
+  align-items: center;
+  position: relative;
+  min-width: 20px;
+  max-width: 180px; /* Limits how wide the input can grow before ellipsis */
+  overflow: hidden;
+}
+
+/* The hidden sizer that forces the width */
+.input-sizer {
+  grid-area: 1/1;
+  padding: 2px 4px; /* Must match input padding exactly */
+  font-size: 14px;
+  font-weight: 500;
+  visibility: hidden;
+  white-space: pre; /* Important to keep spaces from collapsing */
+}
+
+.edit-input-transparent {
+  grid-area: 1/1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  padding: 2px 4px;
+
+  /* Standard Ellipsis Trick */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.edit-input-transparent:focus {
+  background: rgba(255, 255, 255, 0.1);
+  /* Optional: Remove ellipsis on focus so user can see what they type */
+  text-overflow: clip;
 }

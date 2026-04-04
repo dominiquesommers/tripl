@@ -49,6 +49,8 @@ export class PopupService {
     el.style.transform = 'translateX(-50%)';
     el.style.zIndex = '9999';
     el.setAttribute('data-popup', '');
+    console.log(config.position);
+    console.log(el.style.left, el.style.top);
 
     this.appRef.attachView(ref.hostView);
     document.body.appendChild(el);

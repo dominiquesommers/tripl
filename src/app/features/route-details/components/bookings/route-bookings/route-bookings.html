@@ -1,0 +1,201 @@
+<div class="bookings-container">
+
+  <!-- Header -->
+  <div class="section-header">
+    <h3 class="section-title">Bookings</h3>
+    <button class="icon-btn add-btn" (click)="addBooking()" title="Add booking">
+      <lucide-icon name="plus" [size]="16"></lucide-icon>
+    </button>
+  </div>
+
+  @if (bookings().length > 0) {
+    @for (booking of bookings(); track booking.id) {
+
+      <div class="booking-row"
+           [class.is-expanded]="expandedId() === booking.id"
+           [class.tentative]="booking.is_tentative()">
+
+        <!-- ── Collapsed row ──────────────────────────── -->
+        <div class="row-main" (click)="toggleExpanded(booking.id)">
+
+          <!-- Date range picker -->
+          <div (click)="$event.stopPropagation()">
+            <app-date-picker
+              mode="datetime-range"
+              [departure]="toDatetime(booking.departure_at())"
+              [arrival]="toDatetime(booking.arrival_at())"
+              displayFormat="compact"
+              (departureChange)="updateBooking(booking, { departure_at: $event ? toISODatetime($event) : null })"
+              (arrivalChange)="updateBooking(booking, { arrival_at: $event ? toISODatetime($event) : null })">
+            </app-date-picker>
+          </div>
+
+          <!-- Final price badge + popup -->
+          <div #priceCellRef class="price-cell" (click)="$event.stopPropagation()">
+            <app-editable-badge
+              [value]="booking.final_price()"
+              prefix="€"
+              [step]="10"
+              [min]="0"
+              [iconName]="bookingExpenses(booking).length > 0 ? 'receipt' : 'credit-card'"
+              [iconColor]="bookingIsPaid(booking) ? '#10b981' : '#f59e0b'"
+              [hasIconAction]="true"
+              (save)="updateBooking(booking, { final_price: $event })"
+              (iconClick)="openCostPopup(booking)">
+            </app-editable-badge>
+          </div>
+
+          <!-- Status badges -->
+          <div class="icon-stack">
+            <div class="status-badges">
+              @if (firstUrl(booking)) {
+                <lucide-icon name="link" [size]="13" class="badge-icon link-icon"
+                             (click)="openUrl(booking, $event)"
+                             title="Open booking link">
+                </lucide-icon>
+              }
+              @if (booking.cancel_before()) {
+                <lucide-icon name="shield" [size]="13" class="badge-icon shield-icon"
+                             [title]="'Cancel by ' + formatDate(booking.cancel_before())">
+                </lucide-icon>
+              }
+              @if (booking.pay_by() && !bookingIsPaid(booking)) {
+                <lucide-icon name="clock" [size]="13" class="badge-icon clock-icon"
+                             [title]="'Pay by ' + formatDate(booking.pay_by())">
+                </lucide-icon>
+              }
+            </div>
+            <div class="inclusion-badges">
+              @if (booking.accommodation_pct() > 0) {
+                <lucide-icon name="bed" [size]="13" class="badge-icon accommodation-icon"></lucide-icon>
+              }
+              @if (booking.food_pct() > 0) {
+                <lucide-icon name="utensils" [size]="13" class="badge-icon food-icon"></lucide-icon>
+              }
+              @if (booking.activity_pct() > 0) {
+                <lucide-icon name="telescope" [size]="13" class="badge-icon activity-icon"></lucide-icon>
+              }
+            </div>
+          </div>
+          <div class="ms-auto"></div>
+          <!-- Delete (hover only) -->
+          <button class="icon-btn delete-floating"
+                  (click)="deleteBooking(booking); $event.stopPropagation()"
+                  title="Delete">
+            <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- ── Expanded details ───────────────────────── -->
+        @if (expandedId() === booking.id) {
+          <div class="booking-details">
+
+            <!-- Food / Cancel before / Pay by — all on one row -->
+            <div class="detail-row three-col">
+
+              <!-- Accommodation -->
+              <div class="icon-strike-wrap"
+                   [class.struck]="booking.accommodation_pct() === 0"
+                   (click)="toggleInclusion(booking, 'accommodation_pct')"
+                   [title]="booking.accommodation_pct() > 0 ? 'Exclude accommodation' : 'Include accommodation'">
+                <lucide-icon name="bed" [size]="15"
+                             class="detail-icon accommodation-icon"
+                             [class.active]="booking.accommodation_pct() > 0">
+                </lucide-icon>
+              </div>
+
+              <!-- Food -->
+              <div class="icon-strike-wrap"
+                   [class.struck]="booking.food_pct() === 0"
+                   (click)="toggleInclusion(booking, 'food_pct')"
+                   [title]="booking.food_pct() > 0 ? 'Exclude food' : 'Include food'">
+                <lucide-icon name="utensils" [size]="15"
+                             class="detail-icon food-icon"
+                             [class.active]="booking.food_pct() > 0">
+                </lucide-icon>
+              </div>
+
+              <!-- Activity -->
+              <div class="icon-strike-wrap"
+                   [class.struck]="booking.activity_pct() === 0"
+                   (click)="toggleInclusion(booking, 'activity_pct')"
+                   [title]="booking.activity_pct() > 0 ? 'Exclude activities' : 'Include activities'">
+                <lucide-icon name="telescope" [size]="15"
+                             class="detail-icon activity-icon"
+                             [class.active]="booking.activity_pct() > 0">
+                </lucide-icon>
+              </div>
+
+              <!-- Cancel before -->
+              <div class="detail-cell">
+                <div class="icon-strike-wrap"
+                     [class.struck]="!booking.cancel_before()"
+                     (click)="toggleCancelBefore(booking)"
+                     [title]="booking.cancel_before() ? 'Remove free cancellation due date' : 'Add free cancellation due date'">
+                  <lucide-icon name="shield" [size]="15"
+                               class="detail-icon shield-icon"
+                               [class.active]="booking.cancel_before()">
+                  </lucide-icon>
+                </div>
+                @if (booking.cancel_before()) {
+                  <app-date-picker
+                    mode="date"
+                    [value]="toDate(booking.cancel_before())"
+                    (valueChange)="updateBooking(booking, { cancel_before: $event ? toISODate($event) : null })">
+                  </app-date-picker>
+                }
+              </div>
+
+              <!-- Pay by -->
+              <div class="detail-cell">
+                <div class="icon-strike-wrap"
+                     [class.struck]="!booking.pay_by()"
+                     (click)="togglePayBy(booking)"
+                     [title]="booking.pay_by() ? 'Remove payment due date' : 'Add payment due date'">
+                  <lucide-icon name="credit-card" [size]="15"
+                               class="detail-icon pay-icon"
+                               [class.active]="booking.pay_by()">
+                  </lucide-icon>
+                </div>
+                @if (booking.pay_by()) {
+                  <app-date-picker
+                    mode="date"
+                    [value]="toDate(booking.pay_by())"
+                    (valueChange)="updateBooking(booking, { pay_by: $event ? toISODate($event) : null })">
+                  </app-date-picker>
+                }
+              </div>
+
+              <!-- Tentative -->
+              <div class="icon-strike-wrap"
+                   [class.struck]="!booking.is_tentative()"
+                   (click)="updateBooking(booking, { is_tentative: !booking.is_tentative() })"
+                   [title]="booking.is_tentative() ? 'Mark as confirmed' : 'Mark as tentative'">
+                <lucide-icon name="help-circle" [size]="15"
+                             class="detail-icon tentative-icon"
+                             [class.active]="booking.is_tentative()">
+                </lucide-icon>
+              </div>
+            </div>
+
+            <!-- Details free text -->
+            <div class="detail-row stacked">
+              <span class="detail-label">Details</span>
+              <div style="width: 100%">
+                <app-rich-textarea
+                  [value]="booking.details() ?? ''"
+                  placeholder="Reference number, contact info, links...ttt"
+                  (saveValue)="updateBooking(booking, { details: $event || null })">
+                </app-rich-textarea>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+  } @else {
+    <p class="empty-hint">No bookings added yet.</p>
+  }
+
+</div>

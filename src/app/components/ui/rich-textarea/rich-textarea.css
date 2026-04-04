@@ -1,0 +1,233 @@
+/* ViewEncapsulation.None */
+
+.rich-textarea-wrapper {
+  position: relative;
+  width: 100%;
+  transition: all 0.15s ease;
+  /* Reserve space above for toolbar when focused */
+}
+
+.rich-textarea-wrapper.focused {
+  /*margin-top: 24px; !* height of toolbar *!*/
+}
+
+/*.rich-textarea-wrapper.focused .editor {*/
+/*  background: rgba(255, 255, 255, 0.03);*/
+/*  border-color: rgba(255, 255, 255, 0.1);*/
+/*  border-radius: 6px;*/
+/*}*/
+
+/* ── Toolbar — floats above, doesn't affect layout ───────── */
+.toolbar {
+  position: absolute;
+  top: -12px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+  z-index: 10;
+}
+
+.toolbar-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.45;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Display view ────────────────────────────────────────── */
+.display-view {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #efeff4;
+  cursor: text;
+  word-break: break-word;
+  width: 100%;
+}
+
+/* Single-line: truncate with ellipsis in display mode */
+.single-line .display-view {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.display-view.empty { cursor: text; }
+.placeholder-text   { color: #636366; }
+
+/* ── Editor ──────────────────────────────────────────────── */
+.editor {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #efeff4;
+  outline: none;
+  word-break: break-word;
+  min-height: 24px;
+  width: 100%;
+  caret-color: #3b82f6;
+  white-space: pre-wrap;
+}
+
+/* Single-line: scrollable, no wrap */
+.single-line .editor {
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.single-line .editor::-webkit-scrollbar { display: none; }
+
+.editor:empty::before {
+  content: attr(data-placeholder);
+  color: #636366;
+  pointer-events: none;
+}
+
+/* ── Chips ───────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  user-select: none;
+  white-space: nowrap;
+  vertical-align: baseline;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.chip-url      { background: rgba(96,  165, 250, 0.15); color: #93c5fd; }
+.chip-maps     { background: rgba(52,  211, 153, 0.15); color: #6ee7b7; }
+.chip-email    { background: rgba(245, 158,  11, 0.15); color: #fcd34d; }
+.chip-whatsapp { background: rgba(74,  222, 128, 0.15); color: #86efac; }
+
+.chip-link { text-decoration: none; }
+.chip-link:hover { opacity: 0.8; }
+
+.chip-remove {
+  opacity: 0;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0 1px;
+  border-radius: 2px;
+  transition: opacity 0.1s ease;
+  cursor: pointer;
+  color: currentColor;
+}
+
+.chip:hover .chip-remove       { opacity: 0.6; }
+.chip:hover .chip-remove:hover { opacity: 1; }
+
+/* ── Chip popover (rendered by PopupService at body level) ── */
+/* Styles needed globally since popover renders outside component */
+
+.chip-popover {
+  width: 280px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popover-type {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+  flex: 1;
+}
+
+.popover-remove {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  transition: all 0.15s ease;
+}
+
+.popover-remove:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.popover-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popover-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+.popover-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 5px 8px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.popover-input:focus { border-color: rgba(255, 255, 255, 0.3); }
+
+.popover-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.popover-confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  color: #93c5fd;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.popover-confirm:hover {
+  background: rgba(59, 130, 246, 0.3);
+  color: #fff;
+}

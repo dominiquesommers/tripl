@@ -23,49 +23,35 @@
   border-radius: 18.5px;
   transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   overflow: visible !important;
+  flex-shrink: 0;
 }
-
-
-/*.search-container {*/
-/*  position: absolute;*/
-/*  bottom: 16px;*/
-/*  z-index: 100;*/
-/*  display: flex;*/
-/*  align-items: center;*/
-/*  height: 37px;*/
-/*  width: 37px;*/
-/*  !* Use your standard glass effect here *!*/
-/*  background: rgba(30, 30, 35, 0.7);*/
-/*  backdrop-filter: blur(20px) saturate(180%);*/
-/*  -webkit-backdrop-filter: blur(20px) saturate(180%);*/
-/*  border: 0.5px solid rgba(255, 255, 255, 0.15);*/
-/*  border-radius: 18.5px;*/
-/*  overflow: visible !important;*/
-/*  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), left 0.3s ease;*/
-/*  cursor: pointer;*/
-/*}*/
 
 /* Expanded State for the Container */
 .search-container.expanded {
   width: 300px;
 }
 
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .search-container.expanded {
+    width: calc(100vw - 70px);
+    max-width: 500px;
+  }
 
-/* 2. THE LUCIDE ICON BUTTON */
-/*.search-toggle-btn {*/
-/*  min-width: 37px;*/
-/*  height: 37px;*/
-/*  border-radius: 50%;*/
-/*  background: none;*/
-/*  border: none;*/
-/*  color: white;*/
-/*  display: flex;*/
-/*  align-items: center;*/
-/*  justify-content: center;*/
-/*  cursor: pointer;*/
-/*  padding: 0;*/
-/*  outline: none;*/
-/*}*/
+  .search-layout-wrapper {
+    /* Position it above the 'Peek' state (which is ~130px high) */
+    bottom: 50px;
+    left: 12px !important; /* Ignore sidePanelWidth on mobile */
+    transform: scale(0.95); /* Slightly smaller on mobile feels better */
+  }
+
+  /* Hide search when the mobile sheet is expanded */
+  .search-layout-wrapper.sheet-expanded {
+    /*opacity: 0;*/
+    pointer-events: none;
+    transform: translateY(20px) scale(0.9);
+  }
+}
 
 .search-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.1);

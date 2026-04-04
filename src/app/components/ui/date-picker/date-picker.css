@@ -1,0 +1,340 @@
+.date-picker-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.date-btn, .datetime-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.date-btn:hover:not(:disabled), .datetime-btn:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.date-part {
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.time-input-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 40px; /* Fixed width prevents loop */
+}
+
+.inline-time-input {
+  background: transparent;
+  border: none;
+  color: #60a5fa;
+  font-size: 12px;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.invisible-toggle {
+  position: absolute;
+  /*top: 0;*/
+  /*left: 0;*/
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 10;
+}
+
+/* Fix for the 48px Material Button width issue */
+::ng-deep .invisible-toggle .mat-mdc-icon-button {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+.hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.time-input-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Fixed width stops the NG0103 layout loop */
+  height: 20px;
+  cursor: pointer;
+}
+
+.time-display {
+  color: #60a5fa; /* Your light blue color */
+  font-size: 12px;
+  font-family: inherit;
+  z-index: 1;
+}
+
+.hidden-picker-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.invisible-toggle {
+  position: absolute;
+  /*top: 0;*/
+  /*left: 0;*/
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 2;
+}
+
+/* Fix the 48px Material button constraint */
+::ng-deep .invisible-toggle .mat-mdc-icon-button {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+.time-input-container:hover {
+  background: rgba(96, 165, 250, 0.12);
+  border-radius: 4px;
+}
+
+.time-input-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Fixed width is mandatory to stop NG0103 in flex containers */
+  width: 40px;
+  min-width: 40px;
+  height: 20px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.time-display {
+  color: #60a5fa;
+  font-size: 12px;
+  font-family: 'Monaco', 'Consolas', monospace; /* Monospace prevents width jitter */
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hidden-picker-input {
+  position: absolute;
+  /*top: 0;*/
+  /*left: 0;*/
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  border: none;
+}
+
+.invisible-toggle {
+  position: absolute;
+  /*top: 0;*/
+  /*left: 0;*/
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  opacity: 0;
+}
+
+/* Ensure Material's ripple/button doesn't expand the container */
+::ng-deep .invisible-toggle .mat-mdc-icon-button {
+  /*width: 40px !important;*/
+  /*height: 20px !important;*/
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+::ng-deep .invisible-toggle .mat-mdc-button-touch-target {
+  display: none !important;
+}
+
+.hidden-inputs-container {
+  position: absolute;
+  /*bottom: 0;*/
+  /*left: 50%;*/
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}
+
+.hidden-input-bridge {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.inline-time-field {
+  width: 45px;
+  display: inline-flex;
+}
+/* ── Container for the "Ghost" Form Field ───────────────── */
+.inline-time-field {
+  width: 42px; /* Fixed width prevents the layout loop */
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+}
+
+/* ── Deep override of Material's internal padding ───────── */
+.inline-time-field ::ng-deep {
+  /* 1. Remove the wrapper background and padding */
+  .mat-mdc-text-field-wrapper,
+  .mat-mdc-form-field-flex,
+  .mat-mdc-form-field-infix {
+    padding: 0 !important;
+    background: transparent !important;
+    min-height: unset !important;
+    width: auto !important;
+    border: none !important;
+  }
+
+  /* 2. Hide the underline/border and focus ring */
+  .mdc-line-ripple,
+  .mdc-notched-outline,
+  .mat-mdc-form-field-focus-indicator {
+    display: none !important;
+  }
+
+  /* 3. Hide the space reserved for error messages/hints */
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+  }
+
+  /* 4. Style the actual input to look like your blue text */
+  input.mat-mdc-input-element {
+    color: #60a5fa !important;
+    font-size: 12px !important;
+    font-family: inherit !important;
+    text-align: center;
+    cursor: pointer;
+    width: 100% !important;
+    padding: 2px 0 !important;
+    border-radius: 3px;
+    caret-color: transparent; /* Cleaner look for readonly */
+  }
+
+  /* 5. Hover state for the inline field */
+  .mat-mdc-form-field-flex:hover {
+    background: rgba(96, 165, 250, 0.12) !important;
+    border-radius: 4px;
+  }
+
+  /* ── Validation Styles ── */
+  &.mat-form-field-invalid input.mat-mdc-input-element {
+    color: #f87171 !important; /* Error Red */
+  }
+}
+
+.time-editor {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  /*padding: 0 2px;*/
+  border: 1px solid transparent;
+}
+
+.time-editor:focus-within {
+  border-color: rgba(96, 165, 250, 0.5);
+  background: rgba(96, 165, 250, 0.05);
+}
+
+.time-editor input {
+  width: 18px;
+  background: transparent;
+  border: none;
+  /*color: #60a5fa; !* Your light blue *!*/
+  font-size: 12px;
+  font-family: inherit;
+  text-align: center;
+  padding: 0;
+  outline: none;
+}
+
+.time-editor span {
+  /*color: #60a5fa;*/
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.date-part {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.date-part:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Chrome/Safari/Edge hide number arrows */
+.time-editor input::-webkit-inner-spin-button,
+.time-editor input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+.date-btn {
+  display: flex;
+  align-items: center;
+  /*padding: 6px 12px;*/
+  /*background: #aaaaaa;*/
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /*background: var(--bg-secondary);*/
+  /*border: 1px solid var(--border-color);*/
+  border-radius: 6px;
+  cursor: pointer; /* Whole area looks clickable */
+  user-select: none;
+}
+
+.datetime-display {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  /*color: #60a5fa;*/
+}
+
+.time-editor {
+  display: flex;
+  align-items: center;
+  cursor: text;
+  /*padding: 0 2px;*/
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.time-editor:hover {
+  background: rgba(96, 165, 250, 0.15);
+}

@@ -338,7 +338,7 @@
                   </div>
                   <div class="meta-details">
                     <span>€{{ t.route.estimated_cost() }}</span>
-                    <span>{{ t.route.duration() }}h</span>
+                    <span>{{ t.route.duration() | number:'1.0-1' }}h</span>
                   </div>
                 </div>
 
@@ -388,7 +388,7 @@
                    [class.active]="nextLeg()?.traverse?.rentUntilVisit() === v">
 
                 <span class="destination">
-                  {{ v.place.name() }}
+                  {{ v.place.name() }} ({{ v.nights() }})
                 </span>
 
                 <div class="item-actions">

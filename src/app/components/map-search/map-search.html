@@ -1,7 +1,9 @@
 
-<div class="search-layout-wrapper" [style.left.px]="uiService.sidePanelWidth() + 12">
+<div class="search-layout-wrapper"
+     [style.left.px]="uiService.isMobile() ? 12 : uiService.sidePanelWidth() + 12"
+     [class.is-hidden]="uiService.isMobile() && uiService.isSidebarOpen()">
+<!--     [class.sheet-expanded]="uiService.isMobile() && uiService.isSidebarOpen()">-->
   <div class="search-container" [class.expanded]="uiService.isSearchExpanded()">
-<!--       [style.left.px]="uiService.sidePanelWidth() + 12">-->
 
     <button class="search-toggle-btn" (click)="$event.stopPropagation(); toggleSearch()">
       <lucide-icon [name]="SearchIcon" [size]="18" color="white"></lucide-icon>

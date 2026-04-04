@@ -91,6 +91,15 @@ export class UiService {
     if (tab) this.activeTab.set(tab);
 
     effect(() => {
+      const mobile = this.isMobile();
+      if (mobile) {
+        this.isSidebarOpen.set(false);
+      } else {
+        this.isSidebarOpen.set(true);
+      }
+    }, { allowSignalWrites: true });
+
+    effect(() => {
       const queryParams: any = { tab: this.activeTab() };
       if (this.selectedVisitId()) queryParams.visitId = this.selectedVisitId();
       if (this.selectedRouteId()) queryParams.routeId = this.selectedRouteId();
@@ -142,7 +151,13 @@ export class UiService {
   }
 
   toggleSidebar() {
-    this.isSidebarOpen.update(open => !open);
+    const newState = !this.isSidebarOpen();
+    this.isSidebarOpen.set(newState);
+    console.log('toggleSidebar');
+    if (newState && this.isMobile()) {
+      console.log('this.isSearchExpanded.set(false);');
+      this.isSearchExpanded.set(false);
+    }
   }
 
   toggleSearch() {

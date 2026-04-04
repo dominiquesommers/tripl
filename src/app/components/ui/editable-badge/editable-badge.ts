@@ -28,6 +28,8 @@ export class EditableBadge {
 
   // Outputs
   save = output<number>();           // For the blur/save callback
+  iconClick = output<void>();
+  hasIconAction = input<boolean>(false);
 
   @ViewChild('numInput') inputRef!: ElementRef<HTMLInputElement>;
 

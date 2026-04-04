@@ -451,7 +451,10 @@ export class MapInteractionManager {
     const existingRoute = trip.routesArray()?.find(
       r => r.sourceId === sourceVisit.place_id && r.targetId === targetVisit.place_id && r.type() === type
     );
-    const existingTraverse = sourceVisit.outgoingTraverses().find(t => t.route_id === existingRoute?.id);
+    const existingTraverse = sourceVisit.outgoingTraverses().find(t =>
+      t.route_id === existingRoute?.id && t.source_visit_id === sourceVisit.id && t.target_visit_id === targetVisit.id
+    );
+    console.log('existingRoute', existingRoute, 'existingTraverse', existingTraverse)
     // 2. Scenario A: Traverse already exists - just boost priority
     if (existingRoute && existingTraverse) {
       const topTraverse = sourceVisit.outgoingTraverses()[0];

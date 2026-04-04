@@ -1,11 +1,13 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, importProvidersFrom } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { LucideAngularModule, ArrowUpRight, Plane, MapPin, Moon, Trash2, TrainFront, Bus, Car, Ship, Footprints, Milestone,
   MoreVertical, Settings2, ArrowLeft, GripVertical, Check, X, Eye, EyeOff, MapPinCheck, MapPinX, MapPinMinus, MapPinPlus,
   MapPinOff, ChevronUp, ChevronDown, Plus, Bed, Route, CloudSun, Wallet, TriangleAlert, Ticket, StickyNote, Globe, Home,
   Utensils, ShoppingBag, Hotel, Maximize2, Sigma, Activity, Circle, Clock, Info, Copy, Euro, Map, Crosshair, NotebookPen,
-  Tag, Receipt, Link
+  Tag, Receipt, Link, Calendar, CreditCard, Shield, HelpCircle, Mail, MessageCircle, Star, Sparkles, Binoculars, Camera,
+  Zap, Compass, Telescope
 } from 'lucide-angular';
 
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -15,6 +17,7 @@ import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideNativeDateAdapter(),
     provideBrowserGlobalErrorListeners(),
     provideRouter(
       routes,
@@ -30,7 +33,8 @@ export const appConfig: ApplicationConfig = {
         MoreVertical, ArrowUpRight, Settings2, ArrowLeft, GripVertical, Check, X, Eye, EyeOff, MapPinCheck, MapPinX, Tag,
         MapPinMinus, MapPinPlus, MapPinOff, TrainFront, Bed, Route, CloudSun, Wallet, TriangleAlert, Ticket, StickyNote, Globe,
         Home, Utensils, ShoppingBag, Hotel, Maximize2, Sigma, Activity, Circle, Clock, Info, Copy, Euro, Map, Crosshair,
-        Receipt, Link
+        Receipt, Link, Calendar, CreditCard, Shield, HelpCircle, Mail, MessageCircle, Star, Sparkles, Binoculars, Camera,
+        Zap, Compass, Telescope
       })
     ),
     provideAnimationsAsync()

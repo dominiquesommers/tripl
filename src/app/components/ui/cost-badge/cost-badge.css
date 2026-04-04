@@ -161,3 +161,13 @@
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444; /* Show red 'X' when hovering a 'Done' pill to undo */
 }
+
+.prefix.actionable.disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.badge-container.readonly {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}

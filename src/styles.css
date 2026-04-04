@@ -64,6 +64,74 @@ html, body {
     opacity: 1;
 }
 
+.mat-datepicker-content {
+  background: rgba(30, 30, 35, 0.97) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+
+.mat-calendar {
+  background: transparent !important;
+}
+
+.mat-calendar-header {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.mat-calendar-body-label,
+.mat-calendar-period-button,
+.mat-calendar-arrow {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.mat-calendar-table-header th {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 11px !important;
+}
+
+.mat-calendar-body-cell-content {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.mat-calendar-body-cell:hover .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.mat-calendar-body-selected {
+  background: #3b82f6 !important;
+  color: #fff !important;
+}
+
+.mat-calendar-body-disabled .mat-calendar-body-cell-content {
+  color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.mat-calendar-previous-button,
+.mat-calendar-next-button {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.mat-calendar-previous-button:hover,
+.mat-calendar-next-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.mat-calendar-body-in-range::before {
+  background: rgba(59, 130, 246, 0.15) !important;
+}
+.mat-calendar-body-range-start .mat-calendar-body-cell-content,
+.mat-calendar-body-range-end .mat-calendar-body-cell-content {
+  background: #3b82f6 !important;
+}
+
 /* Global styles.css or MapComponent css */
 
 /* Remove default Mapbox styling to show our glass */

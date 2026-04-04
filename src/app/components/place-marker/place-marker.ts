@@ -61,7 +61,7 @@ export class PlaceMarker {
     event.stopPropagation();
     const state = this.uiService.drawingState();
 
-    console.log('clicked visit, drawing state:', state.active);
+    console.log('clicked visit, drawing state:', visit, state.active);
 
     if (!state.active) {
       // Normal behavior: Open popup
@@ -95,6 +95,7 @@ export class PlaceMarker {
       });
       this.interactionManager.cancelDrawing();
     } else {
+      console.log('set target to', visit);
       this.uiService.drawingState.update(s => ({ ...s, targetVisit: visit }));
       await this.interactionManager.showRouteTypeSelector(point);
     }

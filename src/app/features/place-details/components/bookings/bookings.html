@@ -1,50 +1,76 @@
 <div class="bookings-container">
+
+  <!-- Daily costs -->
   <section class="cost-section">
-    <h3 class="section-title">Estimated Daily Costs</h3>
-
-    <div class="costs-grid">
-      <div class="cost-item">
-        <span class="cost-label">Accommodation</span>
-        <app-cost-badge
-          [estimatedCost]="getCostValue('accommodation')"
-          [isPaid]="false"
-          [iconName]="'hotel'"
-          [iconColor]="getCategoryColor('accommodation')"
-          [step]="10"
-          [min]="0"
-          (save)="updateCost('accommodation', $event)">
-        </app-cost-badge>
-      </div>
-
-      @for (cat of simpleCategories; track cat.id) {
+    <h3 class="section-title">Daily Costs</h3>
+    <div class="costs-grid daily-grid">
+      @for (cat of dailyCategories; track cat.id) {
         <div class="cost-item">
           <span class="cost-label">{{ cat.label }}</span>
-          <app-cost
-            mode="simple"
-            [estimatedCost]="getCostValue(cat.id)"
+          <app-cost-badge
+            [estimatedCost]="getEstimatedCost(cat.id)"
+            [actualCost]="getActualCost(cat.id)"
             [isPaid]="false"
-            [actualTotal]="null"
-            [expenses]="[]"
+            [actualReadonly]="true"
+            [hasExpenses]="getActualCost(cat.id) !== null"
             [iconName]="cat.icon"
             [iconColor]="getCategoryColor(cat.id)"
-            [step]="5"
+            [step]="cat.step"
             [min]="0"
-            (saveEstimated)="updateCost(cat.id, $event)"
-            (addExpense)="addDailyExpense(cat.id, $event)"
-            (updateExpense)="updateDailyExpense($event)"
-            (deleteExpense)="deleteDailyExpense($event)">
-          </app-cost>
+            (saveEstimated)="updateEstimatedCost(cat.id, $event)">
+          </app-cost-badge>
         </div>
       }
     </div>
   </section>
 
-  <section class="tickets-section">
-    <h4 class="section-title">Tickets & Documents</h4>
-    <div class="empty-docs">
-      <i-lucide name="ticket" class="big-icon"></i-lucide>
-      <p>No documents attached yet.</p>
-      <button class="add-btn">Add Ticket</button>
+  <!-- One-time costs -->
+  <section class="cost-section">
+    <h3 class="section-title">One-time Costs</h3>
+    <div class="costs-grid one-time-grid">
+      @for (cat of oneTimeCategories; track cat.id) {
+        <div class="cost-item">
+          <span class="cost-label">{{ cat.label }}</span>
+          <app-cost-badge
+            [estimatedCost]="getEstimatedCost(cat.id)"
+            [actualCost]="getActualCost(cat.id)"
+            [isPaid]="false"
+            [readonly]="true"
+            [hasExpenses]="getActualCost(cat.id) !== null"
+            [iconName]="cat.icon"
+            [iconColor]="getCategoryColor(cat.id)"
+            [step]="cat.step"
+            [min]="0"
+            (saveEstimated)="updateEstimatedCost(cat.id, $event)">
+          </app-cost-badge>
+        </div>
+      }
     </div>
   </section>
+
+  <!-- Daily expenses (food/misc ledger) -->
+  <app-expenses [place]="place()"></app-expenses>
+
+  <app-place-bookings [place]="place()"></app-place-bookings>
+
+
+<!--  <section class="tickets-section">-->
+<!--    <h4 class="section-title">Daily Expenses</h4>-->
+<!--    <div class="empty-docs">-->
+<!--      <lucide-icon name="receipt" class="big-icon"></lucide-icon>-->
+<!--      <p>No expenses recorded yet.</p>-->
+<!--      <button class="add-btn">Add Expense</button>-->
+<!--    </div>-->
+<!--  </section>-->
+
+  <!-- Bookings -->
+<!--  <section class="tickets-section">-->
+<!--    <h4 class="section-title">Bookings</h4>-->
+<!--    <div class="empty-docs">-->
+<!--      <lucide-icon name="calendar" class="big-icon"></lucide-icon>-->
+<!--      <p>No bookings added yet.</p>-->
+<!--      <button class="add-btn">Add Booking</button>-->
+<!--    </div>-->
+<!--  </section>-->
+
 </div>

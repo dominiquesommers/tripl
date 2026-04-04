@@ -18,10 +18,10 @@
   max-width: fit-content;
 }
 
-.badge-container:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-}
+/*.badge-container:hover {*/
+/*  background: rgba(255, 255, 255, 0.15);*/
+/*  border-color: rgba(255, 255, 255, 0.2);*/
+/*}*/
 
 .prefix {
   font-size: 13px;
@@ -57,13 +57,23 @@
   transition: opacity 0.15s ease;
 }
 
-.badge-container:hover .stepper-controls {
+.badge-container:not(.readonly):not(.has-icon-action):hover .stepper-controls {
   opacity: 1;
   pointer-events: auto;
 }
 
-.badge-container:hover .main-icon {
+/* Icon hides on hover unless fully readonly or has icon action */
+.badge-container:not(.readonly):not(.has-icon-action):hover .main-icon {
   opacity: 0;
+}
+
+.badge-container.has-icon-action .main-icon {
+  cursor: pointer;
+}
+
+/* When icon is clickable — stepper never shows, icon stays visible */
+.badge-container.has-icon-action .stepper-controls {
+  display: none;
 }
 
 .step-btn {
@@ -107,6 +117,14 @@
   &.wide-val {
     width: 38px;
   }
+}
+
+.val-input[readonly] {
+  /*pointer-events: none;*/
+  cursor: default;
+}
+.val-input[readonly]:focus {
+  color: white;  /* override the blue focus color */
 }
 
 /* Remove arrows from number input */

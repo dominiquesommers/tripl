@@ -63,9 +63,22 @@
               </div>
 
               <div class="input-wrapper" (click)="$event.stopPropagation()">
-                <input type="text" #planInput class="edit-input-transparent" [value]="p.name"
-                       (change)="renamePlan(p, planInput.value)" (keydown.enter)="planInput.blur()"/>
+                <span class="input-sizer">{{ p.name }}</span>
+
+                <input type="text" #planInput
+                       class="edit-input-transparent"
+                       [value]="p.name"
+                       (input)="p.name = planInput.value"
+                       (change)="renamePlan(p, planInput.value)"
+                       (keydown.enter)="planInput.blur()"/>
               </div>
+
+<!--              <div class="input-wrapper" (click)="$event.stopPropagation()">-->
+<!--                <input type="text" #planInput class="edit-input-transparent" [value]="p.name"-->
+<!--                       (change)="renamePlan(p, planInput.value)" (keydown.enter)="planInput.blur()"/>-->
+<!--              </div>-->
+
+              <div class="spacer"></div>
 
               <div class="item-actions">
                 @if (p.id === tripService.plan()?.id) {

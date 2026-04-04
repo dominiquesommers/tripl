@@ -8,7 +8,6 @@ export interface IPlaceBooking {
   check_in: string | null;
   check_out: string | null;
   final_price: number | null;
-  includes_food: boolean;
   food_pct: number;
   cancel_before: string | null;
   pay_by: string | null;
@@ -16,11 +15,11 @@ export interface IPlaceBooking {
   is_tentative: boolean;
 }
 
+
 export type NewPlaceBooking = Omit<IPlaceBooking, 'id'>;
 export type UpdatePlaceBooking = Partial<Pick<IPlaceBooking,
   'check_in' | 'check_out' | 'final_price' |
-  'includes_food' | 'food_pct' |
-  'cancel_before' | 'pay_by' | 'details' | 'is_tentative'
+  'food_pct' | 'cancel_before' | 'pay_by' | 'details' | 'is_tentative'
 >>;
 
 export class PlaceBooking {
@@ -30,7 +29,6 @@ export class PlaceBooking {
   check_in      = signal<string | null>(null);
   check_out     = signal<string | null>(null);
   final_price   = signal<number | null>(null);
-  includes_food = signal<boolean>(false);
   food_pct      = signal<number>(0);
   cancel_before = signal<string | null>(null);
   pay_by        = signal<string | null>(null);
@@ -51,6 +49,14 @@ export class PlaceBooking {
     this.final_price() !== null && this.paidAmount() >= this.final_price()!
   );
 
+  readonly foodInclusion = computed((): FoodInclusion => {
+    const pct = this.food_pct();
+    if (pct <= 0)  return 'excluded';
+    if (pct <= 15) return 'breakfast';
+    if (pct <= 30) return 'half-board';
+    return 'full-board';
+  });
+
   constructor(
     data: IPlaceBooking,
     private tripService: TripService
@@ -66,7 +72,6 @@ export class PlaceBooking {
     if ('check_in'      in data) this.check_in.set(data.check_in ?? null);
     if ('check_out'     in data) this.check_out.set(data.check_out ?? null);
     if ('final_price'   in data) this.final_price.set(data.final_price ?? null);
-    if ('includes_food' in data) this.includes_food.set(data.includes_food ?? false);
     if ('food_pct'      in data) this.food_pct.set(data.food_pct ?? 0);
     if ('cancel_before' in data) this.cancel_before.set(data.cancel_before ?? null);
     if ('pay_by'        in data) this.pay_by.set(data.pay_by ?? null);
@@ -82,7 +87,6 @@ export class PlaceBooking {
       check_in:      this.check_in(),
       check_out:     this.check_out(),
       final_price:   this.final_price(),
-      includes_food: this.includes_food(),
       food_pct:      this.food_pct(),
       cancel_before: this.cancel_before(),
       pay_by:        this.pay_by(),
@@ -91,3 +95,12 @@ export class PlaceBooking {
     };
   }
 }
+
+
+export type FoodInclusion = 'excluded' | 'breakfast' | 'half-board' | 'full-board';
+export const FOOD_PCT: Record<FoodInclusion, number> = {
+  'excluded':   0,
+  'breakfast':  15,
+  'half-board': 30,
+  'full-board': 50,
+};

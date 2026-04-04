@@ -1,13 +1,22 @@
-<div class="badge-container" [class]="costStatus()">
+<div class="badge-container"
+     [class]="costStatus()"
+     [class.readonly]="readonly()"
+     [class.actual-readonly]="actualReadonly()">
 
-  <!-- Estimated cost prefix — click to toggle actual -->
+  <!-- Estimated cost prefix -->
   @let cost = actualCost();
-  <span class="prefix actionable"
-        (click)="toggleActualExistence()"
-        [title]="cost === null ? 'Add actual cost' : 'Remove actual cost'">
-    <span class="symbol">~€</span>
-    <lucide-icon [name]="cost === null ? 'plus' : 'x'" class="hover-icon" [size]="12"></lucide-icon>
-  </span>
+  @if (!(readonly() || actualReadonly())) {
+    <span class="prefix actionable"
+          (click)="toggleActualExistence()"
+          [title]="cost === null ? 'Add actual cost' : 'Remove actual cost'">
+      <span class="symbol">~€</span>
+      <lucide-icon [name]="cost === null ? 'plus' : 'x'" class="hover-icon" [size]="12"></lucide-icon>
+    </span>
+  } @else {
+    <span class="prefix">
+      <span class="symbol">~€</span>
+    </span>
+  }
 
   <!-- Estimated value -->
   <input
@@ -17,19 +26,26 @@
     [value]="estimatedCost()"
     [style.width.ch]="estimateWidth()"
     [style.opacity]="estimateOpacity()"
-    (input)="estimateDraft.set($any($event.target).value)"
-    (blur)="onEstimateBlur()"
-    (keydown)="onEstimateKeyDown($event)"
-    (paste)="handleEstimatePaste($event)" />
+    [readOnly]="readonly()"
+    (input)="!readonly() && estimateDraft.set($any($event.target).value)"
+    (blur)="!readonly() && onEstimateBlur()"
+    (keydown)="!readonly() && onEstimateKeyDown($event)"
+    (paste)="!readonly() && handleEstimatePaste($event)" />
 
   <!-- Actual cost (optional) -->
   @if (cost !== null) {
-    <span class="prefix actionable toggle-paid"
-          (click)="openDetails.emit(); $event.stopPropagation()"
-          [title]="isPaid() ? 'Paid — view payments' : 'Unpaid — view payments'">
-      <span class="symbol">€</span>
-      <lucide-icon name="receipt" class="hover-icon" [size]="12"></lucide-icon>
-    </span>
+    @if (!(actualReadonly() || readonly())) {
+      <span class="prefix actionable toggle-paid"
+            (click)="openDetails.emit(); $event.stopPropagation()"
+            [title]="isPaid() ? 'Paid — view payments' : 'Unpaid — view payments'">
+        <span class="symbol">€</span>
+        <lucide-icon name="receipt" class="hover-icon" [size]="12"></lucide-icon>
+      </span>
+    } @else {
+      <span class="prefix">
+        <span class="symbol">€</span>
+      </span>
+    }
 
     <input
       #actualInput
@@ -37,10 +53,11 @@
       class="val-input actual"
       [value]="cost"
       [style.width.ch]="actualWidth()"
-      (input)="actualDraft.set($any($event.target).value)"
-      (blur)="onActualBlur()"
-      (keydown)="onActualKeyDown($event)"
-      (paste)="handleActualPaste($event)" />
+      [readOnly]="readonly() || actualReadonly()"
+      (input)="!(readonly() || actualReadonly()) && actualDraft.set($any($event.target).value)"
+      (blur)="!(readonly() || actualReadonly()) && onActualBlur()"
+      (keydown)="!(readonly() || actualReadonly()) && onActualKeyDown($event)"
+      (paste)="!(readonly() || actualReadonly()) && handleActualPaste($event)" />
   }
 
   <!-- Icon + stepper -->
@@ -53,34 +70,36 @@
         class="main-icon">
       </lucide-icon>
     }
-    <div class="stepper-controls">
-      <button class="step-btn" (click)="adjustEstimate(1)" type="button">
-        <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
-      </button>
-      <button class="step-btn"
-              [style.visibility]="estimatedCost() > min() ? 'visible' : 'hidden'"
-              (click)="adjustEstimate(-1)" type="button">
-        <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
-      </button>
-    </div>
+    @if (!readonly()) {
+      <div class="stepper-controls">
+        <button class="step-btn" (click)="adjustEstimate(1)" type="button">
+          <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
+        </button>
+        <button class="step-btn"
+                [style.visibility]="estimatedCost() > min() ? 'visible' : 'hidden'"
+                (click)="adjustEstimate(-1)" type="button">
+          <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
+        </button>
+      </div>
+    }
   </div>
 
-  <!-- Info icon — only when there are expenses or an actual cost is set -->
-  @if (hasExpenses() || cost !== null) {
-    <div class="details-superscript"
-         (click)="openDetails.emit(); $event.stopPropagation()"
-         title="View payments">
-      <lucide-icon name="receipt" class="details-icon" [size]="13"></lucide-icon>
-    </div>
-  }
-
-  <!-- Clock icon — unpaid with actual cost set -->
-  @if (!isPaid() && cost !== null) {
-    <div class="details-subscript"
-         (click)="openDetails.emit(); $event.stopPropagation()"
-         title="Payment pending">
-      <lucide-icon name="clock" class="details-icon clock-icon" [size]="13"></lucide-icon>
-    </div>
+  <!-- Info + clock icons — hidden in readonly -->
+  @if (!(readonly() || actualReadonly())) {
+    @if (hasExpenses() || cost !== null) {
+      <div class="details-superscript"
+           (click)="openDetails.emit(); $event.stopPropagation()"
+           title="View payments">
+        <lucide-icon name="receipt" class="details-icon" [size]="13"></lucide-icon>
+      </div>
+    }
+    @if (!isPaid() || cost !== null) {
+      <div class="details-subscript"
+           (click)="openDetails.emit(); $event.stopPropagation()"
+           title="Payment pending">
+        <lucide-icon name="clock" class="details-icon clock-icon" [size]="13"></lucide-icon>
+      </div>
+    }
   }
 
 </div>

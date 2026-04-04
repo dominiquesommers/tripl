@@ -1,0 +1,48 @@
+<div class="rich-textarea-wrapper" #wrapper
+     [class.focused]="isFocused()"
+     [class.single-line]="!multiline()">
+
+  <!-- ── Toolbar — absolutely positioned, doesn't push content ── -->
+  @if (isFocused()) {
+    <div class="toolbar">
+      @for (type of patternTypes; track type) {
+        <button class="toolbar-btn"
+                type="button"
+                [title]="config[type].shortcut"
+                (mousedown)="onToolbarClick(type, $event)">
+          <lucide-icon [name]="config[type].icon"
+                       [size]="13"
+                       [style.color]="config[type].color">
+          </lucide-icon>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- ── Display view (not editing) ──────────────────────── -->
+  @if (!isFocused()) {
+    <div class="display-view"
+         [class.empty]="!hasContent()"
+         (click)="onEditorFocus()">
+      @if (hasContent()) {
+        <div [innerHTML]="displayHtml()"></div>
+      } @else {
+        <span class="placeholder-text">{{ placeholder() }}</span>
+      }
+    </div>
+  }
+
+  <!-- ── Editor ────────────────────────────────────────────── -->
+  @if (isFocused()) {
+    <div #editor
+         class="editor"
+         contenteditable="true"
+         [attr.data-placeholder]="placeholder()"
+         (focus)="onEditorFocus()"
+         (blur)="onEditorBlur($event)"
+         (keydown)="onKeyDown($event)"
+         (click)="onChipClick($event)">
+    </div>
+  }
+
+</div>

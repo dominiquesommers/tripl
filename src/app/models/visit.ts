@@ -81,7 +81,8 @@ export class Visit {
 
   readonly entryDateString = computed(() => {
     const date = this.entryDate();
-    return date ? date.toLocaleDateString('nl-NL') : '';
+    if (!date) return '';
+    return this.formatDate(date);
   });
 
   readonly inItinerary = computed((): boolean => {
@@ -98,7 +99,8 @@ export class Visit {
 
   readonly exitDateString = computed(() => {
     const date = this.exitDate();
-    return date ? date.toLocaleDateString('nl-NL') : '';
+    if (!date) return '';
+    return this.formatDate(date);
   });
 
   readonly totalDays = computed(() => {
@@ -192,7 +194,7 @@ export class Visit {
     // ── Food ──────────────────────────────────────────────────────────────
     const foodFromExpenses = this.foodExpenses().reduce((sum, e) => sum + e.amount(), 0);
     const foodFromBookings = this.overlappingBookings()
-      .filter(b => b.includes_food())
+      .filter(b => b.food_pct() > 0)
       .reduce((sum, b) => {
         const bIn  = new Date(b.check_in()!  + 'T00:00:00');
         const bOut = new Date(b.check_out()! + 'T00:00:00');
@@ -291,6 +293,14 @@ export class Visit {
 
   private expenseDateToDate(dateStr: string): Date {
     return new Date(dateStr + 'T00:00:00');
+  }
+
+  private formatDate(date: Date): string {
+    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const dd  = String(date.getDate()).padStart(2, '0');
+    const mm  = String(date.getMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getFullYear()).slice(2);
+    return `${day} ${dd}-${mm}-'${yy}`;
   }
 
   update(data: Partial<IVisit>) {

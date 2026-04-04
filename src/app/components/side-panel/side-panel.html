@@ -7,7 +7,13 @@
 <div class="panel-container"
      [class.desktop-sidebar]="!uiService.isMobile()"
      [class.mobile-sheet]="uiService.isMobile()"
-     [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()">
+     [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()"
+     [class.sheet-open]="uiService.isMobile() && sheetState === 'open'"
+     [class.sheet-peek]="uiService.isMobile() && sheetState === 'peek'"
+     cdkDrag
+     [cdkDragDisabled]="!uiService.isMobile()"
+     cdkDragLockAxis="y"
+     (cdkDragEnded)="onDragEnd($event)">
 
   @if (!uiService.isMobile()) {
     <h2 class="panel-title">{{ headerTitle() }}</h2>

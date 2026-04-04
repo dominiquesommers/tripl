@@ -1,0 +1,86 @@
+<div class="expenses-container">
+
+  <!-- Header -->
+  <div class="section-header">
+    <h3 class="section-title">Expenses</h3>
+    <button class="icon-btn add-btn" (click)="addNew()" title="Add expense">
+      <lucide-icon name="plus" [size]="16"></lucide-icon>
+    </button>
+  </div>
+
+  <!-- Expense list -->
+  @if (expenses().length > 0) {
+    @for (exp of expenses(); track exp.id) {
+      <div class="expense-row" [class.is-expanded]="isExpanded(exp.id)">
+
+        <div class="row-main">
+
+          <!-- Date picker showing formatted date -->
+          <app-date-picker
+            mode="date"
+            displayFormat="compact"
+            [value]="toDate(exp.date())"
+            (valueChange)="updateDate(exp, $event)">
+          </app-date-picker>
+
+          <!-- Amount badge with category icon (click icon to toggle category) -->
+          <div class="badge-wrap">
+            <app-editable-badge
+              [value]="exp.amount()"
+              prefix="€"
+              [step]="1"
+              [min]="0"
+              [iconName]="categoryIcon(exp.category())"
+              [iconColor]="categoryColor(exp.category())"
+              (save)="updateAmount(exp, $event)"
+              [hasIconAction]="true"
+              (iconClick)="toggleCategory(exp)">
+            </app-editable-badge>
+            <!-- Chevron to reveal subcategory -->
+            <button class="chevron-btn"
+                    (click)="toggleExpanded(exp.id, $event)"
+                    [title]="isExpanded(exp.id) ? 'Hide subcategory' : 'Add subcategory'">
+              <lucide-icon
+                [name]="isExpanded(exp.id) ? 'chevron-up' : 'chevron-down'"
+                [size]="14"
+                class="chevron-icon">
+              </lucide-icon>
+            </button>
+          </div>
+
+          <!-- Details -->
+          <input
+            type="text"
+            class="details-input"
+            placeholder="Details..."
+            [value]="exp.details() ?? ''"
+            (blur)="updateDetails(exp, $any($event.target).value)" />
+
+          <!-- Delete (visible on hover) -->
+          <button class="icon-btn delete-floating"
+                  (click)="deleteExpense(exp); $event.stopPropagation()"
+                  title="Delete">
+            <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+          </button>
+
+        </div>
+
+        <!-- Subcategory row -->
+        @if (isExpanded(exp.id)) {
+          <div class="subcategory-row">
+            <input
+              type="text"
+              class="subcategory-input"
+              placeholder="Subcategory (e.g. alcohol, groceries, taxi)..."
+              [value]="exp.subcategory() ?? ''"
+              (blur)="updateSubcategory(exp, $any($event.target).value)" />
+          </div>
+        }
+
+      </div>
+    }
+  } @else {
+    <p class="empty-hint">No expenses recorded yet.</p>
+  }
+
+</div>

@@ -382,7 +382,7 @@ export class TripService {
       .find(r => r.sourceId === sourceId && r.targetId === targetId);
     if (existingRoute) return of(existingRoute);
 
-    const routeString = `[[${source.lat},${source.lng}}],[${target.lat},${target.lng}]]`;
+    const routeString = `[[${source.lat},${source.lng}],[${target.lat},${target.lng}]]`;
     const newRouteData: any = {
       source: sourceId,
       destination: targetId,
@@ -817,8 +817,7 @@ export class TripService {
     const place = currentTrip.places().get(placeId);
     const payload: NewPlaceBooking = {
       place_id: placeId, trip_id: currentTrip.id,
-      check_in: null, check_out: null, final_price: null,
-      includes_food: false, food_pct: 0,
+      check_in: null, check_out: null, final_price: null, food_pct: 0,
       cancel_before: null, pay_by: null, is_tentative: false,
     };
 
@@ -897,16 +896,14 @@ export class TripService {
     const payload: NewRouteBooking = {
       route_id: routeId, trip_id: currentTrip.id,
       departure_at: null, arrival_at: null, final_price: null,
-      includes_accommodation: false, accommodation_pct: 0,
-      includes_food: false, food_pct: 0,
-      includes_activity: false, activity_pct: 0,
+      accommodation_pct: 0, food_pct: 0, activity_pct: 0,
       cancel_before: null, pay_by: null, is_tentative: false,
     };
 
     return this.persist(
       this.apiService.post<IRouteBooking>('route_bookings', payload),
       (saved) => currentTrip.addRouteBooking(new RouteBooking(saved, this)),
-      { message: 'Transport booking added.' }
+      { message: 'Route booking added.' }
     ).pipe(
       map(saved => new RouteBooking(saved, this)),
       catchError(() => of(null))
@@ -920,7 +917,7 @@ export class TripService {
     return this.persist(
       this.apiService.delete<void>(`route_bookings/${booking.id}`),
       () => currentTrip.removeRouteBooking(booking),
-      { message: 'Transport booking removed.' }
+      { message: 'Route booking removed.' }
     ).pipe(
       catchError(err => {
         if (err.status === 409) {
@@ -943,7 +940,7 @@ export class TripService {
       `route_bookings/${id}`,
       updates,
       () => booking.update(updates),
-      { message: 'Transport booking updated.' }
+      { message: 'Route booking updated.' }
     );
   }
 

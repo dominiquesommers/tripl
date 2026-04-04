@@ -1,4 +1,5 @@
-<div class="badge-container">
+<div class="badge-container" [class.has-icon-action]="hasIconAction()">
+
   @if (prefix()) {
     <span class="prefix">{{ prefix() }}</span>
   }
@@ -19,7 +20,8 @@
       <lucide-icon [name]="iconName"
              [size]="18"
              [style.color]="iconColor()"
-             class="main-icon">
+             class="main-icon"
+             (click)="iconClick.emit(); $event.stopPropagation()">
       </lucide-icon>
     } @else if (postfix()) {
       <span class="postfix main-icon">{{ postfix() }}</span>

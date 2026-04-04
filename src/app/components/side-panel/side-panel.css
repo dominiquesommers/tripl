@@ -71,12 +71,51 @@ app-overview-panel, app-place-panel, app-route-panel {
 }
 
 .mobile-sheet {
+  position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   height: 93vh;
-  border-radius: 25px 25px 0 0;
-  transform: translateY(calc(93vh - 50px));
+  border-radius: 25px 25px 0px 0px;
+  /*transform: translateY(calc(93vh - 50px));*/
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+/* State: Peek (Collapsed at bottom) */
+.mobile-sheet.sheet-peek {
+  /* Only show about 60px of the top */
+  transform: translateY(calc(93vh - 40px));
+}
+
+/* State: Open (Expanded) */
+.mobile-sheet.sheet-open {
+  transform: translateY(0);
+}
+
+/* Content Visibility */
+.mobile-sheet .content {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-sheet.sheet-open .content {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Optional: Mobile Title styling to make it look like a real app */
+.mobile-title {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: 5px;
+  font-weight: 600;
+  display: none;
+}
+
+.mobile-sheet .mobile-title {
+  display: block;
 }
 
 .desktop-sidebar.closed {
