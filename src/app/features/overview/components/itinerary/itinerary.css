@@ -117,6 +117,7 @@
   text-overflow: ellipsis;
   display: block;
   min-width: 0;
+  cursor: pointer;
 }
 
 .flag-icon {

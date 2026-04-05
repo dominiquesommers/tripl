@@ -1,7 +1,7 @@
 <div class="itinerary-container">
   @for (visit of tripService.plan()?.itinerary() ?? []; track visit.id; let last = $last, first = $first) {
 
-    <div class="itinerary-row visit-row" (click)="onVisitClick(visit)">
+    <div class="itinerary-row visit-row">
       <div class="spine-column">
 
         <div class="spine-line top-half"
@@ -20,9 +20,9 @@
 
       <div class="content-column">
         <div class="main-line">
-          <div class="place-label">
+          <div class="place-label" >
             <span class="flag-icon">{{ visit.place.country.flag }}</span>
-            <span class="place-name">{{ visit.place.name() }}</span>
+            <span class="place-name" (click)="onVisitClick(visit)">{{ visit.place.name() }}</span>
           </div>
           <span class="cost-tag">€{{ visit.cost().estimated.total }}</span>
         </div>

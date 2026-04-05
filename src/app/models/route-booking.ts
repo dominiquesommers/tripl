@@ -118,9 +118,9 @@ export type ActivityInclusion = 'excluded' | 'included';
 
 export const FOOD_PCT: Record<FoodInclusion, number> = {
   'excluded':   0,
-  'breakfast':  15,
-  'half-board': 30,
-  'full-board': 50,
+  'breakfast':  5,
+  'half-board': 15,
+  'full-board': 25,
 };
 
 export const ACCOMMODATION_PCT: Record<AccommodationInclusion, number> = {
