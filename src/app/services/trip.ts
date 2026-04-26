@@ -238,6 +238,10 @@ export class TripService {
   // ── PLANS ─────────────────────────────────────────────────────────────────
 
   updatePlanSilently(id: string, updates: PersistentUpdatePlan) {
+    if (this.authService.isPublicMode()) {
+      return;
+    }
+
     const currentPlan = this.plan();
     if (currentPlan && currentPlan.id === id) {
       currentPlan.update(updates);
