@@ -9,6 +9,7 @@ import {PlaceTooltip} from '../place-tooltip/place-tooltip';
 import {RouteTooltip} from '../route-tooltip/route-tooltip';
 import {UiService} from '../../services/ui';
 import {TripService} from '../../services/trip';
+import {AuthService} from '../../services/auth';
 
 
 @Component({
@@ -21,6 +22,7 @@ import {TripService} from '../../services/trip';
 export class MapSearch {
   uiService = inject(UiService);
   tripService = inject(TripService);
+  authService = inject(AuthService);
 
   @Input({ required: true }) map!: MapboxMap;
 
@@ -128,6 +130,7 @@ export class MapSearch {
     this.uiService.closeSearch();
     // this.searchBoxElement.clear();
     this.searchBoxElement.blur();
+    if (this.authService.isPublicMode()) return;
     // this.topSuggestion = null;
     const name = feature.properties.name;
     const countryName = feature.properties.context.country.name;

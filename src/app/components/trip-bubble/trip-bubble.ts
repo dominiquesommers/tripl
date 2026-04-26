@@ -7,6 +7,7 @@ import { Plan } from '../../models/plan';
 import {Trip} from '../../models/trip';
 import {IUserPlan, IUserTrip} from '../../models/user';
 import {LucideAngularModule } from 'lucide-angular';
+import {AuthService} from '../../services/auth';
 
 
 @Component({
@@ -19,6 +20,7 @@ import {LucideAngularModule } from 'lucide-angular';
 export class TripBubble {
   private eRef = inject(ElementRef);
   tripService = inject(TripService);
+  authService = inject(AuthService);
   router = inject(Router);
 
   showPlanMenu = false;

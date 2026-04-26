@@ -49,12 +49,18 @@
           </div>
 
           <!-- Details -->
-          <input
-            type="text"
-            class="details-input"
-            placeholder="Details..."
+          <app-rich-textarea
             [value]="exp.details() ?? ''"
-            (blur)="updateDetails(exp, $any($event.target).value)" />
+            placeholder="Details..."
+            [multiline]="false"
+            (saveValue)="updateDetails(exp, $event)">
+          </app-rich-textarea>
+<!--          <input-->
+<!--            type="text"-->
+<!--            class="details-input"-->
+<!--            placeholder="Details..."-->
+<!--            [value]="exp.details() ?? ''"-->
+<!--            (blur)="updateDetails(exp, $any($event.target).value)" />-->
 
           <!-- Delete (visible on hover) -->
           <button class="icon-btn delete-floating"

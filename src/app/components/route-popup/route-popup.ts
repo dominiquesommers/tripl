@@ -4,6 +4,7 @@ import {ROUTE_COLORS} from '../map-handler/config/map-styles.config';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {LucideAngularModule } from 'lucide-angular';
 import {TripService} from '../../services/trip';
+import {AuthService} from '../../services/auth';
 
 @Component({
   selector: 'app-route-popup',
@@ -14,6 +15,7 @@ import {TripService} from '../../services/trip';
 })
 export class RoutePopup {
   readonly tripService = inject(TripService);
+  authService = inject(AuthService);
 
   route = input.required<Route>();
 
@@ -35,7 +37,7 @@ export class RoutePopup {
   });
 
   updateRoute(route: Route, patch: UpdateRoute) {
-    this.tripService.updateRoute(route.id, patch);
+    this.tripService.updateRoute(route.id, patch).subscribe();
   }
 
   getRouteIcon(type: string | undefined | null): string {

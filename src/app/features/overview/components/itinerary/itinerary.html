@@ -24,7 +24,9 @@
             <span class="flag-icon">{{ visit.place.country.flag }}</span>
             <span class="place-name" (click)="onVisitClick(visit)">{{ visit.place.name() }}</span>
           </div>
-          <span class="cost-tag">€{{ visit.cost().estimated.total }}</span>
+          @if (!authService.isPublicMode()) {
+            <span class="cost-tag">€{{ visit.cost().estimated.total }}</span>
+          }
         </div>
 
         <div class="sub-line">
@@ -58,7 +60,9 @@
         </div>
 
         <div class="content-column transit-details">
-          <span class="transit-cost">€{{ traverse.cost_().estimated.total }}</span>
+          @if (!authService.isPublicMode()) {
+            <span class="transit-cost">€{{ traverse.cost_().estimated.total }}</span>
+          }
         </div>
       </div>
     }

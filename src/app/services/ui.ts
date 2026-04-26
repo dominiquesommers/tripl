@@ -8,6 +8,7 @@ import {Place} from '../models/place';
 import {Route} from '../models/route';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {LngLatLike} from 'mapbox-gl';
+import {AuthService} from './auth';
 
 export interface FlyToRequest {
   center: [number, number];
@@ -28,6 +29,7 @@ export class UiService {
   private route = inject(ActivatedRoute);
   private breakpointObserver = inject(BreakpointObserver);
   private tripService = inject(TripService);
+  private authService = inject(AuthService);
 
   // --- Layout State ---
   readonly isSidebarOpen: WritableSignal<boolean> = signal(true);
@@ -97,7 +99,7 @@ export class UiService {
       } else {
         this.isSidebarOpen.set(true);
       }
-    }, { allowSignalWrites: true });
+    });
 
     effect(() => {
       const queryParams: any = { tab: this.activeTab() };
@@ -120,7 +122,7 @@ export class UiService {
     if (!id) return this.clearSelection();
     this.selectedRouteId.set(null);
     this.selectedVisitId.set(id);
-    this.activeTab.set('bookings');
+    this.activeTab.set(this.authService.isPublicMode() ? 'activities' : 'bookings');
   }
 
   selectRoute(id: string | null, coords?: LngLatLike) {
@@ -135,7 +137,7 @@ export class UiService {
     } else {
       console.log('not fast enoguh')
     }
-    this.activeTab.set('bookings');
+    this.activeTab.set(this.authService.isPublicMode() ? 'notes' : 'bookings');
   }
 
   clearSelection() {

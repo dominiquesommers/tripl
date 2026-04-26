@@ -1,6 +1,6 @@
 import {
   Component, inject, input, computed, signal,
-  ViewChildren, QueryList, ElementRef, HostListener
+  ViewChildren, QueryList, ElementRef, HostListener, effect, untracked
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +42,19 @@ export class PlaceBookings {
 
   toggleExpanded(id: string) {
     this.expandedId.update(cur => cur === id ? null : id);
+  }
+
+  constructor() {
+    effect(() => {
+      const place = this.place();
+      const bookings = this.bookings();
+      const needsFetching = bookings.length > 0 && bookings.some(b => !b.detailsFetched());
+      if (needsFetching) {
+        untracked(() => {
+          this.tripService.fetchPlaceBookingDetails(place.id).subscribe();
+        });
+      }
+    });
   }
 
   // ── Add booking immediately ───────────────────────────────
@@ -124,7 +137,7 @@ export class PlaceBookings {
     const rect = el.getBoundingClientRect();
     this.popupSvc.open(CostPopup, {
       position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
-      inputs: { expenses: this.bookingExpenses(booking) },
+      inputs: { expenses: computed(() => this.bookingExpenses(booking)) },
       outputs: {
         addExpense: (e: NewExpense) => {
           const trip = this.tripService.trip();

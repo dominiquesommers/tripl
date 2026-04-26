@@ -1,109 +1,68 @@
 <div class="activities-container">
 <!--  <h3 class="section-title">Activities</h3>-->
   @for (act of activities(); track act.id) {
-    <div class="activity-item" [class.excluded]="!act.included()" [class.editing]="focusedActivityId() === act.id">
+    <div class="activity-item" [class.excluded]="!act.included()">
 
-      <div class="activity-actions-top">
-        <button class="icon-btn visibility"
-                (click)="updateActivity(act, { included: !act.included() })"
-                [title]="act.included() ? 'Exclude from trip' : 'Include in trip'">
-          <lucide-icon [name]="act.included() ? 'eye' : 'eye-off'" [size]="14"></lucide-icon>
-        </button>
+      @if (authService.canEdit()) {
+        <div class="activity-actions-top">
+          <button class="icon-btn visibility"
+                  (click)="updateActivity(act, { included: !act.included() })"
+                  [title]="act.included() ? 'Exclude from trip' : 'Include in trip'">
+            <lucide-icon [name]="act.included() ? 'eye' : 'eye-off'" [size]="14"></lucide-icon>
+          </button>
 
-        <button class="icon-btn delete" (click)="deleteActivity(act)">
-          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
-        </button>
-      </div>
+          <button class="icon-btn delete" (click)="deleteActivity(act)">
+            <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+          </button>
+        </div>
+      }
 
       <div class="seamless-text-container">
-        @if (focusedActivityId() === act.id) {
-          <div class="grow-wrap">
-            <textarea
-              #textEditor
-              [value]="act.description()"
-              (input)="updateMirror(act.id, $any($event.target).value + '\n')"
-              (blur)="blurDescription(act, $any($event.target).value);"
-              placeholder="Add description..."
-              autofocus>
-            </textarea>
-            <span class="ghost-text">{{ mirrorTexts().get(act.id) ?? act.description() + '\n' }}</span>
-          </div>
-        } @else {
-          <div class="display-text" (click)="focusedActivityId.set(act.id)">
-            <div [innerHTML]="act.description() ? formatDescription(act.description()) : 'Add description...'"></div>
-          </div>
-        }
+        <app-rich-textarea
+          [value]="act.description()"
+          [placeholder]="'Add description...'"
+          (saveValue)="updateActivity(act, { description: $event || undefined })">
+        </app-rich-textarea>
       </div>
 
-      <div class="cost-row">
-        <app-cost
-          [estimatedCost]="act.estimated_cost() ?? 0"
-          [actualTotal]="act.actual_cost()"
-          [isPaid]="act.isPaid()"
-          [expenses]="act.expenses()"
-          (saveEstimated)="updateActivity(act, { estimated_cost: $event })"
-          (saveActual)="updateActivity(act, { actual_cost: $event })"
-          (removeActual)="removeActual(act)"
-          (addExpense)="addExpense(act, $event)"
-          (updateExpense)="updateExpense($event)"
-          (deleteExpense)="deleteExpense($event)"
-          (fetchExpenses)="tripService.fetchExpenseDetails(act.id, 'activity').subscribe()">
-        </app-cost>
-      </div>
-
-<!--      <div class="cost-row">-->
-<!--        <app-cost-badge-->
-<!--          [estimatedCost]="act.estimated_cost() ?? 0"-->
-<!--          [actualCost]="act.actual_cost()"-->
-<!--          [isPaid]="act.paid()"-->
-<!--          (togglePaid)="updateActivity(act, { paid: !act.paid() })"-->
-<!--          (saveEstimated)="updateActivity(act, { estimated_cost: $event })"-->
-<!--          (saveActual)="updateActivity(act, { actual_cost: $event })">-->
-<!--        </app-cost-badge>-->
-<!--      </div>-->
-
-<!--      <div class="cost-corner-anchor">-->
-<!--        <app-cost-badge-->
-<!--          [estimatedCost]="act.estimated_cost() ?? 0"-->
-<!--          [actualCost]="act.actual_cost()"-->
-<!--          [isPaid]="act.paid()"-->
-<!--          (togglePaid)="updateActivity(act, { paid: !act.paid() })"-->
-<!--          (saveEstimated)="updateActivity(act, { estimated_cost: $event })"-->
-<!--          (saveActual)="updateActivity(act, { actual_cost: $event })">-->
-<!--        </app-cost-badge>-->
-<!--      </div>-->
-    </div>
-  }
-
-  <div class="activity-item add-ghost"
-     [class.editing]="isAdding()"
-     (click)="!isAdding() && isAdding.set(true)">
-
-    <div class="seamless-text-container">
-      @if (isAdding()) {
-        <div class="grow-wrap">
-          <textarea
-            #newInput
-            (input)="addingMirrorText.set($any($event.target).value)"
-            (keydown)="handleKeyDown($event)"
-            (blur)="cancelAddingIfEmpty($event)"
-            placeholder="Add description..."
-            autofocus>
-          </textarea>
-          <span class="ghost-text">{{ addingMirrorText() }}</span>
-        </div>
-      } @else {
-        <div class="display-text add-placeholder">
-          <lucide-icon name="plus" [size]="18"></lucide-icon>
-          <span>Add Activity</span>
+      @if (authService.canEdit()) {
+        <div class="cost-row">
+          <app-cost
+            [estimatedCost]="act.estimated_cost() ?? 0"
+            [actualTotal]="act.actual_cost()"
+            [isPaid]="act.isPaid()"
+            [expenses]="act.expenses()"
+            (saveEstimated)="updateActivity(act, { estimated_cost: $event })"
+            (saveActual)="updateActivity(act, { actual_cost: $event })"
+            (removeActual)="removeActual(act)"
+            (addExpense)="addExpense(act, $event)"
+            (updateExpense)="updateExpense($event)"
+            (deleteExpense)="deleteExpense($event)"
+            (fetchExpenses)="tripService.fetchExpenseDetails(act.id, 'activity').subscribe()">
+          </app-cost>
         </div>
       }
     </div>
+  }
 
-    @if (isAdding()) {
-      <div class="cost-row">
-         <span class="hint-text">Enter to Save • Esc to Cancel</span>
+  @if (authService.canEdit()) {
+    <div class="activity-item add-ghost"
+       [class.editing]="isAdding()"
+       (click)="!isAdding() && isAdding.set(true)">
+
+      <div class="seamless-text-container">
+        <app-rich-textarea
+          [value]="''"
+          placeholder="Add new activity..."
+          (saveValue)="onAddActivity($event)">
+        </app-rich-textarea>
       </div>
-    }
-  </div>
+
+      @if (isAdding()) {
+        <div class="cost-row">
+           <span class="hint-text">Shift+Enter to Save • Esc to Cancel</span>
+        </div>
+      }
+    </div>
+  }
 </div>

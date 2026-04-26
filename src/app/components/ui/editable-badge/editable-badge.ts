@@ -18,6 +18,7 @@ export class EditableBadge {
   postfix = input<string>('');        // e.g., 'h/km'
   step = input<number>(1);           // Customizable step
   min = input<number>(0);
+  readonly = input<boolean>(false);
 
   draft = signal<string>('');
 
@@ -35,7 +36,7 @@ export class EditableBadge {
 
   adjust(direction: number) {
     const value = this.value();
-    if (!value) return;
+    if (value == null) return;
     const newValue = Math.max(this.min(), value + (direction * this.step()));
     this.save.emit(newValue);
   }

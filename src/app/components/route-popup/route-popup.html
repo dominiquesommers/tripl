@@ -26,6 +26,7 @@
           <div class="content-cell badge-row">
             <app-editable-badge
               [value]="duration()"
+              [readonly]="authService.isPublicMode()"
               postfix="h"
               (save)="updateRoute(route(), {duration: $event})">
 <!--              iconName="clock"-->
@@ -34,23 +35,29 @@
 
             <app-editable-badge
               [value]="distance()"
+              [readonly]="authService.isPublicMode()"
               postfix="km"
+              [step]="10"
               (save)="updateRoute(route(), {distance: $event})">
 <!--              [isLargeValue]="true"-->
 <!--              iconName="map"-->
 <!--              iconColor="#a855f7"-->
             </app-editable-badge>
 
-            <app-editable-badge
-              [value]="route().estimated_cost()"
-              prefix="€"
-              (save)="updateRoute(route(), {estimated_cost: $event})">
-<!--            iconName="euro"-->
-<!--            iconColor="#4ade80"-->
-            </app-editable-badge>
+            @if (authService.canEdit()) {
+              <app-editable-badge
+                [value]="route().estimated_cost()"
+                prefix="€"
+                [step]="10"
+                (save)="updateRoute(route(), {estimated_cost: $event})">
+  <!--            iconName="euro"-->
+  <!--            iconColor="#4ade80"-->
+              </app-editable-badge>
+            }
 
             <app-editable-badge
               [value]="route().nights()"
+              [readonly]="authService.isPublicMode()"
               iconName="moon"
               iconColor="#f1c40f"
               (save)="updateRoute(route(), {nights: $event})">

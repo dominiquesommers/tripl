@@ -109,7 +109,7 @@
             }
 
             <div class="spine-center full-row-content">
-              <div class="node-icon main-pin" (click)="toggleIncluded()">
+              <div class="node-icon main-pin" (click)="authService.canEdit() && toggleIncluded()">
                 @if (!visit().included()) {
                   <lucide-icon name="map-pin-off" [size]="20" class="gray"></lucide-icon>
                 } @else if (!visit().entryDate()) {
@@ -137,6 +137,7 @@
 
               <app-editable-badge
                 [value]="visit().nights()"
+                [readonly]="authService.isPublicMode()"
                 iconName="moon"
                 iconColor="#f1c40f"
                 (save)="persistNights($event)">
@@ -152,11 +153,13 @@
                   <span class="unscheduled-label">Not in itinerary</span>
                 }
               </div>
-              <div class="delete-btn-wrapper">
-                <button class="icon-btn delete" (click)="delete()">
-                  <lucide-icon name="trash-2" [size]="18"></lucide-icon>
-                </button>
-              </div>
+              @if (authService.canEdit()) {
+                <div class="delete-btn-wrapper">
+                  <button class="icon-btn delete" (click)="delete()">
+                    <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+                  </button>
+                </div>
+              }
             </div>
           </div>
 
@@ -224,11 +227,13 @@
                    (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
                    (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
                     <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target.place.name() }}</span>
-                    <div class="config-btn-wrapper">
-                      <button class="icon-btn" (click)="toggleManagingTraverses($event)">
-                        <lucide-icon name="settings-2" [size]="16"></lucide-icon>
-                      </button>
-                    </div>
+                    @if (authService.canEdit()) {
+                      <div class="config-btn-wrapper">
+                        <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                          <lucide-icon name="settings-2" [size]="16"></lucide-icon>
+                        </button>
+                      </div>
+                    }
                   </div>
 
                   <div class="subrow-30 top rent_until-row"
@@ -239,15 +244,17 @@
                     <div class="rent-until-wrapper" style="display: flex; align-items: center; gap: 8px; flex-grow: 1;">
                       <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting until: {{ rentingUntilVisit()?.place?.name() || "-"}}</span>
                       <div class="bed-check icon-btn" [class.active]="leg.traverse.includes_accommodation()"
-                           (click)="$event.stopPropagation(); toggleAccommodation(leg.traverse)">
+                           (click)="authService.canEdit() && $event.stopPropagation(); authService.canEdit() && toggleAccommodation(leg.traverse)">
                         <lucide-icon name="bed" [size]="16"></lucide-icon>
                       </div>
                     </div>
-                    <div class="config-btn-wrapper">
-                      <button class="icon-btn" (click)="toggleManagingRentUntil($event)">
-                        <lucide-icon name="settings-2" [size]="16"></lucide-icon>
-                      </button>
-                    </div>
+                    @if (authService.canEdit()) {
+                      <div class="config-btn-wrapper">
+                        <button class="icon-btn" (click)="toggleManagingRentUntil($event)">
+                          <lucide-icon name="settings-2" [size]="16"></lucide-icon>
+                        </button>
+                      </div>
+                    }
                   </div>
                 </div>
               } @else if (leg.traverse.route.type() === 'driving') {
@@ -257,11 +264,13 @@
                    (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
                    (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
                     <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target.place.name() }}</span>
-                    <div class="config-btn-wrapper">
-                      <button class="icon-btn" (click)="toggleManagingTraverses($event)">
-                        <lucide-icon name="settings-2" [size]="16"></lucide-icon>
-                      </button>
-                    </div>
+                    @if (authService.canEdit()) {
+                      <div class="config-btn-wrapper">
+                        <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                          <lucide-icon name="settings-2" [size]="16"></lucide-icon>
+                        </button>
+                      </div>
+                    }
                   </div>
                   <div class="subrow-30 top rent_until-row"
                    [class.hoverable-row]="rentingUntilVisit()"
@@ -281,21 +290,25 @@
                  (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
                  (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
                   <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target.place.name() }}</span>
-                  <div class="config-btn-wrapper">
-                    <button class="icon-btn" (click)="toggleManagingTraverses($event)">
-                      <lucide-icon name="settings-2" [size]="14"></lucide-icon>
-                    </button>
-                  </div>
+                  @if (authService.canEdit()) {
+                    <div class="config-btn-wrapper">
+                      <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                        <lucide-icon name="settings-2" [size]="14"></lucide-icon>
+                      </button>
+                    </div>
+                  }
                 </div>
               }
             } @else {
               <div class="full-row-content subrow-30 hoverable-row">
                 <span class="text-truncate" style="font-weight: 500; font-size: 13px;"></span>
-                <div class="config-btn-wrapper">
-                  <button class="icon-btn" (click)="toggleManagingTraverses($event)">
-                    <lucide-icon name="settings-2" [size]="14"></lucide-icon>
-                  </button>
-                </div>
+                @if (authService.canEdit()) {
+                  <div class="config-btn-wrapper">
+                    <button class="icon-btn" (click)="toggleManagingTraverses($event)">
+                      <lucide-icon name="settings-2" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                }
               </div>
             }
           </div>

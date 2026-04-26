@@ -1,7 +1,7 @@
 .notes-container {
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 12px;
   padding-top: 16px;
 }
 
@@ -179,37 +179,37 @@ textarea {
 /*  border-radius: 20px;*/
 /*}*/
 
-.cost-corner-anchor {
-  position: absolute;
-  bottom: -30px;
-  right: 0px;
-  /*align-self: flex-end;*/
-  /*margin-top: -1px;     !* Overlap the border of the card above it *!*/
-  /*margin-right: -1px;    !* Line up with the right border *!*/
-}
+/*.cost-corner-anchor {*/
+/*  position: absolute;*/
+/*  bottom: -30px;*/
+/*  right: 0px;*/
+/*  !*align-self: flex-end;*!*/
+/*  !*margin-top: -1px;     !* Overlap the border of the card above it *!*!*/
+/*  !*margin-right: -1px;    !* Line up with the right border *!*!*/
+/*}*/
 
-/* We target the container inside app-cost-badge */
-::ng-deep .cost-corner-anchor .badge-container {
-  background: #2c2c2e; /* Slightly different shade to define the tag */
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: none;    /* Don't double up borders where they touch */
-  padding: 4px 12px;
-  border-radius: 0 0 12px 12px; /* Round only the bottom corners */
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+/*!* We target the container inside app-cost-badge *!*/
+/*::ng-deep .cost-corner-anchor .badge-container {*/
+/*  background: #2c2c2e; !* Slightly different shade to define the tag *!*/
+/*  border: 1px solid rgba(255, 255, 255, 0.08);*/
+/*  border-top: none;    !* Don't double up borders where they touch *!*/
+/*  padding: 4px 12px;*/
+/*  border-radius: 0 0 12px 12px; !* Round only the bottom corners *!*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  gap: 8px;*/
+/*}*/
 
-/* Adjust the badge-container inside app-cost-badge if needed */
-::ng-deep .badge-container {
-  margin-right: 0 !important; /* Reset any margins */
-  /*box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); !* Makes it pop from the line *!*/
-}
+/*!* Adjust the badge-container inside app-cost-badge if needed *!*/
+/*::ng-deep .badge-container {*/
+/*  margin-right: 0 !important; !* Reset any margins *!*/
+/*  !*box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); !* Makes it pop from the line *!*!*/
+/*}*/
 
-.description-box {
-  /*margin-right: 20px; !* Leave space so text doesn't go under the checkbox *!*/
-  /*margin-bottom: 10px; !* Leave space for the cost badge *!*/
-}
+/*.description-box {*/
+/*  !*margin-right: 20px; !* Leave space so text doesn't go under the checkbox *!*!*/
+/*  !*margin-bottom: 10px; !* Leave space for the cost badge *!*!*/
+/*}*/
 
 /* 1. THE SEAMLESS CONTAINER */
 .seamless-text-container {
@@ -273,9 +273,9 @@ textarea {
   border-color: #3b82f6 !important;
   border-style: solid !important;
 }
-.bottom-right-radius {
-  border-bottom-right-radius: 0;
-}
+/*.bottom-right-radius {*/
+/*  border-bottom-right-radius: 0;*/
+/*}*/
 
 .grow-wrap {
   display: grid;
@@ -357,7 +357,7 @@ textarea {
 
 .hint-text {
   font-size: 10px;
-  color: #636366;
+  color: #a3a3a3;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0 8px;

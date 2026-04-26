@@ -9,7 +9,7 @@
   </div>
 
   <app-tab-bar
-    [tabs]="overviewTabs"
+    [tabs]="overviewTabs()"
     [activeTab]="uiService.activeTab()"
     (tabSelected)="uiService.activeTab.set($event)">
   </app-tab-bar>

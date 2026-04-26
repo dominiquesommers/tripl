@@ -8,12 +8,13 @@
          type="number"
          class="val-input"
          [style.width.ch]="width()"
+         [readOnly]="readonly()"
          [min]="min()"
          [value]="value()"
-         (input)="draft.set($any($event.target).value)"
-         (keydown)="onKeyDown($event)"
-         (paste)="handlePaste($event)"
-         (blur)="onBlur()" />
+         (input)="!readonly() && draft.set($any($event.target).value)"
+         (keydown)="!readonly() && onKeyDown($event)"
+         (paste)="!readonly() && handlePaste($event)"
+         (blur)="!readonly() && onBlur()" />
 
   <div class="icon-stack">
     @if (iconName(); as iconName) {
@@ -26,16 +27,17 @@
     } @else if (postfix()) {
       <span class="postfix main-icon">{{ postfix() }}</span>
     }
-
-    <div class="stepper-controls">
-      <button class="step-btn" (click)="adjust(1)" type="button">
-        <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
-      </button>
-      <button class="step-btn"
-              [style.visibility]="value() ?? 0 > min() ? 'visible' : 'hidden'"
-              (click)="adjust(-1)" type="button">
-        <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
-      </button>
-    </div>
+    @if (!readonly()) {
+      <div class="stepper-controls">
+        <button class="step-btn" (click)="adjust(1)" type="button">
+          <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
+        </button>
+        <button class="step-btn"
+                [style.visibility]="value() ?? 0 > min() ? 'visible' : 'hidden'"
+                (click)="adjust(-1)" type="button">
+          <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
+        </button>
+      </div>
+    }
   </div>
 </div>

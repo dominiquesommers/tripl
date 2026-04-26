@@ -1,7 +1,7 @@
 .notes-container {
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 12px;
   padding-top: 16px;
 }
 
@@ -9,21 +9,9 @@
   font-size: 13px;
   text-transform: uppercase;
   color: #8e8e93;
-  margin: 0 0 8px 0px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  margin-bottom: -30px;
 }
-
-/*.note-item {*/
-/*  background: rgba(255, 255, 255, 0.03);*/
-/*  border: 1px solid rgba(255, 255, 255, 0.08);*/
-/*  border-radius: 16px;*/
-/*  padding: 12px;*/
-/*  display: flex;*/
-/*  flex-direction: column;*/
-/*  gap: 12px;*/
-/*}*/
 
 .note-item.excluded {
   opacity: 0.5;
@@ -103,9 +91,11 @@ textarea {
 
 .cost-row {
   display: flex;
-  justify-content: space-between;
-  padding-top: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 4px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 4px;
 }
 
 .badge-group {
@@ -179,37 +169,37 @@ textarea {
 /*  border-radius: 20px;*/
 /*}*/
 
-.cost-corner-anchor {
-  position: absolute;
-  bottom: -30px;
-  right: 0px;
-  /*align-self: flex-end;*/
-  /*margin-top: -1px;     !* Overlap the border of the card above it *!*/
-  /*margin-right: -1px;    !* Line up with the right border *!*/
-}
+/*.cost-corner-anchor {*/
+/*  position: absolute;*/
+/*  bottom: -30px;*/
+/*  right: 0px;*/
+/*  !*align-self: flex-end;*!*/
+/*  !*margin-top: -1px;     !* Overlap the border of the card above it *!*!*/
+/*  !*margin-right: -1px;    !* Line up with the right border *!*!*/
+/*}*/
 
-/* We target the container inside app-cost-badge */
-::ng-deep .cost-corner-anchor .badge-container {
-  background: #2c2c2e; /* Slightly different shade to define the tag */
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: none;    /* Don't double up borders where they touch */
-  padding: 4px 12px;
-  border-radius: 0 0 12px 12px; /* Round only the bottom corners */
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+/*!* We target the container inside app-cost-badge *!*/
+/*::ng-deep .cost-corner-anchor .badge-container {*/
+/*  background: #2c2c2e; !* Slightly different shade to define the tag *!*/
+/*  border: 1px solid rgba(255, 255, 255, 0.08);*/
+/*  border-top: none;    !* Don't double up borders where they touch *!*/
+/*  padding: 4px 12px;*/
+/*  border-radius: 0 0 12px 12px; !* Round only the bottom corners *!*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  gap: 8px;*/
+/*}*/
 
-/* Adjust the badge-container inside app-cost-badge if needed */
-::ng-deep .badge-container {
-  margin-right: 0 !important; /* Reset any margins */
-  /*box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); !* Makes it pop from the line *!*/
-}
+/*!* Adjust the badge-container inside app-cost-badge if needed *!*/
+/*::ng-deep .badge-container {*/
+/*  margin-right: 0 !important; !* Reset any margins *!*/
+/*  !*box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); !* Makes it pop from the line *!*!*/
+/*}*/
 
-.description-box {
-  /*margin-right: 20px; !* Leave space so text doesn't go under the checkbox *!*/
-  /*margin-bottom: 10px; !* Leave space for the cost badge *!*/
-}
+/*.description-box {*/
+/*  !*margin-right: 20px; !* Leave space so text doesn't go under the checkbox *!*!*/
+/*  !*margin-bottom: 10px; !* Leave space for the cost badge *!*!*/
+/*}*/
 
 /* 1. THE SEAMLESS CONTAINER */
 .seamless-text-container {
@@ -255,7 +245,7 @@ textarea {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 12px 12px 4px 12px;
   /*padding: 12px 12px 25px 12px;*/
   min-height: 40px;
   height: auto;
@@ -357,7 +347,7 @@ textarea {
 
 .hint-text {
   font-size: 10px;
-  color: #636366;
+  color: #a3a3a3;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0 8px;
@@ -408,3 +398,48 @@ textarea {
   opacity: 0.6;
   color: #8e8e93;
 }
+
+.visit-summary {
+  margin-bottom: 24px;
+  padding: 0 4px; /* Align with the notes below */
+}
+
+.interval-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 8px 0;
+}
+
+.interval-list li {
+  font-family: 'JetBrains Mono', 'Menlo', monospace; /* Monospaced fonts work great for date lists */
+  font-size: 13px;
+  line-height: 1.8;
+  color: #efeff4;
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.date-range {
+  color: #efeff4;
+  white-space: nowrap;
+}
+
+.duration {
+  color: #efeff4;
+  font-size: 12px;
+}
+
+.total-days-footer {
+  font-size: 12px;
+  font-weight: 700;
+  color: #efeff4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/*.notes-container {*/
+/*  border-top: 1px solid rgba(255, 255, 255, 0.08);*/
+/*  padding-top: 20px;*/
+/*}*/

@@ -1,5 +1,6 @@
-import {Component, computed, Input, input, Signal} from '@angular/core';
+import {Component, computed, inject, Input, input, Signal} from '@angular/core';
 import { Route } from '../../models/route';
+import {AuthService} from '../../services/auth';
 
 @Component({
   selector: 'app-route-tooltip',
@@ -9,6 +10,8 @@ import { Route } from '../../models/route';
   styleUrl: './route-tooltip.css',
 })
 export class RouteTooltip {
+  authService = inject(AuthService);
+
   @Input({ required: true }) route!: Signal<Route | null>;
 
   sortedTraverses = computed(() => {

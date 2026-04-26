@@ -9,7 +9,7 @@
   </div>
 
   <app-tab-bar
-    [tabs]="placeTabs"
+    [tabs]="placeTabs()"
     [activeTab]="uiService.activeTab()"
     (tabSelected)="uiService.activeTab.set($event)">
   </app-tab-bar>

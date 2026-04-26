@@ -1,19 +1,20 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, importProvidersFrom } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { LucideAngularModule, ArrowUpRight, Plane, MapPin, Moon, Trash2, TrainFront, Bus, Car, Ship, Footprints, Milestone,
   MoreVertical, Settings2, ArrowLeft, GripVertical, Check, X, Eye, EyeOff, MapPinCheck, MapPinX, MapPinMinus, MapPinPlus,
   MapPinOff, ChevronUp, ChevronDown, Plus, Bed, Route, CloudSun, Wallet, TriangleAlert, Ticket, StickyNote, Globe, Home,
   Utensils, ShoppingBag, Hotel, Maximize2, Sigma, Activity, Circle, Clock, Info, Copy, Euro, Map, Crosshair, NotebookPen,
   Tag, Receipt, Link, Calendar, CreditCard, Shield, HelpCircle, Mail, MessageCircle, Star, Sparkles, Binoculars, Camera,
-  Zap, Compass, Telescope
+  Zap, Compass, Telescope, LogOut, LogIn, ArrowRight, CalendarX, Banknote
 } from 'lucide-angular';
 
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { routes } from './app.routes';
+import {authInterceptor} from './interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,7 +26,9 @@ export const appConfig: ApplicationConfig = {
       withRouterConfig({ paramsInheritanceStrategy: 'always' })
     ),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(),
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
     importProvidersFrom(
       MatSnackBarModule,
       LucideAngularModule.pick({
@@ -34,7 +37,7 @@ export const appConfig: ApplicationConfig = {
         MapPinMinus, MapPinPlus, MapPinOff, TrainFront, Bed, Route, CloudSun, Wallet, TriangleAlert, Ticket, StickyNote, Globe,
         Home, Utensils, ShoppingBag, Hotel, Maximize2, Sigma, Activity, Circle, Clock, Info, Copy, Euro, Map, Crosshair,
         Receipt, Link, Calendar, CreditCard, Shield, HelpCircle, Mail, MessageCircle, Star, Sparkles, Binoculars, Camera,
-        Zap, Compass, Telescope
+        Zap, Compass, Telescope, LogOut, LogIn, ArrowRight, CalendarX, Banknote
       })
     ),
     provideAnimationsAsync()

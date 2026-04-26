@@ -1,6 +1,6 @@
 import {
   Component, input, output, signal, computed,
-  ElementRef, HostListener, inject
+  ElementRef, HostListener, inject, effect, Injector
 } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { CostBadge } from '../cost-badge/cost-badge';
@@ -16,6 +16,7 @@ import { PopupService } from '../../../services/popup';
   styleUrls: ['./cost.css'],
 })
 export class Cost {
+  private injector = inject(Injector);
 
   // ─── Inputs ───────────────────────────────────────────────
   estimatedCost = input.required<number>();
@@ -26,6 +27,9 @@ export class Cost {
   iconColor     = input<string>('#f1c40f');
   step          = input<number>(1);
   min           = input<number>(0);
+
+  private expensesSignal = computed(() => this.expenses());
+
 
   // ─── Outputs ──────────────────────────────────────────────
   saveEstimated = output<number>();
@@ -62,10 +66,10 @@ export class Cost {
   onOpenDetails() {
     this.fetchExpenses.emit();
     const rect = this.elRef.nativeElement.getBoundingClientRect();
-    this.popupSvc.open(CostPopup, {
+    const ref = this.popupSvc.open(CostPopup, {
       position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
       inputs: {
-        expenses: this.expenses(),
+        expenses: this.expenses,
       },
       outputs: {
         addExpense:    (e: NewExpense)                      => this.addExpense.emit(e),

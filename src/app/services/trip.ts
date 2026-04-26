@@ -419,25 +419,34 @@ export class TripService {
   }
 
   updateRoute(id: string, updates: UpdateRoute): Observable<IRoute | null> {
+    console.log('hallooo', id, updates)
     const route = this.trip()?.routes().get(id);
+    console.log(route);
     if (!route) return of(null);
 
     const landModes: RouteType[] = ['driving', 'train', 'bus'];
-    const needsEnrichment = updates.type && landModes.includes(updates.type) && !landModes.includes(route.type());
+    const needsEnrichment = !!(updates.type && landModes.includes(updates.type) && !landModes.includes(route.type()));
+    console.log(needsEnrichment);
     const enrichment$: Observable<UpdateRoute> = needsEnrichment
       ? this.enrichRouteUpdates(route, updates)
       : of(updates);
+    console.log(enrichment$);
 
     return enrichment$.pipe(
-      switchMap(finalUpdates =>
-        this.patchAndPersist<IRoute, UpdateRoute>(
-          `routes/${id}`,
-          finalUpdates,
-          () => route.update(updates),
-          { message: 'Route updated.' }
-        )
+      switchMap(finalUpdates => {
+        console.log(finalUpdates);
+        return this.patchAndPersist<IRoute, UpdateRoute>(
+            `routes/${id}`,
+            finalUpdates,
+            () => route.update(finalUpdates),
+            { message: 'Route updated.' }
+          )
+        }
       ),
-      catchError(() => of(null))
+      catchError((err) => {
+        console.error('Update failed:', err);
+        return of(null);
+      })
     );
   }
 
@@ -873,7 +882,7 @@ export class TripService {
     }
 
     return this.persist(
-      this.apiService.get<IPlaceBooking[]>(`place_bookings/place/${placeId}`),
+      this.apiService.get<IPlaceBooking[]>(`place_bookings/${placeId}/place`),
       (bookings) => {
         bookings.forEach(b => {
           const existing = currentTrip.placeBookings().get(b.id);

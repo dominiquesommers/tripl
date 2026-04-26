@@ -11,6 +11,7 @@ import {ROUTE_COLORS, ROUTE_ICON_MAP} from '../map-handler/config/map-styles.con
 import {UiService} from '../../services/ui';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {Place} from '../../models/place';
+import {AuthService} from '../../services/auth';
 
 @Component({
   selector: 'app-visit-popup',
@@ -22,6 +23,7 @@ import {Place} from '../../models/place';
 export class VisitPopup {
   readonly tripService = inject(TripService);
   readonly uiService = inject(UiService);
+  authService = inject(AuthService);
 
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);

@@ -144,3 +144,45 @@
   font-weight: bold;
   text-transform: uppercase;
 }
+
+.status-indicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-color); /* Matches your header bg */
+}
+
+/* Dev Mode: Use a "Builder" color like Blue or Purple */
+.status-indicator.dev {
+  background-color: #3b82f6; /* Blue */
+}
+
+/* Actual Offline: Use Amber/Orange (Warning) */
+.status-indicator.offline {
+  background-color: #f59e0b; /* Amber */
+}
+
+.dev-tag {
+  font-size: 10px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.menu-notice.warning {
+  padding: 8px 12px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}

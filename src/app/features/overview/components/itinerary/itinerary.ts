@@ -8,6 +8,7 @@ import {
   ROUTE_ICON_MAP,
   ROUTE_LUCIDE_ICONS
 } from '../../../../components/map-handler/config/map-styles.config';
+import {AuthService} from '../../../../services/auth';
 
 @Component({
   selector: 'app-itinerary',
@@ -19,6 +20,7 @@ import {
 export class Itinerary {
   public tripService = inject(TripService);
   public uiService = inject(UiService);
+  public authService = inject(AuthService);
 
   private readonly iconConfig = ROUTE_LUCIDE_ICONS;
 

@@ -159,11 +159,11 @@
 
             <!-- Details free text -->
             <div class="detail-row stacked">
-              <span class="detail-label">Details</span>
+<!--              <span class="detail-label">Details</span>-->
               <div style="width: 100%">
                 <app-rich-textarea
                   [value]="booking.details() ?? ''"
-                  placeholder="Reference number, contact info, links...ttt"
+                  placeholder="Reference number, contact info, links..."
                   (saveValue)="updateBooking(booking, { details: $event || null })">
                 </app-rich-textarea>
               </div>

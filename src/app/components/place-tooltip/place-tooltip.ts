@@ -1,5 +1,6 @@
-import {Component, computed, Input, input, Signal} from '@angular/core';
+import {Component, computed, inject, Input, input, Signal} from '@angular/core';
 import {Place} from '../../models/place';
+import {AuthService} from '../../services/auth';
 
 @Component({
   selector: 'app-place-tooltip',
@@ -9,6 +10,8 @@ import {Place} from '../../models/place';
   styleUrl: './place-tooltip.css',
 })
 export class PlaceTooltip {
+  authService = inject(AuthService);
+
   @Input() place!: Signal<Place | null>;
 
   sortedVisits = computed(() => {

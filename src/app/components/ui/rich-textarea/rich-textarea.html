@@ -1,6 +1,18 @@
 <div class="rich-textarea-wrapper" #wrapper
      [class.focused]="isFocused()"
-     [class.single-line]="!multiline()">
+     [class.single-line]="!multiline()"
+     [class.waiting]="editorState() === 'waiting-for-paste'">
+
+  <!-- ── Status Bubble — center top, shows UX state ──────── -->
+  @if (editorState() === 'waiting-for-paste') {
+    <div class="status-bubble">
+      <lucide-icon [name]="config[awaitingPatternType()!].icon"
+                   [size]="14"
+                   [style.color]="config[awaitingPatternType()!].color">
+      </lucide-icon>
+      <span>{{ statusMessage() }}</span>
+    </div>
+  }
 
   <!-- ── Toolbar — absolutely positioned, doesn't push content ── -->
   @if (isFocused()) {
@@ -23,7 +35,7 @@
   @if (!isFocused()) {
     <div class="display-view"
          [class.empty]="!hasContent()"
-         (click)="onEditorFocus()">
+         (click)="handleDisplayClick($event)">
       @if (hasContent()) {
         <div [innerHTML]="displayHtml()"></div>
       } @else {
@@ -41,7 +53,7 @@
          (focus)="onEditorFocus()"
          (blur)="onEditorBlur($event)"
          (keydown)="onKeyDown($event)"
-         (click)="onChipClick($event)">
+         (paste)="onPaste($event)">
     </div>
   }
 

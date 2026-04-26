@@ -4,24 +4,44 @@
   position: relative;
   width: 100%;
   transition: all 0.15s ease;
-  /* Reserve space above for toolbar when focused */
 }
 
-.rich-textarea-wrapper.focused {
-  /*margin-top: 24px; !* height of toolbar *!*/
+/* ── Status Bubble — center top, shows awaiting paste ────── */
+.status-bubble {
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  z-index: 15;
+  animation: slideDown 0.2s ease-out;
 }
 
-/*.rich-textarea-wrapper.focused .editor {*/
-/*  background: rgba(255, 255, 255, 0.03);*/
-/*  border-color: rgba(255, 255, 255, 0.1);*/
-/*  border-radius: 6px;*/
-/*}*/
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
 
 /* ── Toolbar — floats above, doesn't affect layout ───────── */
 .toolbar {
   position: absolute;
-  top: -12px;
-  right: 2px;
+  bottom: -6px;
+  right: -2px;
   display: flex;
   gap: 2px;
   z-index: 10;
@@ -63,7 +83,7 @@
 }
 
 .display-view.empty { cursor: text; }
-.placeholder-text   { color: #636366; }
+.placeholder-text { color: #636366; }
 
 /* ── Editor ──────────────────────────────────────────────── */
 .editor {
@@ -94,140 +114,53 @@
   pointer-events: none;
 }
 
-/* ── Chips ───────────────────────────────────────────────── */
+/* ── Chips (inline styled patterns) ──────────────────────── */
 .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 1px 5px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  user-select: none;
+  display: inline;
+  padding: 2px 4px;
+  margin: 0 1px;
+  border-radius: 3px;
+  font-size: 0.95em;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   white-space: nowrap;
   vertical-align: baseline;
-  line-height: 1.5;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
 }
 
+/* Color-coded backgrounds for each pattern type */
 .chip-url      { background: rgba(96,  165, 250, 0.15); color: #93c5fd; }
 .chip-maps     { background: rgba(52,  211, 153, 0.15); color: #6ee7b7; }
 .chip-email    { background: rgba(245, 158,  11, 0.15); color: #fcd34d; }
 .chip-whatsapp { background: rgba(74,  222, 128, 0.15); color: #86efac; }
 
-.chip-link { text-decoration: none; }
-.chip-link:hover { opacity: 0.8; }
-
-.chip-remove {
-  opacity: 0;
-  font-size: 11px;
-  line-height: 1;
-  padding: 0 1px;
-  border-radius: 2px;
-  transition: opacity 0.1s ease;
-  cursor: pointer;
-  color: currentColor;
-}
-
-.chip:hover .chip-remove       { opacity: 0.6; }
-.chip:hover .chip-remove:hover { opacity: 1; }
-
-/* ── Chip popover (rendered by PopupService at body level) ── */
-/* Styles needed globally since popover renders outside component */
-
-.chip-popover {
-  width: 280px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.popover-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.popover-type {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.5);
-  flex: 1;
-}
-
-.popover-remove {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  display: flex;
-  transition: all 0.15s ease;
-}
-
-.popover-remove:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.popover-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.popover-field-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.35);
-  min-width: 44px;
-  flex-shrink: 0;
-}
-
-.popover-input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 12px;
-  font-family: inherit;
-  padding: 5px 8px;
+/* Label styling — fully editable inline */
+.chip-label {
   outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  cursor: text;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
 }
 
-.popover-input:focus { border-color: rgba(255, 255, 255, 0.3); }
-
-.popover-actions {
-  display: flex;
-  justify-content: flex-end;
+/* Hover effect for chips */
+.chip:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
-.popover-confirm {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
-  color: #93c5fd;
-  font-size: 12px;
-  font-family: inherit;
-  padding: 4px 10px;
+/* Display mode: chips are links */
+.chip-link {
+  text-decoration: none;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.popover-confirm:hover {
-  background: rgba(59, 130, 246, 0.3);
-  color: #fff;
+.chip-link:hover {
+  opacity: 0.8;
+}
+
+/* ── Waiting state styling ──────────────────────────────────*/
+.rich-textarea-wrapper.waiting .editor {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
 }

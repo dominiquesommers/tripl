@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  @if (uiService.isSearchExpanded()) {
+  @if (uiService.isSearchExpanded() && authService.canEdit()) {
     <div class="custom-mode-btn-wrapper">
       <button
         class="custom-mode-btn"

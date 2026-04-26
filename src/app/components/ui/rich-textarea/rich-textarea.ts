@@ -5,19 +5,17 @@ import {
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ChipPopover } from './chip-popover';
-import { PopupService } from '../../../services/popup';
 
 export type PatternType = 'url' | 'maps' | 'email' | 'whatsapp';
+export type EditorState = 'idle' | 'waiting-for-paste';
 
 export const PATTERN_CONFIG: Record<PatternType, {
-  icon: string; color: string;
-  placeholder: string; defaultLabel: string; shortcut: string;
+  icon: string; color: string; shortcut: string; defaultLabel: string;
 }> = {
-  url:      { icon: 'link',           color: '#60a5fa', placeholder: 'https://',          defaultLabel: 'link',     shortcut: '⌘K'  },
-  maps:     { icon: 'map-pin',        color: '#34d399', placeholder: 'maps.app.goo.gl/…', defaultLabel: 'map pin',  shortcut: '⌘⇧M' },
-  email:    { icon: 'mail',           color: '#f59e0b', placeholder: 'name@example.com',  defaultLabel: 'email',    shortcut: '⌘⇧E' },
-  whatsapp: { icon: 'message-circle', color: '#4ade80', placeholder: '+31 6 12345678',    defaultLabel: 'whatsapp', shortcut: '⌘⇧W' },
+  url:      { icon: 'link',           color: '#60a5fa', shortcut: '⌘k',  defaultLabel: 'link' },
+  maps:     { icon: 'map-pin',        color: '#34d399', shortcut: '⌃⌘m', defaultLabel: 'location' },
+  email:    { icon: 'mail',           color: '#f59e0b', shortcut: '⌃⌘e', defaultLabel: 'email' },
+  whatsapp: { icon: 'message-circle', color: '#4ade80', shortcut: '⌃⌘w', defaultLabel: 'message' },
 };
 
 const makePatternRe = () => /(url|maps|email|whatsapp)\(([^)]+),\s*([^)]*)\)/g;
@@ -33,7 +31,6 @@ const makePatternRe = () => /(url|maps|email|whatsapp)\(([^)]+),\s*([^)]*)\)/g;
 export class RichTextarea {
 
   private sanitizer = inject(DomSanitizer);
-  private popupSvc = inject(PopupService);
 
   // ── Inputs / Outputs ──────────────────────────────────────
   value = input<string>('');
@@ -43,8 +40,12 @@ export class RichTextarea {
 
   // ── State ─────────────────────────────────────────────────
   isFocused = signal(false);
+  editorState = signal<EditorState>('idle');
+  awaitingPatternType = signal<PatternType | null>(null);
+  statusMessage = computed(() => this.getStatusMessage());
+
   private savedRange: Range | null = null;
-  private editingChipElement: HTMLElement | null = null;
+  private pendingLabel: string = '';
 
   // ── Refs ──────────────────────────────────────────────────
   @ViewChild('editor') editorEl!: ElementRef<HTMLDivElement>;
@@ -60,7 +61,27 @@ export class RichTextarea {
 
   hasContent = computed(() => !!this.value()?.trim());
 
+  // ── Status Message ────────────────────────────────────────
+
+  private getStatusMessage(): string {
+    const state = this.editorState();
+    const type = this.awaitingPatternType();
+    if (state === 'waiting-for-paste' && type) {
+      return `Ready to paste ${type === 'url' ? 'URL' : type}`;
+    }
+    return '';
+  }
+
   // ── Focus / Blur ──────────────────────────────────────────
+  handleDisplayClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const link = target.closest('a.chip-link');
+    if (link) {
+      event.stopPropagation();
+    } else {
+      this.onEditorFocus();
+    }
+  }
 
   onEditorFocus() {
     if (!this.isFocused()) {
@@ -75,19 +96,19 @@ export class RichTextarea {
   }
 
   onEditorBlur(event: FocusEvent) {
-    if (this.popupSvc.isOpen()) {
+    // Check if focus moved to another element within the editor (like a label)
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    if (relatedTarget && this.editorEl.nativeElement.contains(relatedTarget)) {
+      // Focus moved to a child element (like chip-label), don't blur
       return;
     }
 
-    const related = event.relatedTarget as HTMLElement;
-    if (related?.closest('[data-rich-popover]')) return;
-
     setTimeout(() => {
-      if (!this.popupSvc.isOpen()) {
-        this.isFocused.set(false);
-        const raw = this.serializeEditor();
-        this.saveValue.emit(raw.trimEnd());
-      }
+      this.isFocused.set(false);
+      this.editorState.set('idle');
+      this.awaitingPatternType.set(null);
+      const raw = this.serializeEditor();
+      this.saveValue.emit(raw.trimEnd());
     }, 150);
   }
 
@@ -97,6 +118,12 @@ export class RichTextarea {
     const meta = event.metaKey || event.ctrlKey;
     const shift = event.shiftKey;
 
+    // Block formatting shortcuts: Ctrl/Cmd + B, I, U
+    if (meta && !shift && (event.key === 'b' || event.key === 'i' || event.key === 'u')) {
+      event.preventDefault();
+      return;
+    }
+
     // Blur on Enter (single-line) or Shift+Enter (both modes)
     if (event.key === 'Enter' && (shift || !this.multiline())) {
       event.preventDefault();
@@ -104,10 +131,22 @@ export class RichTextarea {
       return;
     }
 
-    if (meta && !shift && event.key === 'k') { event.preventDefault(); this.insertChipAndOpenPopover('url'); }
-    if (meta && shift && event.key === 'M') { event.preventDefault(); this.insertChipAndOpenPopover('maps'); }
-    if (meta && shift && event.key === 'E') { event.preventDefault(); this.insertChipAndOpenPopover('email'); }
-    if (meta && shift && event.key === 'W') { event.preventDefault(); this.insertChipAndOpenPopover('whatsapp'); }
+    // Cancel waiting state or blur altogether on Escape
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (this.editorState() === 'waiting-for-paste') {
+        this.editorState.set('idle');
+        this.awaitingPatternType.set(null);
+      } else {
+        this.editorEl.nativeElement.blur();
+      }
+      return;
+    }
+
+    if (meta && !shift && event.key === 'k') { event.preventDefault(); this.prepareChipInsertion('url'); }
+    if (meta && shift && event.key === 'M') { event.preventDefault(); this.prepareChipInsertion('maps'); }
+    if (meta && shift && event.key === 'E') { event.preventDefault(); this.prepareChipInsertion('email'); }
+    if (meta && shift && event.key === 'W') { event.preventDefault(); this.prepareChipInsertion('whatsapp'); }
   }
 
   // ── Toolbar ───────────────────────────────────────────────
@@ -115,58 +154,12 @@ export class RichTextarea {
   onToolbarClick(type: PatternType, event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    setTimeout(() => this.insertChipAndOpenPopover(type), 100);
+    setTimeout(() => this.prepareChipInsertion(type), 100);
   }
 
-  // ── Chip click (edit hidden value) ──────────────────────
+  // ── Prepare Chip Insertion (waiting for paste) ─────────────
 
-  onChipClick(event: MouseEvent) {
-    const chip = (event.target as HTMLElement).closest('[data-chip]') as HTMLElement;
-    if (!chip || !this.isFocused()) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    this.editingChipElement = chip;
-    const type = chip.dataset['chipType'] as PatternType;
-    const hidden = chip.dataset['chipHidden'] ?? '';
-
-    this.openChipPopover(type, hidden, chip, event);
-  }
-
-  // ── Chip Popover (edit hidden value) ───────────────────────
-
-  private openChipPopover(type: PatternType, hidden: string, chipEl: HTMLElement, event: MouseEvent) {
-    this.popupSvc.open(ChipPopover, {
-      position: { top: event.clientY + 6, left: event.clientX },
-      inputs: {
-        type,
-        initialHidden: hidden,
-      },
-      outputs: {
-        confirm: ({ hidden: newHidden }: { hidden: string }) => {
-          // Clean commas from URL
-          const cleanHidden = newHidden.replace(/,/g, '').trim();
-          if (cleanHidden) {
-            chipEl.dataset['chipHidden'] = cleanHidden;
-            chipEl.dataset['pattern'] = this.buildPatternString(type, cleanHidden, chipEl.dataset['chipLabel'] ?? '');
-          }
-          this.popupSvc.close();
-          this.editorEl?.nativeElement.focus();
-          this.editingChipElement = null;
-        },
-        close: () => {
-          this.popupSvc.close();
-          this.editorEl?.nativeElement.focus();
-          this.editingChipElement = null;
-        },
-      },
-    });
-  }
-
-  // ── Insert Chip & Open Popover ─────────────────────────────
-
-  private insertChipAndOpenPopover(type: PatternType) {
+  private prepareChipInsertion(type: PatternType) {
     const sel = window.getSelection();
     let label = this.config[type].defaultLabel;
 
@@ -175,40 +168,198 @@ export class RichTextarea {
       label = sel.toString();
     }
 
+    // Save the range for later insertion
     if (sel && sel.rangeCount > 0) {
       this.savedRange = sel.getRangeAt(0).cloneRange();
-    }
-
-    const chipEl = this.buildChipElement(type, '', label);
-
-    const coords = this.getCaretCoordinates();
-    if (!coords) return;
-
-    // Insert chip at cursor (replaces selection if any)
-    if (this.savedRange) {
-      this.savedRange.deleteContents();
-      this.savedRange.insertNode(chipEl);
-      const range = document.createRange();
-      range.setStartAfter(chipEl);
-      range.collapse(true);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
     } else {
-      this.editorEl.nativeElement.appendChild(chipEl);
+      this.savedRange = null;
     }
-    this.savedRange = null;
 
-    // Open popover to edit hidden value
-    setTimeout(() => {
-      this.editingChipElement = chipEl;
-      this.openChipPopover(type, '', chipEl, new MouseEvent('click', {
-        clientX: coords.left,
-        clientY: coords.top,
-      }));
-    }, 0);
+    this.pendingLabel = label;
+    this.awaitingPatternType.set(type);
+    this.editorState.set('waiting-for-paste');
   }
 
-  // ── Build Chip Element ─────────────────────────────────────
+  // ── Paste Handler ────────────────────────────────────────
+
+  // // @HostListener('paste', ['$event'])
+  // onPaste(event: ClipboardEvent) {
+  //   event.preventDefault();
+  //
+  //   // Get plain text only, ignore HTML/styling
+  //   const pastedText = event.clipboardData?.getData('text/plain') || '';
+  //
+  //   // If waiting for paste, handle as chip insertion
+  //   if (this.editorState() === 'waiting-for-paste') {
+  //     const patternType = this.awaitingPatternType();
+  //     if (!pastedText || !patternType) return;
+  //
+  //     // Classify the pasted text
+  //     const classifiedType = this.classifyPastedText(pastedText, patternType);
+  //     const label = this.pendingLabel;
+  //
+  //     // Check for overlapping selection with existing chips
+  //     if (!classifiedType) {
+  //       console.log('Not a valid url', pastedText);
+  //     } else {
+  //       if (this.savedRange) {
+  //         this.deleteOverlappingChips(this.savedRange);
+  //         this.savedRange.deleteContents();
+  //         this.savedRange.insertNode(this.buildChipElement(classifiedType, pastedText, label));
+  //
+  //         // Place cursor after chip
+  //         const range = document.createRange();
+  //         range.setStartAfter(this.editorEl.nativeElement.lastChild!);
+  //         range.collapse(true);
+  //         const sel = window.getSelection();
+  //         sel?.removeAllRanges();
+  //         sel?.addRange(range);
+  //       } else {
+  //         this.editorEl.nativeElement.appendChild(
+  //           this.buildChipElement(classifiedType, pastedText, label)
+  //         );
+  //         this.placeCursorAtEnd();
+  //       }
+  //     }
+  //
+  //     this.savedRange = null;
+  //     this.editorState.set('idle');
+  //     this.awaitingPatternType.set(null);
+  //     return;
+  //   }
+  //
+  //   // Normal paste: insert plain text without formatting
+  //   const sel = window.getSelection();
+  //   if (!sel || sel.rangeCount === 0) return;
+  //
+  //   const range = sel.getRangeAt(0);
+  //   range.deleteContents();
+  //
+  //   // Insert as plain text node (no HTML/styling)
+  //   const textNode = document.createTextNode(pastedText);
+  //   range.insertNode(textNode);
+  //
+  //   // Place cursor after inserted text
+  //   range.setStartAfter(textNode);
+  //   range.collapse(true);
+  //   sel.removeAllRanges();
+  //   sel.addRange(range);
+  // }
+
+  onPaste(event: ClipboardEvent) {
+    const target = event.target as HTMLElement;
+
+    // 1. If pasting directly into a chip label, handle it as plain text and STOP
+    if (target.classList.contains('chip-label')) {
+      event.preventDefault();
+      event.stopPropagation();
+      const text = event.clipboardData?.getData('text/plain') || '';
+      document.execCommand('insertText', false, text);
+      return;
+    }
+
+    // Prevent default for the main editor paste
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text/plain') || '';
+
+    // 2. Handle Pattern Insertion
+    if (this.editorState() === 'waiting-for-paste') {
+      const patternType = this.awaitingPatternType();
+      if (!pastedText || !patternType) return;
+
+      const classifiedType = this.classifyPastedText(pastedText, patternType);
+      const label = this.pendingLabel;
+
+      if (classifiedType) {
+        if (this.savedRange) {
+          this.deleteOverlappingChips(this.savedRange);
+          this.savedRange.deleteContents();
+          const chip = this.buildChipElement(classifiedType, pastedText, label);
+          this.savedRange.insertNode(chip);
+
+          // Move cursor after the new chip
+          const range = document.createRange();
+          range.setStartAfter(chip);
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        } else {
+          this.editorEl.nativeElement.appendChild(
+            this.buildChipElement(classifiedType, pastedText, label)
+          );
+          this.placeCursorAtEnd();
+        }
+      }
+
+      this.savedRange = null;
+      this.editorState.set('idle');
+      this.awaitingPatternType.set(null);
+      return; // Exit here so we don't fall into "Normal paste"
+    }
+
+    // 3. Normal Editor Paste (Plain Text Only)
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+
+    const textNode = document.createTextNode(pastedText);
+    range.insertNode(textNode);
+
+    range.setStartAfter(textNode);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  // ── Classify Pasted Text ──────────────────────────────────
+
+  private classifyPastedText(text: string, suggested: PatternType): PatternType | null {
+    const trimmed = text.trim();
+
+    // Maps: check first (before email) since maps URLs contain @
+    if (/maps\.google|google\.com\/maps|maps\.app\.goo\.gl|@/i.test(trimmed) && /maps|directions|location|@/i.test(trimmed)) {
+      return 'maps';
+    }
+
+    // Email pattern: simple email format (no http/maps keywords)
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) && !/maps|http|goo\.gl|wa\.me/i.test(trimmed)) {
+      return 'email';
+    }
+
+    // WhatsApp: phone-like pattern (digits with optional +, spaces, dashes)
+    if (/^\+?[\d\s\-()]{7,}$/.test(trimmed)) return 'whatsapp';
+
+    // URL: starts with http/https or has domain pattern
+    if (/^https?:\/\/.+|^[a-z0-9]+\.[a-z]{2,}/i.test(trimmed)) return 'url';
+
+    // Fallback to null
+    return null;
+  }
+
+  // ── Delete Overlapping Chips ──────────────────────────────
+
+  private deleteOverlappingChips(range: Range) {
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    // Find all chips that overlap with the selection
+    const chips = Array.from(this.editorEl.nativeElement.querySelectorAll('[data-chip]'));
+    chips.forEach(chip => {
+      const chipRange = document.createRange();
+      chipRange.selectNode(chip as Node);
+
+      // Check if chip overlaps with selection
+      if (range.compareBoundaryPoints(Range.START_TO_END, chipRange) > -1 &&
+          range.compareBoundaryPoints(Range.END_TO_START, chipRange) < 1) {
+        (chip as HTMLElement).remove();
+      }
+    });
+  }
+
+  // ── Build Chip Element ────────────────────────────────────
 
   private buildChipElement(type: PatternType, hidden: string, label: string): HTMLElement {
     const span = document.createElement('span');
@@ -225,32 +376,45 @@ export class RichTextarea {
     labelSpan.contentEditable = 'true';
     labelSpan.textContent = label;
 
-    // When label text changes (during typing)
+    // When label text changes
     labelSpan.addEventListener('input', () => {
       const newLabel = labelSpan.textContent ?? '';
       span.dataset['chipLabel'] = newLabel;
       span.dataset['pattern'] = this.buildPatternString(type, hidden, newLabel);
-    });
 
-    // Handle backspace/delete to remove chip only when label is completely empty
-    labelSpan.addEventListener('keydown', (e: KeyboardEvent) => {
-      if ((e.key === 'Backspace' || e.key === 'Delete') && labelSpan.textContent === '') {
-        e.preventDefault();
+      // Delete chip if label becomes empty
+      if (newLabel === '') {
         span.remove();
-        this.editorEl.nativeElement.focus();
       }
     });
 
-    // Prevent chip click from triggering normal click handler
-    labelSpan.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+    // When cursor at boundary of label, allow escape to adjacent editor
+    labelSpan.addEventListener('keydown', (e: KeyboardEvent) => {
+      const sel = window.getSelection();
+      if (!sel || !sel.isCollapsed) return;
 
-    // Open popover when clicking on the chip itself (not the label text)
-    span.addEventListener('click', (e) => {
-      if (e.target === labelSpan) return; // Don't open popover if clicking label text
-      e.stopPropagation();
-      this.onChipClick(e as any);
+      const offset = sel.focusOffset;
+      const textLength = labelSpan.textContent?.length ?? 0;
+
+      // If at the start and pressing Left, place cursor before the chip
+      if (e.key === 'ArrowLeft' && offset === 0) {
+        e.preventDefault();
+        const range = document.createRange();
+        range.setStartBefore(span);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+
+      // If at the end and pressing Right, place cursor after the chip
+      if (e.key === 'ArrowRight' && offset === textLength) {
+        e.preventDefault();
+        const range = document.createRange();
+        range.setStartAfter(span);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
     });
 
     span.appendChild(labelSpan);
@@ -260,29 +424,58 @@ export class RichTextarea {
   // ── Helpers ────────────────────────────────────────────────
 
   private buildPatternString(type: PatternType, hidden: string, label: string): string {
-    return `${type}(${hidden}, ${label})`;
+    // Strip commas from hidden value
+    const cleanHidden = hidden.replace(/,/g, '').trim();
+    return `${type}(${cleanHidden}, ${label})`;
   }
 
   // ── Serialization ──────────────────────────────────────────
 
   serializeEditor(): string {
     if (!this.editorEl) return this.value();
+
+    const el = this.editorEl.nativeElement;
     let result = '';
-    this.editorEl.nativeElement.childNodes.forEach(node => {
+
+    // We iterate through top-level nodes to preserve your custom chips
+    el.childNodes.forEach(node => {
       if (node.nodeType === Node.TEXT_NODE) {
         result += node.textContent;
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const el = node as HTMLElement;
-        if (el.dataset['pattern']) {
-          result += el.dataset['pattern'];
-        } else if (el.tagName === 'BR') {
+      } else if (node instanceof HTMLElement) {
+        if (node.dataset['pattern']) {
+          result += node.dataset['pattern'];
+        } else if (node.tagName === 'BR') {
           result += '\n';
+        } else if (node.tagName === 'DIV') {
+          // Recursively handle the inside of the div
+          // (This handles text and chips inside the new line)
+          result += '\n' + this.serializeNodeRecursive(node);
         } else {
-          result += el.textContent;
+          result += node.innerText;
         }
       }
     });
-    return result;
+
+    // Clean up any double-newlines browsers might add
+    return result.replace(/\n\n+/g, '\n').trimEnd();
+  }
+
+  private serializeNodeRecursive(parent: HTMLElement): string {
+    let str = '';
+    parent.childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        str += node.textContent;
+      } else if (node instanceof HTMLElement) {
+        if (node.dataset['pattern']) {
+          str += node.dataset['pattern'];
+        } else if (node.tagName === 'BR') {
+          str += '\n';
+        } else {
+          str += this.serializeNodeRecursive(node);
+        }
+      }
+    });
+    return str;
   }
 
   // ── Render: raw → editor HTML ──────────────────────────────
@@ -302,7 +495,7 @@ export class RichTextarea {
       const hidden = match[2].trim();
       const label = match[3].trim();
 
-      html += `<span contenteditable="false" class="chip chip-${type}" data-chip="true" data-chip-type="${type}" data-chip-hidden="${this.escAttr(hidden)}" data-chip-label="${this.escAttr(label)}" data-pattern="${this.escAttr(match[0])}"><span class="chip-label">${this.esc(label)}</span></span>`;
+      html += `<span contenteditable="false" class="chip chip-${type}" data-chip="true" data-chip-type="${type}" data-chip-hidden="${this.escAttr(hidden)}" data-chip-label="${this.escAttr(label)}" data-pattern="${this.escAttr(match[0])}"><span class="chip-label" contenteditable="true">${this.esc(label)}</span></span>`;
       lastIndex = match.index + match[0].length;
     }
 
@@ -330,7 +523,7 @@ export class RichTextarea {
       const label = match[3].trim();
 
       const href = this.toHref(type, hidden);
-      html += `<a href="${this.escAttr(href)}" target="_blank" rel="noopener" class="chip chip-${type} chip-link"><span class="chip-label">${this.esc(label)}</span></a>`;
+      html += `<a href="${this.escAttr(href)}" target="_blank" rel="noopener" class="chip chip-${type} chip-link" style="cursor: pointer"><span class="chip-label" style="cursor: pointer">${this.esc(label)}</span></a>`;
       lastIndex = match.index + match[0].length;
     }
 
@@ -364,24 +557,6 @@ export class RichTextarea {
     sel?.addRange(range);
   }
 
-  private getCaretCoordinates(): { top: number; left: number } | null {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return null;
-
-    const range = sel.getRangeAt(0).cloneRange();
-    let rects = range.getClientRects();
-
-    if (rects.length > 0) {
-      return {
-        top: rects[0].bottom,
-        left: rects[0].left,
-      };
-    }
-
-    const editorRect = this.editorEl.nativeElement.getBoundingClientRect();
-    return { top: editorRect.top, left: editorRect.left };
-  }
-
   // ── HTML Escaping ──────────────────────────────────────────
 
   private esc(str: string): string {
@@ -390,18 +565,5 @@ export class RichTextarea {
 
   private escAttr(str: string): string {
     return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-
-  // ── Document Click Handler ─────────────────────────────────
-
-  @HostListener('document:mousedown', ['$event'])
-  onDocumentMousedown(event: MouseEvent) {
-    if (!this.popupSvc.isOpen()) return;
-    const target = event.target as HTMLElement;
-    const isPopover = target.closest('[data-rich-popover]');
-    const isToolbarBtn = target.closest('.toolbar-btn');
-    if (!isPopover && !isToolbarBtn) {
-      this.popupSvc.close();
-    }
   }
 }

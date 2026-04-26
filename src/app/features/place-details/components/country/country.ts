@@ -1,28 +1,29 @@
 import {Component, inject, input, computed, signal, untracked, effect} from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import {TripService} from '../../../../services/trip';
-import {CostBadge} from '../../../../components/ui/cost-badge/cost-badge';
 import {CountryNote, ICountryNote, UpdateCountryNote} from '../../../../models/country-note';
 import {Country as CountryModel} from '../../../../models/country';
+import {AuthService} from '../../../../services/auth';
+import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
+import {Cost} from '../../../../components/ui/cost/cost';
+import {NewExpense, UpdateExpense} from '../../../../models/expense';
+
 
 @Component({
   selector: 'app-country',
   standalone: true,
-  imports: [CommonModule, FormsModule, CostBadge, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost],
   templateUrl: './country.html',
   styleUrl: './country.css'
 })
 export class Country {
-  private sanitizer = inject(DomSanitizer);
-
   country = input.required<CountryModel>();
   tripService = inject(TripService);
+  authService = inject(AuthService);
 
   // Track which note description has focus for the URL parser
-  focusedNoteId = signal<string | null>(null);
   isAdding = signal(false);
 
   notes = computed<CountryNote[]>(() => {
@@ -42,52 +43,20 @@ export class Country {
     });
   }
 
-  blurDescription(note: CountryNote, description: string) {
-    console.log('blur!');
-    this.focusedNoteId.set(null);
-    this.updateNote(note, { description })
-  }
+  onAddNote(text: string) {
+    const trimmedText = text.trim();
 
-  startAdding() {
-    this.isAdding.set(true);
-  }
-
-  submitQuickAdd(event: any, countryId: string) {
-    const text = event.target.value.trim();
-    if (text) {
-      this.tripService.addCountryNote(countryId, text).subscribe((newNote) => {
+    if (trimmedText) {
+      this.tripService.addCountryNote(this.country().id, trimmedText).subscribe((newNote) => {
         if (newNote) {
+          // We reset the 'adding' state so the ghost UI returns to the "Add Note" button
           this.isAdding.set(false);
         }
       });
     } else {
+      // If they clicked away or hit enter with nothing, just close it
       this.isAdding.set(false);
     }
-  }
-
-  handleKeyDown(event: KeyboardEvent) {
-    const countryId = this.country().id;
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.submitQuickAdd(event, countryId);
-    } else if (event.key === 'Escape') {
-      this.isAdding.set(false);
-    }
-  }
-
-  cancelAddingIfEmpty(event: FocusEvent) {
-    const textarea = event.target as HTMLTextAreaElement;
-    if (!textarea.value.trim()) {
-      this.isAdding.set(false);
-    }
-  }
-
-  formatDescription(text: string): SafeHtml {
-    if (!text) return '';
-    // Replaces url(https://link.com, Label) with <a href="...">Label</a>
-    const html = text.replace(/url\(([^,]+),\s*([^)]+)\)/g,
-      '<a href="$1" target="_blank" style="color: #3b82f6; text-decoration: underline;">$2</a>');
-    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   updateNote(note: CountryNote, changes: UpdateCountryNote) {
@@ -106,5 +75,49 @@ export class Country {
         error: (err) => console.error('Failed to remove note...', err)
       });
     }
+  }
+
+  removeActual(note: CountryNote) {
+    console.log('removeActual', note.id);
+    const expenses = note.expenses();
+    const hasExpenses = expenses.length > 0;
+    const total = expenses.reduce((s, e) => s + e.amount(), 0);
+
+    const message = hasExpenses
+      ? `This will also remove ${expenses.length} payment(s) totalling €${total}. Are you sure?`
+      : `Remove actual cost for this country note?`;
+
+    if (confirm(message)) {
+      this.updateNote(note, { actual_cost: null });
+      expenses.forEach(e => this.deleteExpense(e.id));
+    }
+  }
+
+  addExpense(note: CountryNote, expense: NewExpense) {
+    this.tripService.addExpense({
+      ...expense,
+      country_note_id: note.id,
+      trip_id: note.trip_id,
+      category: 'miscellaneous',
+    }).subscribe();
+  }
+
+  updateExpense(expense: UpdateExpense & { id: string }) {
+    this.tripService.updateExpense(expense.id, expense).subscribe();
+  }
+
+  deleteExpense(id: string) {
+    const expense = this.tripService.trip()?.expenses().get(id);
+    if (expense) this.tripService.removeExpense(expense).subscribe();
+  }
+
+  formatVisitDate(date: Date): string {
+    const day = date.toLocaleDateString('nl-NL', { weekday: 'short' });
+    const dd  = String(date.getDate()).padStart(2, '0');
+    const mm  = String(date.getMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getFullYear()).slice(2);
+
+    // Example output: "ma 13-04-'26"
+    return `${day} ${dd}-${mm}-'${yy}`;
   }
 }

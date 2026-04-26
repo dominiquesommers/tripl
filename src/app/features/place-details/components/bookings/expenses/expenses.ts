@@ -1,4 +1,4 @@
-import { Component, inject, input, signal, computed } from '@angular/core';
+import {Component, inject, input, signal, computed, effect, untracked} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -7,6 +7,7 @@ import { Place } from '../../../../../models/place';
 import { Expense, NewExpense, UpdateExpense } from '../../../../../models/expense';
 import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
 import {EditableBadge} from '../../../../../components/ui/editable-badge/editable-badge';
+import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
 
 
 // import { Component, inject, input, signal, computed } from '@angular/core';
@@ -26,7 +27,7 @@ type ExpenseCategory = 'food' | 'miscellaneous';
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge, DatePicker],
+  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge, DatePicker, RichTextarea],
   templateUrl: './expenses.html',
   styleUrls: ['./expenses.css'],
 })
@@ -43,6 +44,19 @@ export class Expenses {
 
   // ── Expanded subcategory rows ─────────────────────────────
   expandedIds = signal<Set<string>>(new Set());
+
+  constructor() {
+    effect(() => {
+      const place = this.place();
+      const needsFetching = this.expenses().length > 0 && this.expenses().some(b => !b.detailsFetched());
+      if (needsFetching) {
+        untracked(() => {
+          this.tripService.fetchExpenseDetails(place.id, 'place').subscribe()
+          // this.tripService.fetchPlaceBookingDetails(place.id).subscribe();
+        });
+      }
+    });
+  }
 
   isExpanded(id: string): boolean {
     return this.expandedIds().has(id);

@@ -1,29 +1,29 @@
 import {Component, inject, input, computed, signal, untracked, effect} from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import {TripService} from '../../../../services/trip';
-import {CostBadge} from '../../../../components/ui/cost-badge/cost-badge';
 import {Place} from '../../../../models/place';
 import {PlaceNote, IPlaceNote, UpdatePlaceNote} from '../../../../models/place-note';
+import {AuthService} from '../../../../services/auth';
+import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
+import {Cost} from '../../../../components/ui/cost/cost';
+import {NewExpense, UpdateExpense} from '../../../../models/expense';
 
 
 @Component({
   selector: 'app-notes',
   standalone: true,
-  imports: [CommonModule, FormsModule, CostBadge, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost],
   templateUrl: './notes.html',
   styleUrl: './notes.css'
 })
 export class Notes {
-  private sanitizer = inject(DomSanitizer);
-
   place = input.required<Place>();
   tripService = inject(TripService);
+  authService = inject(AuthService);
 
   // Track which note description has focus for the URL parser
-  focusedNoteId = signal<string | null>(null);
   isAdding = signal(false);
 
   notes = computed<PlaceNote[]>(() => {
@@ -43,57 +43,24 @@ export class Notes {
     });
   }
 
-  blurDescription(note: PlaceNote, description: string) {
-    console.log('blur!');
-    this.focusedNoteId.set(null);
-    this.updateNote(note, { description })
-  }
+  onAddNote(text: string) {
+    const trimmedText = text.trim();
 
-  startAdding() {
-    this.isAdding.set(true);
-  }
-
-  submitQuickAdd(event: any, placeId: string) {
-    const text = event.target.value.trim();
-    if (text) {
-      this.tripService.addPlaceNote(placeId, text).subscribe((newNote) => {
+    if (trimmedText) {
+      this.tripService.addPlaceNote(this.place().id, text).subscribe((newNote) => {
         if (newNote) {
+          // We reset the 'adding' state so the ghost UI returns to the "Add Note" button
           this.isAdding.set(false);
         }
       });
     } else {
+      // If they clicked away or hit enter with nothing, just close it
       this.isAdding.set(false);
     }
-  }
-
-  handleKeyDown(event: KeyboardEvent) {
-    const placeId = this.place().id;
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.submitQuickAdd(event, placeId);
-    } else if (event.key === 'Escape') {
-      this.isAdding.set(false);
-    }
-  }
-
-  cancelAddingIfEmpty(event: FocusEvent) {
-    const textarea = event.target as HTMLTextAreaElement;
-    if (!textarea.value.trim()) {
-      this.isAdding.set(false);
-    }
-  }
-
-  formatDescription(text: string): SafeHtml {
-    if (!text) return '';
-    // Replaces url(https://link.com, Label) with <a href="...">Label</a>
-    const html = text.replace(/url\(([^,]+),\s*([^)]+)\)/g,
-      '<a href="$1" target="_blank" style="color: #3b82f6; text-decoration: underline;">$2</a>');
-    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   updateNote(note: PlaceNote, changes: UpdatePlaceNote) {
     console.log('Updating note', note, changes);
-    // const updated = { ...note, ...changes };
     this.tripService.updatePlaceNote(note.id, changes).subscribe({
       next: () => console.log('Updated place note successfully in the server'),
       error: (err) => console.error('Failed to update note...', err)
@@ -107,5 +74,39 @@ export class Notes {
         error: (err) => console.error('Failed to remove note...', err)
       });
     }
+  }
+
+  removeActual(note: PlaceNote) {
+    console.log('removeActual', note.id);
+    const expenses = note.expenses();
+    const hasExpenses = expenses.length > 0;
+    const total = expenses.reduce((s, e) => s + e.amount(), 0);
+
+    const message = hasExpenses
+      ? `This will also remove ${expenses.length} payment(s) totalling €${total}. Are you sure?`
+      : `Remove actual cost for this place note?`;
+
+    if (confirm(message)) {
+      this.updateNote(note, { actual_cost: null });
+      expenses.forEach(e => this.deleteExpense(e.id));
+    }
+  }
+
+  addExpense(note: PlaceNote, expense: NewExpense) {
+    this.tripService.addExpense({
+      ...expense,
+      place_note_id: note.id,
+      trip_id: note.trip_id,
+      category: 'miscellaneous',
+    }).subscribe();
+  }
+
+  updateExpense(expense: UpdateExpense & { id: string }) {
+    this.tripService.updateExpense(expense.id, expense).subscribe();
+  }
+
+  deleteExpense(id: string) {
+    const expense = this.tripService.trip()?.expenses().get(id);
+    if (expense) this.tripService.removeExpense(expense).subscribe();
   }
 }

@@ -46,7 +46,10 @@ export class TripView implements OnInit {
       if (!tripId || !currentTrip || currentTrip.id !== tripId) return;
 
       if (!planId && availableTrips) {
-        const firstPlanId = availableTrips.find(t => t.id === tripId)?.plans[0]?.id;
+        const trip = availableTrips.find(t => t.id === tripId);
+        const firstPlanId = trip?.plans?.reduce((prev, curr) =>
+          curr.priority < prev.priority ? curr : prev
+        ).id;
         if (firstPlanId) {
           untracked(() => {
             console.log('No plan in URL, redirecting to default:', firstPlanId);

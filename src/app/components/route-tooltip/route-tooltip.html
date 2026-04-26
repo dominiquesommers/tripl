@@ -5,13 +5,19 @@
         {{ route.source.name() }} → {{ route.target.name() }}
       </span>
       <div class="route-details">
-        <span class="detail-item">€{{ route.cost().estimated.total }}</span>
+        @if (!authService.isPublicMode()) {
+          <span class="detail-item">€{{ route.cost().estimated.total }}</span>
+        }
         @if (route.duration() !== null) {
-          <span class="detail-separator">•</span>
+          @if (!authService.isPublicMode()) {
+            <span class="detail-separator">•</span>
+          }
           <span class="detail-item">{{ formatDuration(route.duration()) }}</span>
         }
         @if (route.distance() !== null) {
-          <span class="detail-separator">•</span>
+          @if (!authService.isPublicMode || route.duration() !== null) {
+            <span class="detail-separator">•</span>
+          }
           <span class="detail-item">{{ formatDistance(route.distance()) }}</span>
         }
       </div>

@@ -94,9 +94,9 @@ export class MapHandler implements OnInit, OnDestroy {
     effect(() => this.syncDrawer());
   }
 
-  @HostListener('window:visibilitychange')
-  @HostListener('window:beforeunload')
-  onPersistMapState() {
+  @HostListener('window:visibilitychange', ['$event'])
+  @HostListener('window:beforeunload', ['$event'])
+  onPersistMapState(event?: Event) {
     const plan = this.tripService.plan();
     if (!plan) return;
     const hasMoved = plan.lat !== this.center()[0] || plan.lng !== this.center()[1] || plan.zoom !== this.zoom();
@@ -183,7 +183,7 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncTheme() {
-    const offline = this.authService.isOfflineMode();
+    const offline = !this.authService.isOnline();
     const user = this.authService.user();
     const plan = this.tripService.plan();
     const map = this.map();

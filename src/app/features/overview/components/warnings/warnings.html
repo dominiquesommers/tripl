@@ -1,1 +1,27 @@
-<p>warnings works!</p>
+@if (warnings().length > 0) {
+  <div class="warnings-container">
+
+    <div class="warnings-header">
+      <lucide-icon name="triangle-alert" [size]="14" class="header-icon"></lucide-icon>
+      <span class="header-title">{{ warningCount() }} Warning{{ warningCount() !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <div class="warnings-list">
+      @for (w of warnings(); track w.id) {
+        <div class="warning-row" [class]="'severity-' + w.severity">
+          <lucide-icon
+            [name]="w.icon"
+            [size]="14"
+            class="warning-icon"
+            [style.color]="severityColor(w.severity)">
+          </lucide-icon>
+          <div class="warning-body">
+            <span class="warning-title">{{ w.title }}</span>
+            <span class="warning-detail">{{ w.detail }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+}

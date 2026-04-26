@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, computed, effect, inject, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TabBar } from '../../../components/tab-bar/tab-bar';
 import { Itinerary } from '../components/itinerary/itinerary';
@@ -7,6 +7,7 @@ import { Seasonality } from '../components/seasonality/seasonality';
 import { Warnings } from '../components/warnings/warnings';
 import {ActivatedRoute, Router} from '@angular/router';
 import {UiService} from '../../../services/ui';
+import {AuthService} from '../../../services/auth';
 
 @Component({
   selector: 'app-overview-panel',
@@ -24,5 +25,9 @@ import {UiService} from '../../../services/ui';
 })
 export class OverviewPanel {
   uiService = inject(UiService);
-  overviewTabs = ['itinerary', 'seasonality', 'cost', 'warnings'];
+  authService = inject(AuthService);
+  readonly overviewTabs = computed(() => {
+    const baseTabs = ['itinerary', 'seasonality'];
+    return this.authService.isPublicMode() ? baseTabs : [...baseTabs, 'cost', 'warnings'];
+  });
 }

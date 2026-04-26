@@ -23,7 +23,7 @@ export class MapLayerManager {
   }
 
   public updateStyle(user: any, plan: any) {
-    const isOffline = this.authService.isOfflineMode();
+    const isOffline = !this.authService.isOnline();
     const nextStyle = isOffline ? MAP_STYLES.OFFLINE : this.getStyle(user, plan);
     if (this.currentStyle() !== nextStyle) {
       if (nextStyle === MAP_STYLES.OFFLINE) {
