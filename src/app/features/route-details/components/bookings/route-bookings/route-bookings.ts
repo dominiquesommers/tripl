@@ -142,7 +142,7 @@ export class RouteBookings {
     const rect = el.getBoundingClientRect();
     this.popupSvc.open(CostPopup, {
       position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
-      inputs: { expenses: this.bookingExpenses(booking) },
+      inputs: { expenses: computed(() => this.bookingExpenses(booking)) },
       outputs: {
         addExpense: (e: NewExpense) => {
           const trip = this.tripService.trip();
@@ -151,7 +151,7 @@ export class RouteBookings {
             ...e,
             route_booking_id: booking.id,
             trip_id: trip.id,
-            category: 'accommodation',
+            category: 'transport',
           } as NewExpense).subscribe();
         },
         updateExpense: (e: any) =>
