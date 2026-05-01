@@ -20,6 +20,13 @@ export const PATTERN_CONFIG: Record<PatternType, {
 
 const makePatternRe = () => /(url|maps|email|whatsapp)\(([^)]+),\s*([^)]*)\)/g;
 
+const MD_PATTERNS = [
+  { re: /\*\*(.*?)\*\*/g, tag: 'strong', class: 'md-bold' },   // **Bold**
+  { re: /__(.*?)__/g, tag: 'u', class: 'md-underline' },      // __Underline__
+  { re: /~~(.*?)~~/g, tag: 'del', class: 'md-strike' },       // ~~Strike~~
+  { re: /_(.*?)_/g, tag: 'em', class: 'md-italic' },         // _Italic_
+];
+
 @Component({
   selector: 'app-rich-textarea',
   standalone: true,
@@ -119,8 +126,10 @@ export class RichTextarea {
     const shift = event.shiftKey;
 
     // Block formatting shortcuts: Ctrl/Cmd + B, I, U
-    if (meta && !shift && (event.key === 'b' || event.key === 'i' || event.key === 'u')) {
+    if (meta && !shift && (event.key === 'b' || event.key === 'i' || event.key === 'u' || event.key === 'x')) {
       event.preventDefault();
+      const wrapper = event.key === 'b' ? '**' : event.key === 'u' ? '__' : event.key === 'x' ? '~~' : '_';
+      this.wrapSelection(wrapper);
       return;
     }
 
@@ -147,6 +156,23 @@ export class RichTextarea {
     if (meta && shift && event.key === 'M') { event.preventDefault(); this.prepareChipInsertion('maps'); }
     if (meta && shift && event.key === 'E') { event.preventDefault(); this.prepareChipInsertion('email'); }
     if (meta && shift && event.key === 'W') { event.preventDefault(); this.prepareChipInsertion('whatsapp'); }
+  }
+
+  private wrapSelection(symbol: string) {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+
+    const range = sel.getRangeAt(0);
+    const selectedText = range.toString();
+
+    // Check if already wrapped to "unwrap" it (basic toggle)
+    let newText = `${symbol}${selectedText}${symbol}`;
+    if (selectedText.startsWith(symbol) && selectedText.endsWith(symbol)) {
+      newText = selectedText.substring(symbol.length, selectedText.length - symbol.length);
+    }
+
+    range.deleteContents();
+    range.insertNode(document.createTextNode(newText));
   }
 
   // ── Toolbar ───────────────────────────────────────────────
@@ -482,6 +508,31 @@ export class RichTextarea {
 
   renderToEditorHtml(raw: string): string {
     if (!raw) return '';
+
+    // 1. Initial Escape and Newlines
+    let html = this.esc(raw).replace(/\n/g, '<br>');
+
+    // 2. Process Chips (Editor mode with contentEditable internal labels)
+    const chipRe = makePatternRe();
+    html = html.replace(chipRe, (match, type, hidden, label) => {
+      return `<span contenteditable="false" class="chip chip-${type}" data-chip="true" data-chip-type="${type}" data-chip-hidden="${this.escAttr(hidden)}" data-chip-label="${this.escAttr(label)}" data-pattern="${this.escAttr(match)}"><span class="chip-label" contenteditable="true">${this.esc(label)}</span></span>`;
+    });
+
+    // 3. Process Markdown (Visual Syntax Highlighting)
+    MD_PATTERNS.forEach(p => {
+      // We wrap the whole thing in a styled span, but keep symbols visible
+      html = html.replace(p.re, (m, content) => {
+        const sym = m.startsWith('~~') ? '~~' : m.slice(0, 2).replace(/[a-zA-Z0-9 ]/g, m[0]);
+        // Note: This logic assumes 2-char symbols like ** or __. Adjust for 1-char if needed.
+        return `<span class="${p.class}"><span class="md-symbol">${m.slice(0, m.indexOf(content))}</span>${content}<span class="md-symbol">${m.slice(m.indexOf(content) + content.length)}</span></span>`;
+      });
+    });
+
+    return html;
+  }
+
+  renderToEditorHtml2(raw: string): string {
+    if (!raw) return '';
     let html = '';
     let lastIndex = 0;
     const re = makePatternRe();
@@ -508,6 +559,27 @@ export class RichTextarea {
   // ── Render: raw → display HTML (with clickable links) ───────
 
   renderToHtml(raw: string): string {
+    if (!raw) return '';
+
+    // 1. Initial Escape and Newlines
+    let html = this.esc(raw).replace(/\n/g, '<br>');
+
+    // 2. Process Chips (Your existing logic, now applied to the string)
+    const chipRe = makePatternRe();
+    html = html.replace(chipRe, (match, type, hidden, label) => {
+      const href = this.toHref(type as PatternType, hidden);
+      return `<a href="${this.escAttr(href)}" target="_blank" rel="noopener" class="chip chip-${type} chip-link"><span class="chip-label">${this.esc(label)}</span></a>`;
+    });
+
+    // 3. Process Markdown
+    MD_PATTERNS.forEach(p => {
+      html = html.replace(p.re, `<${p.tag} class="${p.class}">$1</${p.tag}>`);
+    });
+
+    return html;
+  }
+
+  renderToHtml2(raw: string): string {
     if (!raw) return '';
     let html = '';
     let lastIndex = 0;

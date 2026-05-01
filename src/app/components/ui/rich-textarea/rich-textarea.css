@@ -164,3 +164,20 @@
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
 }
+
+/* Markdown Syntax Highlighting in Editor */
+.md-symbol {
+  color: #94a3b8; /* Light slate gray */
+  font-weight: normal;
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+.md-bold { font-weight: bold; }
+.md-underline { text-decoration: underline; }
+.md-strike { text-decoration: line-through; color: #94a3b8; }
+.md-italic { font-style: italic; }
+
+/* Display styles for renderToHtml */
+strong.md-bold { font-weight: 700; }
+del.md-strike { color: #ef4444; }
