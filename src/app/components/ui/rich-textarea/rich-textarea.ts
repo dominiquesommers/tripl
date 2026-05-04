@@ -24,7 +24,8 @@ const MD_PATTERNS = [
   { re: /\*\*(.*?)\*\*/g, tag: 'strong', class: 'md-bold' },   // **Bold**
   { re: /__(.*?)__/g, tag: 'u', class: 'md-underline' },      // __Underline__
   { re: /~~(.*?)~~/g, tag: 'del', class: 'md-strike' },       // ~~Strike~~
-  { re: /_(.*?)_/g, tag: 'em', class: 'md-italic' },         // _Italic_
+  // { re: /_(.*?)_/g, tag: 'em', class: 'md-italic' },         // _Italic_
+  { re: /(^|\s|>)_(?=\S)(.*?\S)_($|\s|<)/g, tag: 'em', class: 'md-italic' }, // _Italic_
 ];
 
 @Component({
