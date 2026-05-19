@@ -37,6 +37,7 @@ export class EditableBadge {
   adjust(direction: number) {
     const value = this.value();
     if (value == null) return;
+    console.log(this.step());
     const newValue = Math.max(this.min(), value + (direction * this.step()));
     this.save.emit(newValue);
   }

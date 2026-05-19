@@ -191,7 +191,7 @@ export class RouteBookings {
   // ── Date helpers ──────────────────────────────────────────
   toDate(iso: string | null): Date | null {
     if (!iso) return null;
-    return new Date(iso + 'T00:00:00');
+    return new Date(iso + 'T00:00:00Z');
   }
 
   toDatetime(iso: string | null): Date | null {

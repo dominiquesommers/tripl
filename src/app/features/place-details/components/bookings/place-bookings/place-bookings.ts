@@ -186,7 +186,7 @@ export class PlaceBookings {
   // ── Date helpers ──────────────────────────────────────────
   toDate(iso: string | null): Date | null {
     if (!iso) return null;
-    return new Date(iso + 'T00:00:00');
+    return new Date(iso + 'T00:00:00Z');
   }
 
   toISODate(date: Date): string {
@@ -198,7 +198,7 @@ export class PlaceBookings {
 
   formatDate(iso: string | null): string {
     if (!iso) return '';
-    const d = new Date(iso + 'T00:00:00');
+    const d = new Date(iso + 'T00:00:00Z');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 }

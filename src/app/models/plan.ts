@@ -128,7 +128,7 @@ export class Plan {
 
   update(data: Partial<IPlan>) {
     if ('name' in data) this.name.set(data.name ?? '');
-    if ('start_date' in data) this.start_date.set(data.start_date ? new Date(data.start_date) : null);
+    if ('start_date' in data) this.start_date.set(data.start_date ? new Date(data.start_date + 'Z') : null);
     if ('note' in data) this.note.set(data.note ?? '');
     if ('priority' in data) this.priority.set(data.priority ?? 0);
     // if ('lat' in data) this.lat.set(data.lat ?? 0);

@@ -71,14 +71,14 @@ export class Bookings {
 
   // Total planned nights across all visits to this place
   totalNights = computed(() =>
-    this.place().visits().reduce((sum, v) => sum + v.nights(), 0) || 1
+    this.place().visits().filter(v => v.inItinerary()).reduce((sum, v) => sum + v.nights(), 0) || 1
   );
 
   // Sum of actual costs across all visits (each visit blends
   // real expenses for elapsed nights + estimates for remaining)
   visitsCostActual = computed(() =>
     this.place().visits().reduce(
-      (total, v) => total.add(v.cost().actual),
+      (total, v) => total.add(v.inItinerary() ? v.cost().improvedEstimate : CostBreakdown.empty()),
       CostBreakdown.empty()
     )
   );

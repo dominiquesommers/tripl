@@ -65,7 +65,6 @@ export class CostBadge extends EditableBadge {
 
   toggleActualExistence() {
     const current = this.actualCost();
-    console.log('toggleActualExistence', current);
     if (current === null) {
       this.saveActual.emit(this.estimatedCost());
       setTimeout(() => {
@@ -73,7 +72,6 @@ export class CostBadge extends EditableBadge {
         if (input) { input.focus(); input.select(); }
       }, 0);
     } else {
-      console.log('removeActual')
       this.removeActual.emit();
     }
   }

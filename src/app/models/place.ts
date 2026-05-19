@@ -62,10 +62,15 @@ export class Place {
     );
     const act = new CostBreakdown(
       0, 0, 0,
+      includedActivities.reduce((sum, a) => sum + (a.actual_cost() ?? 0), 0),
+      includedNotes.reduce((sum, n) => sum + (n.actual_cost() ?? 0), 0)
+    );
+    const impEst = new CostBreakdown(
+      0, 0, 0,
       includedActivities.reduce((sum, a) => sum + (a.actual_cost() ?? a.estimated_cost() ?? 0), 0),
       includedNotes.reduce((sum, n) => sum + (n.actual_cost() ?? n.estimated_cost() ?? 0), 0)
     );
-    return new CostComparison(est, act);
+    return new CostComparison(est, act, impEst);
   });
 
   readonly cost = computed<CostComparison>(() => {

@@ -76,9 +76,7 @@ export class Route {
   readonly cost = computed<CostComparison>(() => {
     if (!this.inItinerary()) return CostComparison.empty();
     const estBase = CostBreakdown.empty();
-    const actBase = estBase.clone();
-    // TODO add actual costs.
-    let total = new CostComparison(estBase, actBase);
+    let total = new CostComparison(estBase, estBase.clone(), estBase.clone());
     this.traverses().forEach(t => {
       total = total.add(t.cost_());
     });

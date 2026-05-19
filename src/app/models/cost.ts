@@ -53,13 +53,15 @@ export class CostBreakdown implements ICostBreakdown {
 export class CostComparison {
   constructor(
     public estimated = CostBreakdown.empty(),
-    public actual = CostBreakdown.empty()
+    public actual = CostBreakdown.empty(),
+    public improvedEstimate = CostBreakdown.empty()
   ) {}
 
   add(other: CostComparison): CostComparison {
     return new CostComparison(
       this.estimated.add(other.estimated),
-      this.actual.add(other.actual)
+      this.actual.add(other.actual),
+      this.improvedEstimate.add(other.improvedEstimate)
     );
   }
 

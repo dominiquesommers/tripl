@@ -111,9 +111,15 @@ export class Country implements ICountry {
       0, 0, 0, 0,
       this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.estimated_cost() ?? 0), 0)
     );
-    const act = est.clone();
-    // TODO add actual costs.
-    return new CostComparison(est, act);
+    const act = new CostBreakdown(
+      0, 0, 0, 0,
+      this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.actual_cost() ?? 0), 0)
+    );
+    const impEst = new CostBreakdown(
+      0, 0, 0, 0,
+      this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.actual_cost() ?? n.estimated_cost() ?? 0), 0)
+    );
+    return new CostComparison(est, act, impEst);
   });
 
   readonly cost = computed<CostComparison>(() => {

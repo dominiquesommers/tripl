@@ -27,6 +27,75 @@ export class Cost {
   readonly isCumulative = signal<boolean>(true);
   readonly isBarCumulative = signal<boolean>(false);
 
+  public total = computed<CostComparison>(() => {
+    const trip = this.tripService.trip();
+    const plan = this.tripService.plan();
+    if (!trip || !plan) return CostComparison.empty();
+    const visits = plan.itinerary();
+    const visitedPlaces = new Set<Place>();
+    const visitedCountries = new Set<Country>();
+    let current = CostComparison.empty();
+    let total = CostComparison.empty();
+    visits.forEach((visit) => {
+      if (!visitedPlaces.has(visit.place)) {
+        visitedPlaces.add(visit.place);
+        current = current.add(visit.place.oneTimeCost());
+      }
+      if (!visitedCountries.has(visit.place.country)) {
+        visitedCountries.add(visit.place.country);
+        current = current.add(visit.place.country.oneTimeCost());
+      }
+      current = current.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
+      total = total.add(current);
+      const traverse = visit.nextTraverse();
+      if (traverse) {
+        current = traverse.cost_();
+      }
+    });
+    return total;
+  });
+
+  public total2 = computed<CostComparison>(() => {
+    const trip = this.tripService.trip();
+    const plan = this.tripService.plan();
+    if (!trip || !plan) return CostComparison.empty();
+    return plan.cost();
+  });
+
+
+  public toDate = computed<CostComparison>(() => {
+    const trip = this.tripService.trip();
+    const plan = this.tripService.plan();
+    if (!trip || !plan) return CostComparison.empty();
+    const visits = plan.itinerary();
+    const visitedPlaces = new Set<Place>();
+    const visitedCountries = new Set<Country>();
+    let current = CostComparison.empty();
+    let total = CostComparison.empty();
+    const today = new Date();
+    visits.forEach((visit) => {
+      if (visit.exitDate()! <= today) {
+        if (!visitedPlaces.has(visit.place)) {
+          visitedPlaces.add(visit.place);
+          current = current.add(visit.place.oneTimeCost());
+        }
+        if (!visitedCountries.has(visit.place.country)) {
+          visitedCountries.add(visit.place.country);
+          current = current.add(visit.place.country.oneTimeCost());
+        }
+      }
+      current = current.add(visit.cost());
+      total = total.add(current);
+      const traverse = visit.nextTraverse();
+      if (traverse && traverse.exitDate()! <= today) {
+        current = traverse.cost_();
+      } else {
+        current = CostComparison.empty();
+      }
+    });
+    return total;
+  });
+
   readonly lineChartData = computed<ChartConfiguration['data']>(() => {
     const trip = this.tripService.trip();
     const plan = this.tripService.plan();
@@ -38,6 +107,7 @@ export class Cost {
     const labels: Date[] = [];
     const estValues: number[] = [];
     const actValues: number[] = [];
+    const impEstValues: number[] = [];
     const savValues: number[] = [];
     const meta: { name: string, flag: string }[] = [];
 
@@ -52,6 +122,9 @@ export class Cost {
     visits.forEach((visit) => {
       if (!visitedPlaces.has(visit.place)) {
         visitedPlaces.add(visit.place);
+        if (visit.place.name() === 'Sydney') {
+          console.log('Sydney', visit.place.oneTimeCost());
+        }
         cur = cur.add(visit.place.oneTimeCost());
         // costOverTime = costOverTime.add(visit.place.oneTimeCost());
       }
@@ -66,6 +139,7 @@ export class Cost {
       labels.push(new Date(currentDate));
       estValues.push(cur2.estimated.total);
       actValues.push(cur2.actual.total);
+      impEstValues.push(cur2.improvedEstimate.total);
       savValues.push(70000 - cur2.actual.total);
 
       meta.push({name: visit.place.name(), flag: COUNTRY_FLAGS[visit.place.country.name] || '🏳️'});
@@ -76,6 +150,9 @@ export class Cost {
       const traverse = visit.nextTraverse();
       if (traverse) {
         cur = traverse.cost_(); // Could separate this over the nights, now all paid on departure.
+        if (traverse.route.target.name() === 'Sydney') {
+          console.log('melsyd', traverse.cost_());
+        }
         // costOverTime = costOverTime.add(traverse.cost_());  // Could separate this over the nights, now all paid on departure.
       }
     });
@@ -107,6 +184,18 @@ export class Cost {
           borderWidth: 2,
           meta: meta
         },
+        {
+          data: impEstValues,
+          label: 'ImprovedEstimate',
+          stepped: isCum ? false : 'middle',
+          borderColor: '#b91097',
+          backgroundColor: 'rgba(84,16,185,0.1)',
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          borderWidth: 2,
+          meta: meta
+        },
         // {
         //   data: savValues,
         //   label: 'Savings',
@@ -130,6 +219,7 @@ export class Cost {
     const labels = countries.map(c => c.name);
     const estAcc: number[] = [], estFood: number[] = [], estTrans: number[] = [], estMisc: number[] = [];
     const actAcc: number[] = [], actFood: number[] = [], actTrans: number[] = [], actMisc: number[] = [];
+    const impEstAcc: number[] = [], impEstFood: number[] = [], impEstTrans: number[] = [], impEstMisc: number[] = [];
 
     countries.forEach(country => {
       const totalNights = country.places().reduce((placeAcc, place) => {
@@ -141,6 +231,7 @@ export class Cost {
       const nights = isCum ? 1 : (totalNights || 1);
       const est = country.cost().estimated;
       const act = country.cost().actual;
+      const impEst = country.cost().improvedEstimate;
       estAcc.push(Math.round(est.accommodation / nights));
       estFood.push(Math.round(est.food / nights));
       estTrans.push(Math.round(est.transport / nights));
@@ -149,6 +240,10 @@ export class Cost {
       actFood.push(Math.round(act.food / nights));
       actTrans.push(Math.round(act.transport / nights));
       actMisc.push(Math.round(act.miscellaneous / nights));
+      impEstAcc.push(Math.round(impEst.accommodation / nights));
+      impEstFood.push(Math.round(impEst.food / nights));
+      impEstTrans.push(Math.round(impEst.transport / nights));
+      impEstMisc.push(Math.round(impEst.miscellaneous / nights));
     });
 
     return {
@@ -164,7 +259,13 @@ export class Cost {
         { data: actAcc, label: 'Act. Acc', backgroundColor: '#3498DB', stack: 'act' },
         { data: actFood, label: 'Act. Food', backgroundColor: '#2ECC71', stack: 'act' },
         { data: actTrans, label: 'Act. Trans', backgroundColor: '#8E44AD', stack: 'act' },
-        { data: actMisc, label: 'Act. Misc', backgroundColor: '#F39C12', stack: 'act' }
+        { data: actMisc, label: 'Act. Misc', backgroundColor: '#F39C12', stack: 'act' },
+
+        // IMP EST STACK (Vibrant/Solid colors)
+        { data: impEstAcc, label: 'Imp. Est. Acc', backgroundColor: '#85C1E9', stack: 'imp' },
+        { data: impEstFood, label: 'Imp. Est. Food', backgroundColor: '#82E0AA', stack: 'imp' },
+        { data: impEstTrans, label: 'Imp. Est. Trans', backgroundColor: '#BB8FCE', stack: 'imp' },
+        { data: impEstMisc, label: 'Imp. Est. Misc', backgroundColor: '#F8C471', stack: 'imp' },
       ]
     };
 
@@ -308,12 +409,4 @@ export class Cost {
       }
     });
   }
-
-  // private countryFlags: Record<string, string> = {
-  //   "Australia": "🇦🇺", "Bolivia": "🇧🇴", "Chile": "🇨🇱", "Colombia": "🇨🇴",
-  //   "Costa Rica": "🇨🇷", "Ecuador": "🇪🇨", "Indonesia": "🇮🇩", "Laos": "🇱🇦",
-  //   "Netherlands": "🇳🇱", "Nicaragua": "🇳🇮", "Panama": "🇵🇦", "Peru": "🇵🇪",
-  //   "Philippines": "🇵🇭", "Singapore": "🇸🇬", "Thailand": "🇹🇭", "Vietnam": "🇻🇳",
-  //   "Argentina": "🇦🇷", "Malaysia": "🇲🇾"
-  // };
 }

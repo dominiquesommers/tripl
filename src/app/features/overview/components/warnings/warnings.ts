@@ -47,7 +47,7 @@ export class Warnings {
     // ── 1. Cancellation deadline approaching ──────────────
     for (const b of placeBookings) {
       if (!b.cancel_before()) continue;
-      const cancelDate = new Date(b.cancel_before()! + 'T00:00:00');
+      const cancelDate = new Date(b.cancel_before()! + 'T00:00:00Z');
       const daysUntil  = this.daysBetween(today, cancelDate);
       if (daysUntil < 0) continue; // already passed
       if (daysUntil <= DEADLINE_WARN_DAYS) {
@@ -65,7 +65,7 @@ export class Warnings {
     // ── 2. Payment due approaching ─────────────────────────
     for (const b of placeBookings) {
       if (!b.pay_by()) continue;
-      const payDate   = new Date(b.pay_by()! + 'T00:00:00');
+      const payDate   = new Date(b.pay_by()! + 'T00:00:00Z');
       const daysUntil = this.daysBetween(today, payDate);
       if (daysUntil < 0) continue;
       if (daysUntil > DEADLINE_WARN_DAYS) continue;
@@ -93,7 +93,7 @@ export class Warnings {
       if (!b.final_price() || b.is_tentative()) continue;
       if (!b.check_in()) continue;
 
-      const checkIn   = new Date(b.check_in()! + 'T00:00:00');
+      const checkIn   = new Date(b.check_in()! + 'T00:00:00Z');
       const daysUntil = this.daysBetween(today, checkIn);
       if (daysUntil < 0 || daysUntil > UPCOMING_DAYS) continue;
 
@@ -135,7 +135,7 @@ export class Warnings {
     // ── 5. Tentative booking — cancel deadline approaching ─
     const tentativeBookings = placeBookings.filter(b => b.is_tentative() && b.cancel_before());
     for (const b of tentativeBookings) {
-      const cancelDate = new Date(b.cancel_before()! + 'T00:00:00');
+      const cancelDate = new Date(b.cancel_before()! + 'T00:00:00Z');
       const daysUntil  = this.daysBetween(today, cancelDate);
       if (daysUntil < 0 || daysUntil > DEADLINE_WARN_DAYS) continue;
       const place = places.get(b.place_id);
@@ -166,8 +166,8 @@ export class Warnings {
         const firstEntry = new Date(Math.min(...entryDates.map(d => d.getTime())));
         const lastExit   = new Date(Math.max(...exitDates.map(d => d.getTime())));
 
-        const checkIn  = new Date(b.check_in()!  + 'T00:00:00');
-        const checkOut = new Date(b.check_out()! + 'T00:00:00');
+        const checkIn  = new Date(b.check_in()!  + 'T00:00:00Z');
+        const checkOut = new Date(b.check_out()! + 'T00:00:00Z');
 
         // Booking starts before first visit or ends after last visit
         const mismatch = checkIn < firstEntry || checkOut > lastExit;
@@ -193,10 +193,10 @@ export class Warnings {
   // ── Helpers ───────────────────────────────────────────────
 
   private bookingsOverlap(a: PlaceBooking, b: PlaceBooking): boolean {
-    const aIn  = new Date(a.check_in()!  + 'T00:00:00');
-    const aOut = new Date(a.check_out()! + 'T00:00:00');
-    const bIn  = new Date(b.check_in()!  + 'T00:00:00');
-    const bOut = new Date(b.check_out()! + 'T00:00:00');
+    const aIn  = new Date(a.check_in()!  + 'T00:00:00Z');
+    const aOut = new Date(a.check_out()! + 'T00:00:00Z');
+    const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
+    const bOut = new Date(b.check_out()! + 'T00:00:00Z');
     return aIn < bOut && aOut > bIn;
   }
 
@@ -205,7 +205,7 @@ export class Warnings {
   }
 
   private formatDate(iso: string): string {
-    const d = new Date(iso + 'T00:00:00');
+    const d = new Date(iso + 'T00:00:00Z');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 

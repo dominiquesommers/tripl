@@ -78,7 +78,7 @@ export class CostPopup {
 
   toDate(iso: string | null): Date | null {
     if (!iso) return null;
-    return new Date(iso + 'T00:00:00');
+    return new Date(iso + 'T00:00:00Z');
   }
 
   toISODate(date: Date): string {

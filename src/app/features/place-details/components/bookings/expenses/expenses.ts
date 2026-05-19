@@ -133,7 +133,7 @@ export class Expenses {
 
   // Format: Mon 03-04-'26
   formatDate(isoDate: string): string {
-    const d = new Date(isoDate + 'T00:00:00');
+    const d = new Date(isoDate + 'T00:00:00Z');
     const day  = d.toLocaleDateString('en-US', { weekday: 'short' });
     const dd   = String(d.getDate()).padStart(2, '0');
     const mm   = String(d.getMonth() + 1).padStart(2, '0');
@@ -142,7 +142,7 @@ export class Expenses {
   }
 
   toDate(iso: string): Date {
-    return new Date(iso + 'T00:00:00');
+    return new Date(iso + 'T00:00:00Z');
   }
 
   toISODate(date: Date): string {

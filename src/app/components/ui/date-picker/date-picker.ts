@@ -144,19 +144,19 @@ export class DatePicker {
 
   onPickerClosed() {
     console.log('onPickerClosed');
-    setTimeout(() => {
-      const s = (this.mode() === 'date-range') ? this.start() : this.departure();
-      const e = (this.mode() === 'date-range') ? this.end() : this.arrival();
-      // If we have a start but the end was never picked (clicked outside)
-      if (s && !e) {
-        console.log('fix!')
-        if (this.mode() === 'date-range') {
-          this.endChange.emit(new Date(s));
-        } else if (this.mode() === 'datetime-range') {
-          this.arrivalChange.emit(new Date(s));
-        }
-      }
-    }, 100);
+    // setTimeout(() => {
+    //   const s = (this.mode() === 'date-range') ? this.start() : this.departure();
+    //   const e = (this.mode() === 'date-range') ? this.end() : this.arrival();
+    //   // TODO If we have a start but the end was never picked (clicked outside)
+    //   // if (s && !e) {
+    //   //   console.log('fix!')
+    //   //   if (this.mode() === 'date-range') {
+    //   //     this.endChange.emit(new Date(s));
+    //   //   } else if (this.mode() === 'datetime-range') {
+    //   //     this.arrivalChange.emit(new Date(s));
+    //   //   }
+    //   // }
+    // }, 200);
   }
 
   displayLabel = computed((): string | null => {
@@ -235,6 +235,7 @@ export class DatePicker {
   }
 
   isSameDay(d1: Date | null, d2: Date | null): boolean {
+    // return false;
     if (!d1 || !d2) return false;
     return d1.getFullYear() === d2.getFullYear() &&
            d1.getMonth() === d2.getMonth() &&

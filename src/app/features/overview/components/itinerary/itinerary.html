@@ -1,7 +1,7 @@
 <div class="itinerary-container">
   @for (visit of tripService.plan()?.itinerary() ?? []; track visit.id; let last = $last, first = $first) {
 
-    <div class="itinerary-row visit-row">
+    <div class="itinerary-row visit-row" #visitRow>
       <div class="spine-column">
 
         <div class="spine-line top-half"

@@ -88,8 +88,17 @@ export class Traverse {
     const r = this.route;
     const nights = r.nights() || 0; // The nights spent ON this traverse
     const baseEst = r.estimated_cost() ?? 0;
+    const bookings = this.overlappingBookings();
+    if (this.route.target.name() === 'Sydney') {
+      console.log(bookings);
+    }
+    const actualPrice = (bookings.length === 1) ? bookings[0].final_price()! : 0;
+    if (bookings.length > 1) {
+      console.warn(`${this.id} ${this.route.source.name()} (${this.entryDate()}) -> ${this.route.source.name()} (${this.exitDate()}) double route booking, check.`);
+    }
 
     let est = CostBreakdown.empty();
+    let act = CostBreakdown.empty();
 
     // TODO check if it is possible to have non-driving traverses while renting (then both the rentalSource and the current traverse should be counted.)
     // CASE 1: Within a Rental Period
@@ -99,20 +108,42 @@ export class Traverse {
       const dailyRate = rentalSource.route.estimated_cost() ?? 0;
       const coveredVisitNights = (rentalSource.id === this.id) ? 1 : (this.source.nights() || 0);
       const total = dailyRate * (coveredVisitNights + nights); // Since we are already renting before entering the source visit
+      let actualTotal = 0;
+      // if (this.route.type() === 'driving' && this.route.source.country.name === 'Australia') {
+      //   console.log(bookings);
+      // }
+      if (bookings.length === 1) {
+        // TODO remove time info from strings.
+        const numberOfDays = Math.max(0, Math.floor((new Date(bookings[0].arrival_at()!).getTime() - new Date(bookings[0].departure_at()!).getTime()) / (1000 * 60 * 60 * 24))) + 1;
+        const actualDailyRate = actualPrice! / numberOfDays;
+        actualTotal = actualDailyRate * (coveredVisitNights + nights);
+        // if (this.route.type() === 'driving' && this.route.source.country.name === 'Australia') {
+        //   console.log(actualDailyRate, actualTotal);
+        // }
+      }
+
       if (rentalSource.includes_accommodation()) {
         est.transport = total * 0.5;
         est.accommodation = total * 0.5;
+        act.transport = actualTotal * 0.5;
+        act.accommodation = actualTotal * 0.5;
       } else {
         est.transport = total;
+        act.transport = actualTotal;
       }
+    } else if (r.type() === 'driving') {
+      console.warn(`${this.id} ${this.route.source.name()} (${this.entryDate()}) -> ${this.route.source.name()} (${this.exitDate()}) does not have an active rental source.`);
     }
+
     if (r.type() !== 'driving') {
       // CASE 2: Not a rental, but has overnight stays (Boat/Sleeper/Overnight flight)
       if (nights > 0) {
         if (r.type() === 'boat') {
           const q = baseEst * 0.25;
+          const actQ = actualPrice * 0.25;
           // Split 25% each to Transport, Accommodation, Food, Activities
           est = new CostBreakdown(q, q, q, q, 0);
+          act = new CostBreakdown(actQ, actQ, actQ, actQ, 0);
         } else {
           // "Sleeper Train/Overnight Flight" style: 40% Acc, 40% Trans, 20% Food
           est = new CostBreakdown(
@@ -121,14 +152,37 @@ export class Traverse {
             baseEst * 0.2,
             0, 0
           );
+          act = new CostBreakdown(
+            actualPrice * 0.4,
+            actualPrice * 0.4,
+            actualPrice * 0.2,
+            0, 0
+          );
         }
       } else {
-        est.transport = r.estimated_cost() ?? 0;
+        est.transport += r.estimated_cost() ?? 0;
+        if (actualPrice < 1500) {
+          act.transport += actualPrice ?? 0;
+        }
+        // act.transport += actualPrice ?? 0; // TODO check this for multiple overlapping bookings, like boat traverse during rental period.
       }
     }
 
-    // console.log(this.id, est.total);
-    return new CostComparison(est, est.clone());
+    return new CostComparison(est, act, (bookings.length === 1) ? act : est);
+  });
+
+  readonly overlappingBookings = computed(() => {
+    const entry = this.entryDate();
+    const exit  = this.exitDate();
+    if (!entry || !exit) return [];
+    const rentalSource = this.activeRentalSource();
+    return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
+        .filter(b => {
+          if (b.route_id !== (rentalSource ?? this).route_id || !b.departure_at() || !b.arrival_at() || !b.final_price()) return false;
+          const dep_date = new Date(b.departure_at()!.split(' ')[0] + 'T00:00:00Z');
+          const arr_date = new Date(b.arrival_at()!.split(' ')[0] + 'T00:00:00Z');
+          return dep_date <= exit && arr_date >= entry;
+        });
   });
 
   constructor(

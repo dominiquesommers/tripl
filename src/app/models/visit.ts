@@ -170,34 +170,47 @@ export class Visit {
       shouldChargeAcc ? n * (p.accommodation_cost() ?? 0) : 0,
       0, n * (p.food_cost() ?? 0), 0, n * (p.miscellaneous_cost() ?? 0));
 
-    if (!entry || !exit) return new CostComparison(est, est.clone());
-    if (!this.tripService.trip()) return new CostComparison(est, est.clone());
+    if (!entry || !exit) return new CostComparison(est, est.clone(), est.clone());
+    if (!this.tripService.trip()) return new CostComparison(est, est.clone(), est.clone());
 
     // ── Accommodation ─────────────────────────────────────────────────────
     let actualAccommodation: number;
+    let impEstAccommodation: number;
     if (!shouldChargeAcc) {
       actualAccommodation = 0;
+      impEstAccommodation = 0;
     } else if (!this.overlappingBookings().length) {
-      actualAccommodation = est.accommodation;
+      actualAccommodation = 0;
+      impEstAccommodation = est.accommodation;
     } else {
       actualAccommodation = this.overlappingBookings().reduce((sum, b) => {
-        const bIn  = new Date(b.check_in()!  + 'T00:00:00');
-        const bOut = new Date(b.check_out()! + 'T00:00:00');
+        const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
+        const bOut = new Date(b.check_out()! + 'T00:00:00Z');
         const overlapNights = this.daysBetween(this.clampDate(bIn, entry, exit), this.clampDate(bOut, entry, exit));
         const bookingNights = this.daysBetween(bIn, bOut);
         if (!bookingNights) return sum;
-        const nightlyRate = (b.final_price()! * (1 - b.food_pct() / 100)) / bookingNights;
+        const nightlyRate = (b.final_price()! * ((100 - b.food_pct()) / 100)) / bookingNights;
+        if (this.place.name() === 'Singapore') {
+          console.log(b.final_price(), b.food_pct());
+          console.log(overlapNights, bookingNights);
+          console.log(nightlyRate);
+        }
         return sum + overlapNights * nightlyRate;
       }, 0);
+      impEstAccommodation = actualAccommodation;
     }
 
     // ── Food ──────────────────────────────────────────────────────────────
     const foodFromExpenses = this.foodExpenses().reduce((sum, e) => sum + e.amount(), 0);
+    if (this.place.name() === 'Singapore') {
+      console.log(this.foodExpenses());
+      console.log('foodFromExpenses', foodFromExpenses);
+    }
     const foodFromBookings = this.overlappingBookings()
       .filter(b => b.food_pct() > 0)
       .reduce((sum, b) => {
-        const bIn  = new Date(b.check_in()!  + 'T00:00:00');
-        const bOut = new Date(b.check_out()! + 'T00:00:00');
+        const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
+        const bOut = new Date(b.check_out()! + 'T00:00:00Z');
         const overlapNights = this.daysBetween(this.clampDate(bIn, entry, exit), this.clampDate(bOut, entry, exit));
         const bookingNights = this.daysBetween(bIn, bOut);
         if (!bookingNights) return sum;
@@ -206,13 +219,21 @@ export class Visit {
     const elapsed   = this.nightsElapsed();
     const remaining = n - elapsed;
     const dailyFoodEst = p.food_cost() ?? 0;
-    const actualFood = foodFromExpenses + foodFromBookings + remaining * dailyFoodEst;
+    const actualFood = foodFromExpenses + foodFromBookings;
+    const impEstFood = actualFood + remaining * dailyFoodEst;
     const actualMisc = this.miscExpenses()
-      .reduce((sum, e) => sum + e.amount(), 0)
-      + remaining * (p.miscellaneous_cost() ?? 0);
+      .reduce((sum, e) => sum + e.amount(), 0);
+    const impEstMisc = actualMisc + + remaining * (p.miscellaneous_cost() ?? 0);
 
     const act = new CostBreakdown(actualAccommodation, 0, actualFood, 0, actualMisc);
-    return new CostComparison(est, act);
+    const impEst = new CostBreakdown(impEstAccommodation, 0, impEstFood, 0, impEstMisc);
+    if (this.place.name() === 'Sydney') {
+      console.log('Sydney');
+      console.log(est);
+      console.log(act);
+      console.log(impEst);
+    }
+    return new CostComparison(est, act, impEst);
   });
 
   readonly foodExpenses = computed(() => {
@@ -222,8 +243,8 @@ export class Visit {
     return Array.from(this.tripService.trip()?.expenses().values() ?? [])
       .filter(e => {
         if (e.place_id !== this.place_id || e.category() !== 'food') return false;
-        const d = new Date(e.date() + 'T00:00:00');
-        return d >= entry && d < exit;
+        const d = new Date(e.date() + 'T00:00:00Z');
+        return d >= entry && d <= exit;
       });
   });
 
@@ -234,8 +255,8 @@ export class Visit {
     return Array.from(this.tripService.trip()?.expenses().values() ?? [])
       .filter(e => {
         if (e.place_id !== this.place_id || e.category() !== 'miscellaneous') return false;
-        const d = new Date(e.date() + 'T00:00:00');
-        return d >= entry && d < exit;
+        const d = new Date(e.date() + 'T00:00:00Z');
+        return d >= entry && d <= exit;
       });
   });
 
@@ -246,8 +267,8 @@ export class Visit {
     return Array.from(this.tripService.trip()?.placeBookings().values() ?? [])
       .filter(b => {
         if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
-        const bIn  = new Date(b.check_in()!  + 'T00:00:00');
-        const bOut = new Date(b.check_out()! + 'T00:00:00');
+        const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
+        const bOut = new Date(b.check_out()! + 'T00:00:00Z');
         return bIn < exit && bOut > entry;
       });
   });
@@ -280,9 +301,7 @@ export class Visit {
   }
 
   private daysBetween(start: Date, end: Date): number {
-    return Math.max(0, Math.floor(
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-    ));
+    return Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
   }
 
   private clampDate(date: Date, min: Date, max: Date): Date {
@@ -292,7 +311,7 @@ export class Visit {
   }
 
   private expenseDateToDate(dateStr: string): Date {
-    return new Date(dateStr + 'T00:00:00');
+    return new Date(dateStr + 'T00:00:00Z');
   }
 
   private formatDate(date: Date): string {
