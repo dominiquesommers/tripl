@@ -37,7 +37,7 @@ export class Plan {
   lat!: number;
   zoom!: number;
   name = signal<string>('');
-  start_date = signal<Date | null>(null);
+  start_date = signal<string | null>(null);
   note = signal<string>('');
   priority = signal<number>(0);
   // lng = signal<number>(0);
@@ -54,8 +54,8 @@ export class Plan {
   readonly traversesArray = computed(() => Array.from(this.traverses().values()));
 
   readonly startDateString = computed(() => {
-    const date = this.start_date();
-    return date ? date.toLocaleDateString('nl-NL') : '';
+    if (!this.start_date()) return '';
+    return new Date(this.start_date()!.split(' ')[0] + 'T00:00:00Z').toLocaleDateString('nl-NL');
   });
 
   readonly itinerary = computed(() => {
@@ -128,7 +128,8 @@ export class Plan {
 
   update(data: Partial<IPlan>) {
     if ('name' in data) this.name.set(data.name ?? '');
-    if ('start_date' in data) this.start_date.set(data.start_date ? new Date(data.start_date + 'Z') : null);
+    if ('start_date' in data) this.start_date.set(data.start_date ?? null)
+    // if ('start_date' in data) this.start_date.set(data.start_date ? new Date(data.start_date) : null);
     if ('note' in data) this.note.set(data.note ?? '');
     if ('priority' in data) this.priority.set(data.priority ?? 0);
     // if ('lat' in data) this.lat.set(data.lat ?? 0);
@@ -184,7 +185,7 @@ export class Plan {
       id: this.id,
       trip_id: this.trip_id,
       name: this.name(),
-      start_date: this.start_date()?.toISOString().split('T')[0] ?? null,
+      start_date: this.start_date()?.split('T')[0], //?.toISOString().split('T')[0] ?? null,
       note: this.note(),
       priority: this.priority(),
       lat: this.lat,

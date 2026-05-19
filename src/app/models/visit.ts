@@ -62,7 +62,7 @@ export class Visit {
   readonly entryDate = computed(() => {
     const plan = this.tripService.plan();
     if (!plan) return null;
-    const startDate = plan.start_date();
+    const startDate = new Date(plan.start_date()!.split('T')[0] + 'T00:00:00Z');
     if (!startDate) return null;
     const itinerary = plan.itinerary();
     let totalNights = 0;
