@@ -136,7 +136,6 @@ export class Cost {
       cur = cur.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
       cur2 = isCum ? cur2.add(cur) : cur;
       // costOverTime = costOverTime.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
-      labels.push(new Date(currentDate));
       estValues.push(cur2.estimated.total);
       actValues.push(cur2.actual.total);
       impEstValues.push(cur2.improvedEstimate.total);
@@ -146,15 +145,16 @@ export class Cost {
       // meta.push({name: visit.place.name(), flag: this.countryFlags[visit.place.country.name] || '🏳️'});
       currentDate.setDate(currentDate.getDate() + visit.nights());
 
-
       const traverse = visit.nextTraverse();
       if (traverse) {
         cur = traverse.cost_(); // Could separate this over the nights, now all paid on departure.
+        currentDate.setDate(currentDate.getDate() + traverse.route.nights());
         if (traverse.route.target.name() === 'Sydney') {
           console.log('melsyd', traverse.cost_());
         }
         // costOverTime = costOverTime.add(traverse.cost_());  // Could separate this over the nights, now all paid on departure.
       }
+      labels.push(new Date(currentDate));
     });
 
     return {
