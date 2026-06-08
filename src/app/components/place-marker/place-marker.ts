@@ -53,8 +53,7 @@ export class PlaceMarker {
   tripService = inject(TripService);
 
   getBookingStatus(visit: Visit) {
-    // TODO implement.
-    return 'paid';
+    return visit.bookingStatus();
   }
 
   async handleVisitClick(event: MouseEvent, visit: Visit) {

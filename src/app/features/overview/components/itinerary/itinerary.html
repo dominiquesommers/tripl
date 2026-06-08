@@ -14,7 +14,7 @@
              [class.hidden]="last"></div>
 
         <div class="spine-node-anchor">
-          <div class="node-small"></div>
+          <div class="status-indicator" [class]="getBookingStatus(visit)"></div>
         </div>
       </div>
 
@@ -55,6 +55,9 @@
                  [style.background-color]="getRouteColor(traverse.route.type())"
                  (click)="onRouteClick($event, traverse.route)">
               <lucide-icon [name]="getRouteIcon(traverse.route.type())" [size]="16"></lucide-icon>
+              @if (traverse.inItinerary()) {
+                <div class="status-indicator" [class]="getBookingStatus(traverse)"></div>
+              }
             </div>
           </div>
         </div>

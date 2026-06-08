@@ -71,7 +71,6 @@ export class Itinerary implements AfterViewInit {
     }
   }
 
-
   getRouteIcon(type: string | undefined | null): string {
     if (!type) return 'milestone';
     return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
@@ -81,6 +80,10 @@ export class Itinerary implements AfterViewInit {
     if (!type) return ROUTE_COLORS.undefined;
     // @ts-ignore
     return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+  }
+
+  getBookingStatus(obj: any): string {
+    return obj.bookingStatus();
   }
 
   /**

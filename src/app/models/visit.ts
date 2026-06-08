@@ -264,13 +264,35 @@ export class Visit {
     const entry = this.entryDate();
     const exit  = this.exitDate();
     if (!entry || !exit) return [];
-    return Array.from(this.tripService.trip()?.placeBookings().values() ?? [])
+    // const routeBookings = Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
+    //   .filter(b => {
+    //     if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
+    //     const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
+    //     const bOut = new Date(b.check_out()! + 'T00:00:00Z');
+    //     return bIn < exit && bOut > entry;
+    // });
+    const placeBookings = Array.from(this.tripService.trip()?.placeBookings().values() ?? [])
       .filter(b => {
         if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
         const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
         const bOut = new Date(b.check_out()! + 'T00:00:00Z');
         return bIn < exit && bOut > entry;
       });
+    return [...placeBookings];
+  });
+
+  readonly hasBookings = computed(() => this.overlappingBookings().length > 0);
+
+  readonly allBookingsPaid = computed(() => {
+    const bookings = this.overlappingBookings();
+    return bookings.length > 0 && bookings.every(b => b.isPaid());
+  });
+
+  readonly bookingStatus = computed(() => {
+    if (!this.inItinerary()) return 'not-in-itinerary';
+    if (this.nights() === 0) return 'paid';
+    if (!this.hasBookings()) return 'unbooked';
+    return this.allBookingsPaid() ? 'paid' : 'pending';
   });
 
   readonly nightsElapsed = computed(() => {

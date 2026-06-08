@@ -185,6 +185,20 @@ export class Traverse {
         });
   });
 
+  readonly hasBookings = computed(() => this.overlappingBookings().length > 0);
+
+  readonly allBookingsPaid = computed(() => {
+    const bookings = this.overlappingBookings();
+    return bookings.length > 0 && bookings.every(b => b.isPaid());
+  });
+
+  readonly bookingStatus = computed(() => {
+    if (this.cost_().estimated.total === 0) return 'paid';
+    if (!this.inItinerary()) return 'not-in-itinerary';
+    if (!this.hasBookings()) return 'unbooked';
+    return this.allBookingsPaid() ? 'paid' : 'pending';
+  });
+
   constructor(
     data: ITraverse,
     private tripService: TripService
