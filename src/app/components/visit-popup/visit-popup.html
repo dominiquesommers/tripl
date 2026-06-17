@@ -243,7 +243,7 @@
                    (mouseleave)="clearVisitHighlight()">
                     <div class="rent-until-wrapper" style="display: flex; align-items: center; gap: 8px; flex-grow: 1;">
                       <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting until: {{ rentingUntilVisit()?.place?.name() || "-"}}</span>
-                      <div class="bed-check icon-btn" [class.active]="leg.traverse.includes_accommodation()"
+                      <div class="bed-check icon-btn" [class.active]="leg.traverse.activeRentalSource()?.includes_accommodation()"
                            (click)="authService.canEdit() && $event.stopPropagation(); authService.canEdit() && toggleAccommodation(leg.traverse)">
                         <lucide-icon name="bed" [size]="16"></lucide-icon>
                       </div>
@@ -278,7 +278,7 @@
                    (mouseenter)="highlightVisit(rentingUntilVisit())"
                    (mouseleave)="clearVisitHighlight()">
                     <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting until: {{ rentingUntilVisit()?.place?.name() || "-" }}</span>
-                    <div class="bed-check icon-btn no-interaction" [class.active]="leg.traverse.includes_accommodation()">
+                    <div class="bed-check icon-btn no-interaction" [class.active]="leg.traverse.activeRentalSource()?.includes_accommodation()">
                       <lucide-icon name="bed" [size]="16"></lucide-icon>
                     </div>
                   </div>

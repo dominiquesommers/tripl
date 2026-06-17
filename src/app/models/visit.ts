@@ -291,6 +291,10 @@ export class Visit {
   readonly bookingStatus = computed(() => {
     if (!this.inItinerary()) return 'not-in-itinerary';
     if (this.nights() === 0) return 'paid';
+    const activeRentalSource = this.activeRentalSource();
+    if (activeRentalSource && activeRentalSource.includes_accommodation()) {
+      return activeRentalSource.bookingStatus();
+    }
     if (!this.hasBookings()) return 'unbooked';
     return this.allBookingsPaid() ? 'paid' : 'pending';
   });
