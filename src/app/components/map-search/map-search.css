@@ -40,7 +40,8 @@
 
   .search-layout-wrapper {
     /* Position it above the 'Peek' state (which is ~130px high) */
-    bottom: 50px;
+    bottom: 80px;
+    /* bottom: max(10px, env(safe-area-inset-top)); */
     left: 12px !important; /* Ignore sidePanelWidth on mobile */
     transform: scale(0.95); /* Slightly smaller on mobile feels better */
   }
