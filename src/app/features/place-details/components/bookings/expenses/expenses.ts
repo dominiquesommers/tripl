@@ -1,4 +1,4 @@
-import {Component, inject, input, signal, computed, effect, untracked} from '@angular/core';
+import {Component, inject, input, computed, effect, untracked} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -42,9 +42,6 @@ export class Expenses {
       .sort((a, b) => b.date().localeCompare(a.date()))
   );
 
-  // ── Expanded subcategory rows ─────────────────────────────
-  expandedIds = signal<Set<string>>(new Set());
-
   constructor() {
     effect(() => {
       const place = this.place();
@@ -58,19 +55,6 @@ export class Expenses {
     });
   }
 
-  isExpanded(id: string): boolean {
-    return this.expandedIds().has(id);
-  }
-
-  toggleExpanded(id: string, event: MouseEvent) {
-    event.stopPropagation();
-    this.expandedIds.update(set => {
-      const next = new Set(set);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
   // ── Add expense immediately ───────────────────────────────
   addNew() {
     const trip = this.tripService.trip();
@@ -79,7 +63,6 @@ export class Expenses {
       amount:      0,
       date:        this.toISODate(new Date()),
       category:    'food',
-      subcategory: null,
       details:     null,
       place_id:    this.place().id,
       trip_id:     trip.id,
@@ -102,12 +85,6 @@ export class Expenses {
   updateDetails(expense: Expense, details: string) {
     this.tripService.updateExpense(expense.id, {
       details: details || null
-    }).subscribe();
-  }
-
-  updateSubcategory(expense: Expense, subcategory: string) {
-    this.tripService.updateExpense(expense.id, {
-      subcategory: subcategory || null
     }).subscribe();
   }
 

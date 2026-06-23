@@ -51,13 +51,13 @@ export class CostBadge extends EditableBadge {
   estimateOpacity = computed(() => this.actualCost() != null ? 0.6 : 1);
 
   estimateWidth = computed(() => {
-    const str = this.estimateDraft() || String(Math.round(this.estimatedCost()));
+    const str = this.estimateDraft() || this.formatValue(this.estimatedCost());
     return Math.max(str.length, 1);
   });
 
   actualWidth = computed(() => {
     const val = this.actualCost();
-    const str = this.actualDraft() || (val !== null ? String(Math.round(val)) : '');
+    const str = this.actualDraft() || (val !== null ? this.formatValue(val) : '');
     return Math.max(str.length, 1);
   });
 
@@ -66,7 +66,7 @@ export class CostBadge extends EditableBadge {
   toggleActualExistence() {
     const current = this.actualCost();
     if (current === null) {
-      this.saveActual.emit(this.estimatedCost());
+      this.saveActual.emit(this.sanitizeValue(this.estimatedCost()));
       setTimeout(() => {
         const input = this.actualInputRef?.nativeElement;
         if (input) { input.focus(); input.select(); }
@@ -93,16 +93,18 @@ export class CostBadge extends EditableBadge {
   }
 
   adjustEstimate(direction: number) {
-    this.inputRef = this.estimateInputRef;
-    super.adjust(direction);
-    this.saveEstimated.emit(this.estimateInputRef.nativeElement.valueAsNumber);
+    const newValue = this.sanitizeValue(this.estimatedCost() + (direction * this.step()));
+    this.estimateInputRef.nativeElement.value = this.formatValue(newValue);
+    this.saveEstimated.emit(newValue);
   }
 
   adjustActual(direction: number) {
     if (!this.actualInputRef) return;
-    this.inputRef = this.actualInputRef;
-    super.adjust(direction);
-    this.saveActual.emit(this.actualInputRef.nativeElement.valueAsNumber);
+    const current = this.actualCost();
+    if (current === null) return;
+    const newValue = this.sanitizeValue(current + (direction * this.step()));
+    this.actualInputRef.nativeElement.value = this.formatValue(newValue);
+    this.saveActual.emit(newValue);
   }
 
   onEstimateKeyDown(event: KeyboardEvent) {

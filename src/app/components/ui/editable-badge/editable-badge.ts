@@ -18,12 +18,13 @@ export class EditableBadge {
   postfix = input<string>('');        // e.g., 'h/km'
   step = input<number>(1);           // Customizable step
   min = input<number>(0);
+  decimalPlaces = input<number>(0);
   readonly = input<boolean>(false);
 
   draft = signal<string>('');
 
   width = computed(() => {
-    const str = this.draft() || String(Math.round(this.value() ?? 0));
+    const str = this.draft() || this.formatValue(this.value() ?? 0);
     return Math.max(str.length, 1) + 1;
   });
 
@@ -37,28 +38,48 @@ export class EditableBadge {
   adjust(direction: number) {
     const value = this.value();
     if (value == null) return;
-    console.log(this.step());
-    const newValue = Math.max(this.min(), value + (direction * this.step()));
+    const newValue = this.sanitizeValue(value + (direction * this.step()));
+    this.inputRef?.nativeElement && (this.inputRef.nativeElement.value = this.formatValue(newValue));
     this.save.emit(newValue);
   }
 
   onBlur() {
     const rawValue = this.inputRef.nativeElement.value;
-    const sanitizedValue = (rawValue === '' || isNaN(parseInt(rawValue)))
-      ? this.min()
-      : Math.max(this.min(), Math.floor(Number(rawValue)));
-    this.inputRef.nativeElement.value = sanitizedValue.toString();
+    const sanitizedValue = this.parseInputValue(rawValue);
+    this.inputRef.nativeElement.value = this.formatValue(sanitizedValue);
     this.draft.set('');
     this.save.emit(sanitizedValue);
-    // const val = parseInt(this.inputRef.nativeElement.value, 10);
-    // this.save.emit(isNaN(val) ? this.min() : val);
   }
 
   onKeyDown(event: KeyboardEvent) {
-    // Prevent non-numeric characters (except backspace, delete, arrows)
-    if (['e', 'E', '+', '-', '.'].includes(event.key)) {
+    if (['e', 'E', '+', '-'].includes(event.key)) {
       event.preventDefault();
+      return;
     }
+
+    if (['.', ','].includes(event.key)) {
+      if (this.normalizedDecimalPlaces() === 0 || this.inputRef.nativeElement.value.includes('.')) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (/^\d$/.test(event.key) && this.normalizedDecimalPlaces() > 0) {
+      const input = this.inputRef.nativeElement;
+      const decimalIndex = input.value.indexOf('.');
+      const selectionStart = input.selectionStart ?? input.value.length;
+      const selectionEnd = input.selectionEnd ?? selectionStart;
+      const replacingSelection = selectionEnd > selectionStart;
+      if (
+        decimalIndex >= 0 &&
+        selectionStart > decimalIndex &&
+        input.value.slice(decimalIndex + 1).length >= this.normalizedDecimalPlaces() &&
+        !replacingSelection
+      ) {
+        event.preventDefault();
+      }
+    }
+
     if (event.key === 'Enter') {
       this.inputRef.nativeElement.blur();
     }
@@ -66,11 +87,38 @@ export class EditableBadge {
 
   handlePaste(event: ClipboardEvent) {
     const data = event.clipboardData?.getData('text');
-    if (data && !/^\d+$/.test(data)) {
+    if (!data) return;
+
+    const normalized = data.trim().replace(',', '.');
+    const validPattern = this.normalizedDecimalPlaces() > 0
+      ? new RegExp(`^\\d+(\\.\\d{0,${this.normalizedDecimalPlaces()}})?$`)
+      : /^\d+$/;
+    if (!validPattern.test(normalized) || normalized !== data.trim()) {
       event.preventDefault();
-      const sanitizedValue = (data === '' || isNaN(parseInt(data)))
-        ? 0 : Math.max(0, Math.floor(Number(data)));
-      document.execCommand('insertText', false, sanitizedValue.toString());
+      document.execCommand('insertText', false, this.formatValue(this.parseInputValue(normalized)));
     }
+  }
+
+  protected parseInputValue(rawValue: string) {
+    const parsedValue = Number(rawValue.replace(',', '.'));
+    return Number.isFinite(parsedValue) ? this.sanitizeValue(parsedValue) : this.min();
+  }
+
+  protected sanitizeValue(value: number) {
+    const minValue = Math.max(this.min(), value);
+    const decimalPlaces = this.normalizedDecimalPlaces();
+    if (decimalPlaces === 0) return Math.floor(minValue);
+
+    const factor = 10 ** decimalPlaces;
+    return Math.round(minValue * factor) / factor;
+  }
+
+  formatValue(value: number) {
+    const decimalPlaces = this.normalizedDecimalPlaces();
+    return decimalPlaces === 0 ? String(Math.floor(value)) : value.toFixed(decimalPlaces);
+  }
+
+  private normalizedDecimalPlaces() {
+    return Math.max(0, Math.floor(this.decimalPlaces()));
   }
 }

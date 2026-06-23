@@ -283,7 +283,16 @@ export class Cost {
   readonly visitedCountries = computed<Country[]>(() => {
     const plan = this.tripService.plan();
     if (!plan) return [];
-    return [...new Set(plan.itinerary().map(v => v.place.country).filter(c => c.inItinerary()))].sort((a, b) => a.name.localeCompare(b.name));
+
+    const countries: Country[] = [];
+    const seen = new Set<Country>();
+    for (const visit of plan.itinerary()) {
+      const country = visit.place.country;
+      if (seen.has(country) || !country.inItinerary()) continue;
+      seen.add(country);
+      countries.push(country);
+    }
+    return countries;
   });
 
   readonly lineChartOptions: ChartOptions = {

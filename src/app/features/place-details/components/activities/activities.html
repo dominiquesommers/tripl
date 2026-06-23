@@ -32,6 +32,7 @@
             [actualTotal]="act.actual_cost()"
             [isPaid]="act.isPaid()"
             [expenses]="act.expenses()"
+            [decimalPlaces]="2"
             (saveEstimated)="updateActivity(act, { estimated_cost: $event })"
             (saveActual)="updateActivity(act, { actual_cost: $event })"
             (removeActual)="removeActual(act)"

@@ -52,6 +52,7 @@
             [actualTotal]="note.actual_cost()"
             [isPaid]="note.isPaid()"
             [expenses]="note.expenses()"
+            [decimalPlaces]="2"
             (saveEstimated)="updateNote(note, { estimated_cost: $event })"
             (saveActual)="updateNote(note, { actual_cost: $event })"
             (removeActual)="removeActual(note)"

@@ -49,6 +49,7 @@
                 [value]="route().estimated_cost()"
                 prefix="€"
                 [step]="10"
+                [decimalPlaces]="2"
                 (save)="updateRoute(route(), {estimated_cost: $event})">
   <!--            iconName="euro"-->
   <!--            iconColor="#4ade80"-->

@@ -23,10 +23,12 @@
     #estimateInput
     type="number"
     class="val-input estimate"
-    [value]="estimatedCost()"
+    [value]="formatValue(estimatedCost())"
     [style.width.ch]="estimateWidth()"
     [style.opacity]="estimateOpacity()"
     [readOnly]="readonly()"
+    [step]="step()"
+    [attr.inputmode]="decimalPlaces() > 0 ? 'decimal' : 'numeric'"
     (input)="!readonly() && estimateDraft.set($any($event.target).value)"
     (blur)="!readonly() && onEstimateBlur()"
     (keydown)="!readonly() && onEstimateKeyDown($event)"
@@ -51,9 +53,11 @@
       #actualInput
       type="number"
       class="val-input actual"
-      [value]="cost"
+      [value]="formatValue(cost)"
       [style.width.ch]="actualWidth()"
       [readOnly]="readonly() || actualReadonly()"
+      [step]="step()"
+      [attr.inputmode]="decimalPlaces() > 0 ? 'decimal' : 'numeric'"
       (input)="!(readonly() || actualReadonly()) && actualDraft.set($any($event.target).value)"
       (blur)="!(readonly() || actualReadonly()) && onActualBlur()"
       (keydown)="!(readonly() || actualReadonly()) && onActualKeyDown($event)"
@@ -93,13 +97,13 @@
         <lucide-icon name="receipt" class="details-icon" [size]="13"></lucide-icon>
       </div>
     }
-    @if (!isPaid() || cost !== null) {
+    <!-- @if (!isPaid() || cost !== null) {
       <div class="details-subscript"
            (click)="openDetails.emit(); $event.stopPropagation()"
            title="Payment pending">
         <lucide-icon name="clock" class="details-icon clock-icon" [size]="13"></lucide-icon>
       </div>
-    }
+    } -->
   }
 
 </div>

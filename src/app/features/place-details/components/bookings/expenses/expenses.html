@@ -11,7 +11,7 @@
   <!-- Expense list -->
   @if (expenses().length > 0) {
     @for (exp of expenses(); track exp.id) {
-      <div class="expense-row" [class.is-expanded]="isExpanded(exp.id)">
+      <div class="expense-row">
 
         <div class="row-main">
 
@@ -30,22 +30,13 @@
               prefix="€"
               [step]="1"
               [min]="0"
+              [decimalPlaces]="2"
               [iconName]="categoryIcon(exp.category())"
               [iconColor]="categoryColor(exp.category())"
               (save)="updateAmount(exp, $event)"
               [hasIconAction]="true"
               (iconClick)="toggleCategory(exp)">
             </app-editable-badge>
-            <!-- Chevron to reveal subcategory -->
-            <button class="chevron-btn"
-                    (click)="toggleExpanded(exp.id, $event)"
-                    [title]="isExpanded(exp.id) ? 'Hide subcategory' : 'Add subcategory'">
-              <lucide-icon
-                [name]="isExpanded(exp.id) ? 'chevron-up' : 'chevron-down'"
-                [size]="14"
-                class="chevron-icon">
-              </lucide-icon>
-            </button>
           </div>
 
           <!-- Details -->
@@ -70,18 +61,6 @@
           </button>
 
         </div>
-
-        <!-- Subcategory row -->
-        @if (isExpanded(exp.id)) {
-          <div class="subcategory-row">
-            <input
-              type="text"
-              class="subcategory-input"
-              placeholder="Subcategory (e.g. alcohol, groceries, taxi)..."
-              [value]="exp.subcategory() ?? ''"
-              (blur)="updateSubcategory(exp, $any($event.target).value)" />
-          </div>
-        }
 
       </div>
     }

@@ -34,13 +34,8 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-.expense-row.is-expanded {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
-}
-
 /* ── Main row layout ────────────────────────────────────── */
-/* date | badge | chevron | details */
+/* date | badge | details */
 .row-main {
   display: grid;
   grid-template-columns: auto auto 1fr;
@@ -52,11 +47,10 @@
 
 /* ── Badge wrap — fixed width for alignment ─────────────── */
 .badge-wrap {
-  width: 80px;
+  /* width: 80px; */
   flex-shrink: 0;
   display: flex;
   align-items: flex-end;
-  margin-right: -7px;
 }
 
 /* Override editable-badge width to fill the fixed cell */
@@ -69,31 +63,6 @@
   /*width: 52px;   !* fixed width for up to 4 digits *!*/
   /*min-width: 52px;*/
   /*text-align: right;*/
-}
-
-/* ── Chevron button ─────────────────────────────────────── */
-.chevron-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 2px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  align-self: flex-end;
-  /*border-radius: 4px;*/
-  padding-bottom: 2px;
-  transition: background 0.15s ease;
-}
-
-.chevron-icon {
-  color: rgba(255, 255, 255, 0.2);
-  transition: color 0.15s ease;
-}
-
-.chevron-btn:hover .chevron-icon,
-.is-expanded .chevron-icon {
-  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Details input ──────────────────────────────────────── */
@@ -124,34 +93,6 @@
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.9);
   font-style: normal;
-}
-
-/* ── Subcategory row ────────────────────────────────────── */
-.subcategory-row {
-  padding: 0 5px 5px 5px;
-}
-
-.subcategory-input {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 11px;
-  font-family: inherit;
-  outline: none;
-  padding: 2px 0;
-  width: 100%;
-  transition: border-color 0.15s ease;
-}
-
-.subcategory-input::placeholder {
-  color: rgba(255, 255, 255, 0.18);
-  font-style: italic;
-}
-
-.subcategory-input:focus {
-  border-color: rgba(255, 255, 255, 0.25);
-  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Icon buttons ───────────────────────────────────────── */

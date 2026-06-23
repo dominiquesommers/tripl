@@ -27,6 +27,7 @@ export class Cost {
   iconColor     = input<string>('#f1c40f');
   step          = input<number>(1);
   min           = input<number>(0);
+  decimalPlaces = input<number>(0);
 
   private expensesSignal = computed(() => this.expenses());
 
