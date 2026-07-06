@@ -5,7 +5,7 @@
   }
 
   <input #numInput
-         type="number"
+         type="text"
          class="val-input"
          [style.width.ch]="width()"
          [readOnly]="readonly()"
@@ -13,6 +13,7 @@
          [step]="step()"
          [attr.inputmode]="decimalPlaces() > 0 ? 'decimal' : 'numeric'"
          [value]="value() === null ? '' : formatValue(value()!)"
+         (focus)="onFocus()"
          (input)="!readonly() && draft.set($any($event.target).value)"
          (keydown)="!readonly() && onKeyDown($event)"
          (paste)="!readonly() && handlePaste($event)"

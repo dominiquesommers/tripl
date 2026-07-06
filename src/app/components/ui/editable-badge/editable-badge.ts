@@ -39,8 +39,17 @@ export class EditableBadge {
     const value = this.value();
     if (value == null) return;
     const newValue = this.sanitizeValue(value + (direction * this.step()));
-    this.inputRef?.nativeElement && (this.inputRef.nativeElement.value = this.formatValue(newValue));
+    if (this.inputRef?.nativeElement) {
+      this.inputRef.nativeElement.value = this.formatValue(newValue);
+    }
     this.save.emit(newValue);
+  }
+
+  onFocus() {
+    // Select all text on focus. setTimeout avoids native browser focus race conditions.
+    setTimeout(() => {
+      this.inputRef?.nativeElement?.select();
+    });
   }
 
   onBlur() {
@@ -52,28 +61,43 @@ export class EditableBadge {
   }
 
   onKeyDown(event: KeyboardEvent) {
-    if (['e', 'E', '+', '-'].includes(event.key)) {
+    const input = this.inputRef.nativeElement;
+
+    // 1. Allow control keys (Backspace, Delete, Arrow keys, Tab, Escape, etc.)
+    if (event.key.length > 1) {
+      if (event.key === 'Enter') {
+        input.blur();
+      }
+      return; // Let system shortcuts and navigation pass through
+    }
+
+    const selectionStart = input.selectionStart ?? 0;
+    const selectionEnd = input.selectionEnd ?? 0;
+    const isReplacingAll = selectionStart === 0 && selectionEnd === input.value.length;
+
+    if (!/^\d$/.test(event.key) && !['.', ','].includes(event.key)) {
       event.preventDefault();
       return;
     }
 
     if (['.', ','].includes(event.key)) {
-      if (this.normalizedDecimalPlaces() === 0 || this.inputRef.nativeElement.value.includes('.')) {
+      const hasSeparator = input.value.includes(',') || input.value.includes('.');
+      const sepIndex = input.value.indexOf(',') !== -1 ? input.value.indexOf(',') : input.value.indexOf('.');
+      const separatorIsSelected = hasSeparator && sepIndex >= selectionStart && sepIndex < selectionEnd;
+
+      if (this.normalizedDecimalPlaces() === 0 || (hasSeparator && !separatorIsSelected)) {
         event.preventDefault();
       }
       return;
     }
 
-    if (/^\d$/.test(event.key) && this.normalizedDecimalPlaces() > 0) {
-      const input = this.inputRef.nativeElement;
-      const decimalIndex = input.value.indexOf('.');
-      const selectionStart = input.selectionStart ?? input.value.length;
-      const selectionEnd = input.selectionEnd ?? selectionStart;
+    if (/^\d$/.test(event.key) && this.normalizedDecimalPlaces() > 0 && !isReplacingAll) {      const input = this.inputRef.nativeElement;
+      const sepIndex = input.value.indexOf(',') !== -1 ? input.value.indexOf(',') : input.value.indexOf('.');
       const replacingSelection = selectionEnd > selectionStart;
       if (
-        decimalIndex >= 0 &&
-        selectionStart > decimalIndex &&
-        input.value.slice(decimalIndex + 1).length >= this.normalizedDecimalPlaces() &&
+        sepIndex >= 0 &&
+        selectionStart > sepIndex &&
+        input.value.slice(sepIndex + 1).length >= this.normalizedDecimalPlaces() &&
         !replacingSelection
       ) {
         event.preventDefault();
@@ -81,8 +105,19 @@ export class EditableBadge {
     }
 
     if (event.key === 'Enter') {
-      this.inputRef.nativeElement.blur();
+      input.blur();
     }
+  }
+
+  // Fallback cleanup for mobile input behaviors
+  onInput(event: Event) {
+    if (this.readonly()) return;
+    let targetValue = (event.target as HTMLInputElement).value;
+
+    // Normalize mobile commas to dots
+    targetValue = targetValue.replace(/[^0-9.,]/g, '');
+    // targetValue = targetValue.replace(',', '.');
+    this.draft.set(targetValue);
   }
 
   handlePaste(event: ClipboardEvent) {
@@ -115,7 +150,9 @@ export class EditableBadge {
 
   formatValue(value: number) {
     const decimalPlaces = this.normalizedDecimalPlaces();
-    return decimalPlaces === 0 ? String(Math.floor(value)) : value.toFixed(decimalPlaces);
+    const formatted = decimalPlaces === 0 ? String(Math.floor(value)) : value.toFixed(decimalPlaces);
+    // Replace the dot with a comma for display purposes
+    return formatted.replace('.', ',');
   }
 
   private normalizedDecimalPlaces() {
