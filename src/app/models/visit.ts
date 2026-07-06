@@ -290,7 +290,7 @@ export class Visit {
 
   readonly bookingStatus = computed(() => {
     if (!this.inItinerary()) return 'not-in-itinerary';
-    if (this.nights() === 0) return 'paid';
+    if (this.nights() === 0) return 'layover';
     const activeRentalSource = this.activeRentalSource();
     if (activeRentalSource && activeRentalSource.includes_accommodation()) {
       return activeRentalSource.bookingStatus();

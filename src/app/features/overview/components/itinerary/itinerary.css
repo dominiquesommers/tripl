@@ -189,6 +189,7 @@
 }
 
 .status-indicator.paid { background-color: rgba(34, 197, 94, 0.95); }
+.status-indicator.layover { background-color: rgba(163, 163, 163, 0.95); }
 .status-indicator.pending { background-color: rgba(245, 158, 11, 0.95); }
 .status-indicator.unbooked { background-color: rgba(239, 68, 68, 0.95); }
 
