@@ -61,6 +61,28 @@ export class CostBadge extends EditableBadge {
     return Math.max(str.length, 1);
   });
 
+  // ─── Focus Wrappers for Auto-Selection ────────────────────
+  onEstimateFocus() {
+    setTimeout(() => this.estimateInputRef?.nativeElement?.select());
+  }
+
+  onActualFocus() {
+    setTimeout(() => this.actualInputRef?.nativeElement?.select());
+  }
+
+  // ─── Clean Input Normalization ────────────────────────────
+  onEstimateInput(event: Event) {
+    let value = (event.target as HTMLInputElement).value.replace(/[^0-9.,]/g, '');
+    this.estimateInputRef.nativeElement.value = value;
+    this.estimateDraft.set(value);
+  }
+
+  onActualInput(event: Event) {
+    let value = (event.target as HTMLInputElement).value.replace(/[^0-9.,]/g, '');
+    this.actualInputRef.nativeElement.value = value;
+    this.actualDraft.set(value);
+  }
+
   // ─── Handlers ─────────────────────────────────────────────
 
   toggleActualExistence() {
@@ -79,17 +101,21 @@ export class CostBadge extends EditableBadge {
   // ─── EditableBadge overrides ──────────────────────────────
   onEstimateBlur() {
     this.inputRef = this.estimateInputRef;
+    const sanitized = this.parseInputValue(this.estimateInputRef.nativeElement.value);
     super.onBlur();
     this.estimateDraft.set('');
-    this.saveEstimated.emit(this.estimateInputRef.nativeElement.valueAsNumber);
+    this.saveEstimated.emit(sanitized);
+    // this.saveEstimated.emit(this.estimateInputRef.nativeElement.valueAsNumber);
   }
 
   onActualBlur() {
     if (!this.actualInputRef) return;
     this.inputRef = this.actualInputRef;
+    const sanitized = this.parseInputValue(this.actualInputRef.nativeElement.value);
     super.onBlur();
     this.actualDraft.set('');
-    this.saveActual.emit(this.actualInputRef.nativeElement.valueAsNumber);
+    this.saveActual.emit(sanitized);
+    // this.saveActual.emit(this.actualInputRef.nativeElement.valueAsNumber);
   }
 
   adjustEstimate(direction: number) {

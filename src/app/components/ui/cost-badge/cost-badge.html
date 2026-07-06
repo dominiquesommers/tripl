@@ -21,7 +21,7 @@
   <!-- Estimated value -->
   <input
     #estimateInput
-    type="number"
+    type="text"
     class="val-input estimate"
     [value]="formatValue(estimatedCost())"
     [style.width.ch]="estimateWidth()"
@@ -29,7 +29,8 @@
     [readOnly]="readonly()"
     [step]="step()"
     [attr.inputmode]="decimalPlaces() > 0 ? 'decimal' : 'numeric'"
-    (input)="!readonly() && estimateDraft.set($any($event.target).value)"
+    (focus)="onEstimateFocus()"
+    (input)="!readonly() && onEstimateInput($event) && estimateDraft.set($any($event.target).value)"
     (blur)="!readonly() && onEstimateBlur()"
     (keydown)="!readonly() && onEstimateKeyDown($event)"
     (paste)="!readonly() && handleEstimatePaste($event)" />
@@ -51,14 +52,15 @@
 
     <input
       #actualInput
-      type="number"
+      type="text"
       class="val-input actual"
       [value]="formatValue(cost)"
       [style.width.ch]="actualWidth()"
       [readOnly]="readonly() || actualReadonly()"
       [step]="step()"
       [attr.inputmode]="decimalPlaces() > 0 ? 'decimal' : 'numeric'"
-      (input)="!(readonly() || actualReadonly()) && actualDraft.set($any($event.target).value)"
+      (focus)="onActualFocus()"
+      (input)="!(readonly() || actualReadonly()) && onActualInput($event) && actualDraft.set($any($event.target).value)"
       (blur)="!(readonly() || actualReadonly()) && onActualBlur()"
       (keydown)="!(readonly() || actualReadonly()) && onActualKeyDown($event)"
       (paste)="!(readonly() || actualReadonly()) && handleActualPaste($event)" />
@@ -76,12 +78,12 @@
     }
     @if (!readonly()) {
       <div class="stepper-controls">
-        <button class="step-btn" (click)="adjustEstimate(1)" type="button">
+        <button class="step-btn" (click)="cost === null ? adjustEstimate(1) : adjustActual(1)" type="button">
           <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
         </button>
         <button class="step-btn"
-                [style.visibility]="estimatedCost() > min() ? 'visible' : 'hidden'"
-                (click)="adjustEstimate(-1)" type="button">
+                [style.visibility]="(cost === null && estimatedCost() > min() || cost !== null && cost > min()) ? 'visible' : 'hidden'"
+                (click)="cost === null ? adjustEstimate(-1) : adjustActual(-1)" type="button">
           <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
         </button>
       </div>
