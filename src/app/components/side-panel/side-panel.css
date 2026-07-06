@@ -78,8 +78,7 @@ app-overview-panel, app-place-panel, app-route-panel {
   bottom: 0;
   left: 0;
   width: 100%;
-  /* height: calc(100dvh - max(10px, env(safe-area-inset-top))); */
-  height: calc(100dvh - 10px);
+  height: calc(100dvh - max(72px, env(safe-area-inset-top)));
   border-radius: 25px 25px 0 0;
   border-right: 0;
   transform: translate3d(0, var(--sheet-offset), 0);
