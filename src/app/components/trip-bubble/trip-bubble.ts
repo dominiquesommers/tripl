@@ -5,7 +5,7 @@ import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-
 import { TripService } from '../../services/trip';
 import { Plan } from '../../models/plan';
 import {Trip} from '../../models/trip';
-import {IUserPlan, IUserTrip} from '../../models/user';
+import {IUserPlan, IUserTrip, UserPlan, UserTrip} from '../../models/user';
 import {LucideAngularModule } from 'lucide-angular';
 import {AuthService} from '../../services/auth';
 
@@ -27,9 +27,11 @@ export class TripBubble {
   showTripMenu = false;
   activeMenuId = signal<string | null>(null);
 
+  canEdit = computed(() => this.authService.canEdit());
+
   sortedPlans = computed(() => {
     const plans = this.tripService.plans() || [];
-    return [...plans].sort((a, b) => a.priority - b.priority);
+    return [...plans].sort((a, b) => a.priority() - b.priority());
   });
 
   constructor() {}
@@ -63,7 +65,7 @@ export class TripBubble {
     this.showPlanMenu = !this.showPlanMenu;
   }
 
-  toggleItemMenu(plan: IUserPlan, event: MouseEvent) {
+  toggleItemMenu(plan: UserPlan, event: MouseEvent) {
     event.stopPropagation();
     if (this.activeMenuId() === plan.id) {
       this.activeMenuId.set(null);
@@ -72,13 +74,13 @@ export class TripBubble {
     }
   }
 
-  selectTrip(trip: IUserTrip) {
+  selectTrip(trip: UserTrip) {
     console.log('select trip.')
     this.router.navigate(['trip', trip.id]);
     this.showTripMenu = false;
   }
 
-  selectPlan(plan: IUserPlan) {
+  selectPlan(plan: UserPlan) {
     console.log('select plan.')
     const currentTrip = this.tripService.trip();
     if (currentTrip) {
@@ -87,35 +89,45 @@ export class TripBubble {
     this.showPlanMenu = false;
   }
 
-  renameTrip(trip: IUserTrip, newName: string) {
-    console.log('rename trip.')
-    // 1. TODO Update DB via API
-    // this.tripService.apiService.patchTrip(trip.id, { name: newName }).subscribe();
-    // 2. Update local signal state (optional if service re-fetches)
-    trip.name = newName;
+  renameTrip(trip: UserTrip, newName: string) {
+    this.tripService.updateTrip(trip.id, { name: newName }).subscribe({
+      next: () => console.log('Trip name updated on server and locally.'),
+      error: (err) => console.error(err)
+    });
   }
 
-  renamePlan(plan: IUserPlan, newName: string) {
+  renamePlan(plan: UserPlan, newName: string) {
     console.log('rename plan.')
-    // 1. TODO Update DB via API
-    // this.tripService.apiService.patchPlan(trip.id, { name: newName }).subscribe();
-    // 2. Update local signal state (optional if service re-fetches)
-    plan.name = newName;
+    this.tripService.updatePlan(plan.id, { name: newName }).subscribe({
+      next: () => console.log('Plan name updated on server and locally.'),
+      error: (err) => console.error(err)
+    });
   }
 
   dropPlan(event: CdkDragDrop<Plan[]>) {
-    console.log('dropped plan.')
-    // const currentTrip = this.tripService.trip();
-    // if (!currentTrip) return;
-    //
-    // const plans = [...currentTrip.plans()];
-    // moveItemInArray(plans, event.previousIndex, event.currentIndex);
-    //
-    // // Update priorities based on new index
-    // plans.forEach((p, i) => p.priority = i);
-
-    // Sync with server
-    // this.tripService.savePlanOrder(plans);
+    const plans = this.sortedPlans();
+    if (plans.length === 0) return;
+    if (event.previousIndex !== event.currentIndex) {
+      const movedPlan = plans[event.previousIndex];
+      let newPriority: number;
+      if (event.currentIndex === 0) {
+        newPriority = plans[0].priority() - 1;
+      } else if (event.currentIndex >= plans.length - 1) {
+        newPriority = plans[plans.length - 1].priority() + 1;
+      } else {
+        const isMovingDown = event.previousIndex < event.currentIndex;
+        const prevPlan = isMovingDown ? plans[event.currentIndex] : plans[event.currentIndex - 1];
+        const nextPlan = isMovingDown ? plans[event.currentIndex + 1] : plans[event.currentIndex];
+        newPriority = (prevPlan.priority() + nextPlan.priority()) / 2;
+      }
+      this.tripService.updatePlan(movedPlan.id, { priority: newPriority })
+      .subscribe({
+        next: () => {
+          console.log('Updated plan successfully in the server');
+        },
+        error: (err) => console.error('Failed to update plan...', err)
+      });
+    }
   }
 
   dropTrip(event: CdkDragDrop<Trip[]>) {
@@ -145,7 +157,7 @@ export class TripBubble {
     // }
   }
 
-  deleteTrip(event: PointerEvent, trip: IUserTrip) {
+  deleteTrip(event: PointerEvent, trip: UserTrip) {
     console.log('delete trip');
     event.stopPropagation();
     // const currentTrip = this.tripService.trip();
@@ -166,7 +178,7 @@ export class TripBubble {
     }
   }
 
-  deletePlan(event: PointerEvent, plan: IUserPlan) {
+  deletePlan(event: PointerEvent, plan: UserPlan) {
     console.log('delete plan')
     event.stopPropagation();
     // const currentTrip = this.tripService.trip();
@@ -177,7 +189,7 @@ export class TripBubble {
     // }
   }
 
-  copyPlan(plan: IUserPlan, event: Event) {
+  copyPlan(plan: UserPlan, event: Event) {
     console.log('copy plan', plan.id)
     event.stopPropagation(); // Don't trigger the 'selectPlan' navigation
     // this.tripService.duplicatePlan(plan.id);

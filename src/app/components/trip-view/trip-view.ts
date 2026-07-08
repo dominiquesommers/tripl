@@ -8,6 +8,8 @@ import { TripBubble } from '../trip-bubble/trip-bubble';
 import { AuthWidget } from '../auth-widget/auth-widget';
 import { SidePanel } from '../side-panel/side-panel';
 import { LoadingSpinner } from '../loading-spinner/loading-spinner';
+import { UserPlan } from '../../models/user';
+import { NavigationService } from '../../services/navigation';
 
 
 @Component({
@@ -26,6 +28,7 @@ import { LoadingSpinner } from '../loading-spinner/loading-spinner';
 })
 export class TripView implements OnInit {
   tripService = inject(TripService);
+  navigationService = inject(NavigationService);
   uiService = inject(UiService);
   router = inject(Router);
 
@@ -34,8 +37,8 @@ export class TripView implements OnInit {
 
 
   constructor() {
-    effect(() => this.tripService.setTripId(this.tripId() ?? null));
-    effect(() => this.tripService.setPlanId(this.planId() ?? null));
+    effect(() => this.navigationService.setTripId(this.tripId() ?? null));
+    effect(() => this.navigationService.setPlanId(this.planId() ?? null));
 
     effect(() => {
       const tripId = this.tripId();
@@ -47,8 +50,8 @@ export class TripView implements OnInit {
 
       if (!planId && availableTrips) {
         const trip = availableTrips.find(t => t.id === tripId);
-        const firstPlanId = trip?.plans?.reduce((prev, curr) =>
-          curr.priority < prev.priority ? curr : prev
+        const firstPlanId = trip?.plans().reduce((prev: UserPlan, curr: UserPlan) =>
+          curr.priority() < prev.priority() ? curr : prev
         ).id;
         if (firstPlanId) {
           untracked(() => {

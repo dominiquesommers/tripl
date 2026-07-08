@@ -5,8 +5,8 @@ import {
 } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from './api';
-import {IUserPlan, IUserTrip, TripsDataPackage} from '../models/user';
-import {ITrip, Trip, TripDataPackage} from '../models/trip';
+import {IUserPlan, IUserTrip, TripsDataPackage, UserPlan, UserTrip} from '../models/user';
+import {ITrip, Trip, TripDataPackage, UpdateTrip} from '../models/trip';
 import {IPlan, PersistentUpdatePlan, Plan, PlanDataPackage, UpdatePlan} from '../models/plan';
 import {Country, ICountry} from '../models/country';
 import {ISeason, Season} from '../models/season';
@@ -29,6 +29,7 @@ import {IRouteNote, NewRouteNote, RouteNote, UpdateRouteNote} from '../models/ro
 import {Expense, IExpense, NewExpense, UpdateExpense} from '../models/expense';
 import {IPlaceBooking, NewPlaceBooking, PlaceBooking, UpdatePlaceBooking} from '../models/place-booking';
 import {IRouteBooking, NewRouteBooking, RouteBooking, UpdateRouteBooking} from '../models/route-booking';
+import { NavigationService } from './navigation';
 
 export type ExpenseOwnerType =
   | 'activity'
@@ -44,6 +45,7 @@ export class TripService {
   router = inject(Router);
   apiService = inject(ApiService);
   authService = inject(AuthService);
+  navigationService = inject(NavigationService);
   mockService = inject(MockService);
   routingService = inject(RoutingService);
   notifierService = inject(NotificationService);
@@ -62,22 +64,23 @@ export class TripService {
       toObservable(this.refreshTripsTrigger)
     ]).pipe(
       switchMap(([user, _refreshCount]) => {
-        if (!user?.uid) return of([]);
-        return this.loadTrips();
+        if (!user?.uid && !this.navigationService.tripId()) return of([]);
+        // if (!user?.uid) return of([]);
+        return this.loadTrips().pipe(
+          map((rawTrips: IUserTrip[]) => rawTrips.map(t => new UserTrip(t)))
+        );
       }),
       catchError(err => of([]))
     ),
     { initialValue: [] }
   );
 
-  private readonly tripId = signal<string | null>(null);
-  private readonly planId = signal<string | null>(null);
   private readonly loadingTripId = signal<string | null>(null);
   private readonly loadingPlanId = signal<string | null>(null);
 
   readonly trip = toSignal(
     combineLatest([
-      toObservable(this.tripId),
+      toObservable(this.navigationService.tripId),
       toObservable(this.trips)
     ]).pipe(
       tap(() => this.triggerReset()),
@@ -96,20 +99,22 @@ export class TripService {
         return of(null);
       })
     ),
-    { initialValue: null }
+    { initialValue: null as Trip | null }
   );
 
   readonly plan = toSignal(
     combineLatest([
       toObservable(this.trip),
-      toObservable(this.planId),
+      toObservable(this.navigationService.planId),
       toObservable(this.trips)
     ]).pipe(
       tap(() => this.triggerReset()),
       switchMap(([trip, planId, tripsSummary]) => {
         console.log('planId', planId, trip, trip?.id);
         if (!trip || !planId) return of(null);
-        const planExists = tripsSummary.some(t => t.id === trip.id && t.plans.some(p => p.id === planId));
+        const planExists = tripsSummary.some(t => 
+          t.id === trip.id && t.plans().some((p: UserPlan) => p.id === planId)
+        );
         if (!planExists && !environment.useMock) {
           console.warn(`Plan ${planId} does not belong to Trip ${trip.id}`);
           this.notifierService.notify("This plan doesn't exist in this trip.", true);
@@ -122,9 +127,11 @@ export class TripService {
     { initialValue: null }
   );
 
-  plans = computed(() => {
-    const plans = this.trips()?.find(trip => trip.id === this.trip()?.id)?.plans;
-    return plans ?? [];
+  readonly plans = computed((): UserPlan[] => {
+    const activeTrip = this.trip();
+    if (!activeTrip) return [];
+    const matchedUserTrip = this.trips().find(t => t.id === activeTrip.id);
+    return matchedUserTrip ? matchedUserTrip.plans() : [];
   });
 
   constructor() {
@@ -137,27 +144,29 @@ export class TripService {
   }
 
   refreshTrips() { this.refreshTripsTrigger.update(n => n + 1); }
-  setTripId(id: string | null) { this.tripId.set(id); }
-  setPlanId(id: string | null) { this.planId.set(id); }
 
   private resetState() {
     console.log('User logged out - resetting ID sources');
-    this.tripId.set(null);
-    this.planId.set(null);
+    this.navigationService.setTripId(null);
+    this.navigationService.setPlanId(null);
   }
 
   // ── LOAD ─────────────────────────────────────────────────────────────────
 
   loadTrips(): Observable<IUserTrip[]> {
+    const tripId = this.navigationService.tripId() ?? '';
     const dataSource$: Observable<TripsDataPackage> = !environment.useMock
-      ? this.apiService.get<TripsDataPackage>('trips')
+      ? this.apiService.get<TripsDataPackage>(`trips/${tripId}/meta`)
       : this.mockService.fetchTripsMockAggregate();
 
     return dataSource$.pipe(
       map(data => {
+        console.log(data);
         return data.trips.map(trip => ({
           id: trip.id.toString(),
           name: trip.name,
+          role: trip.role,
+          priority: trip.priority,
           plans: data.plans
             .filter((plan: any) => plan.trip_id.toString() === trip.id.toString())
             .map(plan => ({
@@ -227,10 +236,13 @@ export class TripService {
   // ── TRIPS ─────────────────────────────────────────────────────────────────
 
   updateTrip(id: string, updates: UpdatePlan): Observable<ITrip | null> {
-    return this.patchAndPersist<ITrip, UpdatePlan>(
+    const trip = this.trips().find(t => t.id === id);
+    if (!trip) return of(null);
+
+    return this.patchAndPersist<ITrip, UpdateTrip>(
       `trips/${id}`,
       updates,
-      () => this.trip()?.update(updates),
+      () => trip.update(updates),
       { message: 'Trip updated.' }
     );
   }
@@ -250,10 +262,13 @@ export class TripService {
   }
 
   updatePlan(id: string, updates: UpdatePlan): Observable<IPlan | null> {
+    const plan = this.plans().find(p => p.id === id);
+    if (!plan) return of(null);
+
     return this.patchAndPersist<IPlan, UpdatePlan>(
       `plans/${id}`,
       updates,
-      () => { return; },
+      () => { plan.update(updates) },
       { message: 'Plan updated.' }
     );
   }

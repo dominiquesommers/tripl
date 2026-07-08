@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { initializeApp } from 'firebase/app';
 import {
@@ -10,7 +10,8 @@ import {
   User
 } from 'firebase/auth';
 import { environment } from '../../environments/environment';
-import {HttpClient} from '@angular/common/http';
+import { ApiService } from './api';
+import { NavigationService } from './navigation';
 
 export const MOCK_USER = {
   uid: 'offline-dev-id',
@@ -23,7 +24,8 @@ export const MOCK_USER = {
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
+  private apiService = inject(ApiService);
+  private navigationService = inject(NavigationService);
 
   private platformId = inject(PLATFORM_ID);
   private auth;
@@ -80,31 +82,65 @@ export class AuthService {
       }
       this._user.set(user);
 
-      if (user) {
-        const token = await user.getIdToken();
-        this.http.get<{ canEdit: boolean }>(`${environment.apiUrl}/auth/permissions`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).subscribe(result => {
-          this.canEdit.set(result.canEdit);
-        });
-      } else {
-        this.canEdit.set(false);
-      }
+      // if (user) {
+      //   const tripId = this.navigationService.tripId() ?? '';
+      //   this.apiService.get<{ canEdit: boolean }>(`auth/${tripId}/permissions`)
+      //     .subscribe({
+      //       next: (result) => this.canEdit.set(result.canEdit),
+      //       error: (err) => {
+      //         console.error("Permissions fetch failed", err);
+      //         this.canEdit.set(false);
+      //       }
+      //     });
+      //   // const token = await user.getIdToken();
+      //   // this.http.get<{ canEdit: boolean }>(`${environment.apiUrl}/auth/permissions`, {
+      //   //   headers: { Authorization: `Bearer ${token}` }
+      //   // }).subscribe(result => {
+      //   //   this.canEdit.set(result.canEdit);
+      //   // });
+      // } else {
+      //   this.canEdit.set(false);
+      // }
     });
   }
+
+  private permissionEffect = effect(() => {
+    const user = this.user();
+    const tripId = this.navigationService.tripId();
+    const isDev = this.isDevMode();
+
+    if (isDev) {
+      // If Dev Mode, assume edit access
+      this.canEdit.set(true);
+      return;
+    }
+
+    if (!user || !tripId) {
+      this.canEdit.set(false);
+      return;
+    }
+
+    this.apiService.get<{ canEdit: boolean }>(`auth/${tripId}/permissions`)
+      .subscribe({
+        next: (res) => this.canEdit.set(res.canEdit),
+        error: () => this.canEdit.set(false)
+      });
+  });
 
   private setupDevToggles() {
     if (!environment.production) {
       (window as any).toggleDevMode = () => {
-        const newState = !this.isDevMode();
-        this.isDevMode.set(newState);
+        this.isDevMode.update(prev => !prev);
 
-        if (!newState) {
-          this.initFirebaseAuthListener();
-        }
+        // const newState = !this.isDevMode();
+        // this.isDevMode.set(newState);
+
+        // if (!newState) {
+        //   this.initFirebaseAuthListener();
+        // }
 
         console.log(
-          `%c Dev Mode (Mock Data): ${newState ? 'ON' : 'OFF'} `,
+          `%c Dev Mode (Mock Data): ${this.isDevMode() ? 'ON' : 'OFF'} `,
           'background: #222; color: #bada55; font-weight: bold;'
         );
       };

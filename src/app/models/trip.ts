@@ -30,6 +30,8 @@ export interface TripDataPackage {
 export interface ITrip {
   id: string;
   name: string;
+  role: string;
+  priority: number;
 }
 
 export type NewTrip = Omit<ITrip, 'id'>;
@@ -38,6 +40,8 @@ export type UpdateTrip = Partial<Omit<ITrip, 'id'>>;
 export class Trip {
   id!: string;
   name = signal<string>('');
+  role = signal<string>('viewer');
+  priority = signal<number>(0);
 
   readonly countries = signal<Map<string, Country>>(new Map());
   readonly countryNotes = signal<Map<string, CountryNote>>(new Map());

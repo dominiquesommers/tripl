@@ -40,9 +40,6 @@ export class Plan {
   start_date = signal<string | null>(null);
   note = signal<string>('');
   priority = signal<number>(0);
-  // lng = signal<number>(0);
-  // lat = signal<number>(0);
-  // zoom = signal<number>(0);
 
   readonly visits = signal<Map<string, Visit>>(new Map());
   readonly visitsArray = computed(() => Array.from(this.visits().values()));

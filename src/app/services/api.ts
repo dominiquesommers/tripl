@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth';
@@ -10,8 +10,7 @@ export class ApiService {
   private readonly baseUrl = environment.apiUrl;
 
   constructor(
-    private http: HttpClient,
-    private authService: AuthService
+    private http: HttpClient
   ) {}
 
   /**
@@ -56,18 +55,20 @@ export class ApiService {
   }
 
   async fireAndForget(path: string, body: any) {
-    const url = `${this.baseUrl}/${path}`;
-    const token = await this.authService.getToken();
+    this.http.patch(`${this.baseUrl}/${path}`, body).subscribe();
 
-    fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify(body),
-      keepalive: true
-    });
+    // const url = `${this.baseUrl}/${path}`;
+    // const token = await this.authService.getToken();
+
+    // fetch(url, {
+    //   method: 'PATCH',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     ...(token && { 'Authorization': `Bearer ${token}` })
+    //   },
+    //   body: JSON.stringify(body),
+    //   keepalive: true
+    // });
   }
 
   // fireAndForget(path: string, body: any): void {

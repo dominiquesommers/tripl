@@ -18,7 +18,7 @@
         <div class="manager-header">
           <div style="width: 32px;"></div>
           <span class="header-title">My Trips</span>
-          @if (authService.canEdit()) {
+          @if (canEdit()) {
             <button class="icon-btn" (click)="addTrip()"><lucide-icon name="plus" [size]="18"></lucide-icon></button>
           }
         </div>
@@ -26,14 +26,14 @@
         <div class="scroll-container" cdkDropList (cdkDropListDropped)="dropTrip($event)">
           @for (t of tripService.trips(); track t.id) {
             <div class="manage-item" cdkDrag (click)="selectTrip(t)" [class.active]="t.id === tripService.trip()?.id">
-              @if (authService.canEdit()) {
+              @if (canEdit()) {
                 <div class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
                   <lucide-icon name="grip-vertical" [size]="16"></lucide-icon>
                 </div>
               }
 
               <div class="input-wrapper" (click)="$event.stopPropagation()">
-                <input type="text" #tripInput class="edit-input-transparent" [value]="t.name"
+                <input type="text" #tripInput class="edit-input-transparent" [value]="t.name()"
                        (change)="renameTrip(t, tripInput.value)" (keydown.enter)="tripInput.blur()"/>
               </div>
 
@@ -41,7 +41,7 @@
                 @if (t.id === tripService.trip()?.id) {
                   <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
                 }
-                @if (authService.canEdit()) {
+                @if (canEdit()) {
                   <button class="icon-btn delete-item" (click)="deleteTrip($event, t)">
                     <lucide-icon name="trash2" [size]="16"></lucide-icon>
                   </button>
@@ -58,7 +58,7 @@
         <div class="manager-header">
           <div style="width: 32px;"></div>
           <span class="header-title">Plans of {{ tripService.trip()?.name() }}</span>
-          @if (authService.canEdit()) {
+          @if (canEdit()) {
             <button class="icon-btn" (click)="addPlan()"><lucide-icon name="plus" [size]="18"></lucide-icon></button>
           }
         </div>
@@ -66,22 +66,22 @@
         <div class="scroll-container" cdkDropList (cdkDropListDropped)="dropPlan($event)">
           @for (p of sortedPlans(); track p.id) {
             <div class="manage-item" cdkDrag (click)="selectPlan(p)" [class.active]="p.id === tripService.plan()?.id">
-              @if (authService.canEdit()) {
+              @if (canEdit()) {
                 <div class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
                   <lucide-icon name="grip-vertical" [size]="16"></lucide-icon>
                 </div>
               }
 
               <div class="input-wrapper" (click)="$event.stopPropagation()">
-                <span class="input-sizer">{{ p.name }}</span>
+                <span class="input-sizer">{{ p.name() }}</span>
 
                 <input type="text" #planInput
                        class="edit-input-transparent"
-                       [value]="p.name"
+                       [value]="p.name()"
                        [readonly]="authService.isPublicMode()"
-                       (input)="authService.canEdit() && (p.name = planInput.value)"
-                       (change)="authService.canEdit() && renamePlan(p, planInput.value)"
-                       (keydown.enter)="authService.canEdit() && planInput.blur()"/>
+                       (change)="canEdit() && renamePlan(p, planInput.value)"
+                       (keydown.enter)="canEdit() && planInput.blur()"/>
+                       <!-- (input)="authService.canEdit() && (p.name = planInput.value)" -->
               </div>
 
 <!--              <div class="input-wrapper" (click)="$event.stopPropagation()">-->
@@ -97,7 +97,7 @@
                 } @else {
                   <div style="width: 16px;"></div>
                 }
-                @if (authService.canEdit()) {
+                @if (canEdit()) {
                   <button class="icon-btn copy-item" (click)="copyPlan(p, $event)" title="Copy Plan">
                     <lucide-icon name="copy" [size]="16"></lucide-icon>
                   </button>
