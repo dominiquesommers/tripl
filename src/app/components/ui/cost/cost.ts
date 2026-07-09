@@ -51,6 +51,11 @@ export class Cost {
     this.expenses().reduce((sum, e) => sum + e.amount(), 0)
   );
 
+  isOverpaid = computed(() => {
+    const total = this.actualTotal();
+    return total != null && this.paidAmount() > total;
+  });
+
   hasExpenses = computed(() => this.expenses().length > 0);
 
   // ─── Outside click ────────────────────────────────────────
@@ -71,6 +76,7 @@ export class Cost {
       position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
       inputs: {
         expenses: this.expenses,
+        actualCost: this.actualTotal,
       },
       outputs: {
         addExpense:    (e: NewExpense)                      => this.addExpense.emit(e),
@@ -79,5 +85,11 @@ export class Cost {
         close:         ()                                   => this.popupSvc.close(),
       },
     });
+  }
+
+  onSaveActual(value: number | null) {
+    this.saveActual.emit(value);
+    console.log('open details!!');
+    this.onOpenDetails();
   }
 }

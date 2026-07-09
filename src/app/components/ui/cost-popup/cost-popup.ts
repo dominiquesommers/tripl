@@ -16,6 +16,7 @@ export class CostPopup {
 
   // ─── Inputs ───────────────────────────────────────────────
   expenses = input.required<Signal<Expense[]>>();
+  actualCost = input.required<Signal<number | null>>();
 
   // ─── Outputs ──────────────────────────────────────────────
   addExpense    = output<NewExpense>();
@@ -36,6 +37,27 @@ export class CostPopup {
   //     return [...this.expenses()].sort((a, b) => b.date().localeCompare(a.date()))
   //   }
   // );
+
+  paidAmount = computed(() =>
+    this.expensesOrdered().reduce((sum, e) => sum + e.amount(), 0)
+  );
+
+  remainingCost = computed(() => {
+    const total = this.actualCost()();
+    if (total == null) return null;
+    return total - this.paidAmount();
+  });
+
+  // ─── Quick add: pay in full ────────────────────────────────
+  addFullPayment() {
+    const remaining = this.remainingCost();
+    if (remaining == null || remaining <= 0) return;
+    this.addExpense.emit({
+      amount: remaining,
+      date: this.todayISO(),
+      details: null,
+    } as NewExpense);
+  }
 
   // ─── Immediate add ────────────────────────────────────────
   addNew() {

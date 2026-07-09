@@ -4,13 +4,14 @@
     [actualCost]="actualTotal()"
     [hasExpenses]="hasExpenses()"
     [isPaid]="isPaid()"
+    [isOverpaid]="isOverpaid()"
     [iconName]="iconName()"
     [iconColor]="iconColor()"
     [step]="step()"
     [min]="min()"
     [decimalPlaces]="decimalPlaces()"
     (saveEstimated)="saveEstimated.emit($event)"
-    (saveActual)="saveActual.emit($event)"
+    (saveActual)="onSaveActual($event)"
     (removeActual)="removeActual.emit()"
     (openDetails)="onOpenDetails()">
   </app-cost-badge>

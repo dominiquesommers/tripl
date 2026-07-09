@@ -3,9 +3,18 @@
   <div class="manager-header">
     <div style="width: 32px;"></div>
     <span class="header-title">Payments</span>
-    <button class="icon-btn" (click)="addNew()" title="Add payment">
-      <lucide-icon name="plus" [size]="18"></lucide-icon>
-    </button>
+    <div class="header-actions">
+      <button
+        class="icon-btn"
+        (click)="addFullPayment()"
+        [disabled]="remainingCost() == null || remainingCost()! <= 0"
+        title="Add remaining payment">
+        <lucide-icon name="banknote" [size]="18"></lucide-icon>
+      </button>
+      <button class="icon-btn" (click)="addNew()" title="Add payment">
+        <lucide-icon name="plus" [size]="18"></lucide-icon>
+      </button>
+    </div>
   </div>
 
   <div class="scroll-container">

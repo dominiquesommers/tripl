@@ -28,6 +28,22 @@
   opacity: 0.7;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-actions .icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.header-actions .icon-btn:disabled:hover {
+  background: transparent;
+}
+
 /* ── Scroll container ───────────────────────────────────── */
 .scroll-container {
   overflow-y: auto;

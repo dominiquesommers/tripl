@@ -16,6 +16,7 @@ export class CostBadge extends EditableBadge {
   // ─── Inputs ───────────────────────────────────────────────
   estimatedCost = input.required<number>();
   isPaid        = input.required<boolean>();
+  isOverpaid = input<boolean>(false);
   actualCost    = input<number | null>(null);
   hasExpenses   = input<boolean>(false);  // drives the info icon visibility
   actualReadonly = input<boolean>(false);
@@ -41,6 +42,7 @@ export class CostBadge extends EditableBadge {
     if (this.actualReadonly()) return 'default';
     const actual = this.actualCost();
     const paid   = this.isPaid();
+    if (actual !== null && this.isOverpaid()) return 'overpaid';
     if (actual === null && !paid) return 'default';
     if (actual !== null && !paid) return 'pending';
     if (actual !== null &&  paid) return 'done';

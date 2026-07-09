@@ -32,6 +32,20 @@
   color: #d1fae5; /* Very light green text */
 }
 
+.badge-container.overpaid {
+  background: rgba(168, 85, 247, 0.18); /* Violet tint */
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.badge-container.overpaid .val-input {
+  color: #f3e8ff; /* Very light violet text */
+}
+
+.badge-container.overpaid .prefix.toggle-paid:hover {
+  background: rgba(168, 85, 247, 0.3);
+  color: #a855f7;
+}
+
 /* Error: Red */
 .badge-container.error {
   background: rgba(239, 68, 68, 0.2); /* Red tint */
