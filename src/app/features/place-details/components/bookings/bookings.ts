@@ -78,7 +78,7 @@ export class Bookings {
   // real expenses for elapsed nights + estimates for remaining)
   visitsCostActual = computed(() =>
     this.place().visits().reduce(
-      (total, v) => total.add(v.inItinerary() ? v.cost().improvedEstimate : CostBreakdown.empty()),
+      (total, v) => total.add(v.inItinerary() ? v.cost().actual : CostBreakdown.empty()),
       CostBreakdown.empty()
     )
   );
