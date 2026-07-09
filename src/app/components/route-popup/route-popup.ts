@@ -36,6 +36,27 @@ export class RoutePopup {
     return Math.ceil(this.route().duration());
   });
 
+  sortedTraverses = computed(() => {
+    return this.route()?.traverses()
+      .filter(t => t.entryDate() !== null)
+      .sort((a, b) => {
+        const dateA = a.entryDate()?.getTime() ?? 0;
+        const dateB = b.entryDate()?.getTime() ?? 0;
+        return dateA - dateB;
+      }) ?? [];
+  });
+
+  readonly traverseSummary = computed(() => {
+    const parts = this.sortedTraverses().map(t => {
+      const entry = t.entryDateString();
+      const exit = t.exitDateString();
+      return entry === exit ? entry : `${entry}-${exit}`;
+    });
+    const s = parts.length > 0 ? `(${parts.join(', ')})` : '';
+    console.log(s);
+    return s;
+  });
+
   updateRoute(route: Route, patch: UpdateRoute) {
     this.tripService.updateRoute(route.id, patch).subscribe();
   }

@@ -75,6 +75,9 @@
             <span class="text-truncate location-name">To: {{ route().target.name() }}</span>
           </div>
 
+          @if (sortedTraverses().length > 0) {
+            <div class="traverse-row">{{ traverseSummary() }}</div>
+          }
         </div>
       </div>
     </div>
