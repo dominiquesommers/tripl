@@ -142,7 +142,7 @@ export class RouteBookings {
     const rect = el.getBoundingClientRect();
     this.popupSvc.open(CostPopup, {
       position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
-      inputs: { expenses: computed(() => this.bookingExpenses(booking)) },
+      inputs: { expenses: computed(() => this.bookingExpenses(booking)), actualCost: computed(() => booking.final_price()) },
       outputs: {
         addExpense: (e: NewExpense) => {
           const trip = this.tripService.trip();
