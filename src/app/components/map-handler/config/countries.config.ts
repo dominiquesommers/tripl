@@ -199,6 +199,10 @@ export const COUNTRY_FLAGS: Record<string, string> = {
   "Uruguay": '🇺🇾',
   "Belgium": '🇧🇪',
   "Germany": '🇩🇪',
+  "China": '🇨🇳',
+  "People's Republic of China": '🇨🇳',
+  "Nepal": '🇳🇵',
+  "Taiwan": '🇹🇼',
   "undefined": '🏳️'
 }
 
@@ -234,6 +238,7 @@ export const COUNTRY_ABBREVIATIONS: Record<string, string> = {
   "Switzerland": "CH",
   "Chile": "CL",
   "China": "CN",
+  "People's Republic of China": "CN",
   "Ivory Coast": "CI",
   "Cameroon": "CM",
   "Congo (Kinshasa)": "CD",
