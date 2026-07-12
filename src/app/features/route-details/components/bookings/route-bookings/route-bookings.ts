@@ -46,9 +46,29 @@ export class RouteBookings {
 
   // ── Add booking immediately ───────────────────────────────
   addBooking() {
+    const targetTraverse = [...this.route().traverses()]
+      .filter(t => t.inItinerary())
+      .sort((a, b) => a.entryDate()!.getTime() - b.entryDate()!.getTime())
+      .find(t => !t.hasBookings());
+
     this.tripService.addRouteBooking(this.route().id).subscribe(b => {
-      if (b) this.expandedId.set(b.id);
+      if (!b) return;
+
+      this.expandedId.set(b.id);
+
+      if (targetTraverse) {
+        this.updateBooking(b, {
+          departure_at: this.toISODateTimeAtMidnight(targetTraverse.entryDate()!),
+          arrival_at: this.toISODateTimeAtMidnight(targetTraverse.exitDate()!)
+        });
+      }
     });
+  }
+
+  private toISODateTimeAtMidnight(d: Date): string {
+    const midnight = new Date(d);
+    midnight.setHours(0, 0, 0, 0);
+    return midnight.toISOString();
   }
 
   // ── Update booking ────────────────────────────────────────

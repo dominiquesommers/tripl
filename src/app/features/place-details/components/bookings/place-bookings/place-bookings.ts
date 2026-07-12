@@ -59,8 +59,22 @@ export class PlaceBookings {
 
   // ── Add booking immediately ───────────────────────────────
   addBooking() {
+    const targetVisit = [...this.place().visits()]
+      .filter(v => v.inItinerary())
+      .sort((a, b) => a.entryDate()!.getTime() - b.entryDate()!.getTime())
+      .find(v => !v.hasBookings());
+
     this.tripService.addPlaceBooking(this.place().id).subscribe(b => {
-      if (b) this.expandedId.set(b.id);
+      if (!b) return;
+
+      this.expandedId.set(b.id);
+
+      if (targetVisit) {
+        this.updateBooking(b, {
+          check_in: this.toISODate(targetVisit.entryDate()!),
+          check_out: this.toISODate(targetVisit.exitDate()!)
+        });
+      }
     });
   }
 
