@@ -67,7 +67,9 @@ export class Traverse {
 
   readonly entryDateString = computed(() => {
     const date = this.entryDate();
-    return date ? date.toLocaleDateString('nl-NL') : '';
+    if (!date) return '';
+    return this.formatDate(date);
+    // return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
   readonly exitDate = computed((): Date | null => {
@@ -77,8 +79,18 @@ export class Traverse {
 
   readonly exitDateString = computed(() => {
     const date = this.exitDate();
-    return date ? date.toLocaleDateString('nl-NL') : '';
+    if (!date) return '';
+    return this.formatDate(date);
+    // return date ? date.toLocaleDateString('nl-NL') : '';
   });
+
+  private formatDate(date: Date): string {
+    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const dd  = String(date.getDate()).padStart(2, '0');
+    const mm  = String(date.getMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getFullYear()).slice(2);
+    return `${day} ${dd}-${mm}-'${yy}`;
+  }
 
   // TODO refactor cost (attribute) to actual_cost such that this computed can be named 'cost'
   readonly cost_ = computed<CostComparison>(() => {
