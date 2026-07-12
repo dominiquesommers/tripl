@@ -61,10 +61,11 @@ export class TripService {
   readonly trips = toSignal(
     combineLatest([
       toObservable(this.authService.user),
+      toObservable(this.navigationService.tripId),
       toObservable(this.refreshTripsTrigger)
     ]).pipe(
-      switchMap(([user, _refreshCount]) => {
-        if (!user?.uid && !this.navigationService.tripId()) return of([]);
+      switchMap(([user, tripId, _refreshCount]) => {
+        if (!user?.uid && !tripId) return of([]);
         // if (!user?.uid) return of([]);
         return this.loadTrips().pipe(
           map((rawTrips: IUserTrip[]) => rawTrips.map(t => new UserTrip(t)))
