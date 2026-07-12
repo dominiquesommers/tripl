@@ -273,7 +273,8 @@ export class Visit {
     // });
     const placeBookings = Array.from(this.tripService.trip()?.placeBookings().values() ?? [])
       .filter(b => {
-        if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
+        if (b.place_id !== this.place_id || !b.check_in() || !b.check_out()) return false;
+        // if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
         const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
         const bOut = new Date(b.check_out()! + 'T00:00:00Z');
         return bIn < exit && bOut > entry;

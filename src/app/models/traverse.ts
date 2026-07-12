@@ -190,7 +190,8 @@ export class Traverse {
     const rentalSource = this.activeRentalSource();
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
-          if (b.route_id !== (rentalSource ?? this).route_id || !b.departure_at() || !b.arrival_at() || !b.final_price()) return false;
+          if (b.route_id !== (rentalSource ?? this).route_id || !b.departure_at() || !b.arrival_at()) return false;
+          // if (b.route_id !== (rentalSource ?? this).route_id || !b.departure_at() || !b.arrival_at() || !b.final_price()) return false;
           const dep_date = new Date(b.departure_at()!.split(' ')[0] + 'T00:00:00Z');
           const arr_date = new Date(b.arrival_at()!.split(' ')[0] + 'T00:00:00Z');
           return dep_date <= exit && arr_date >= entry;
