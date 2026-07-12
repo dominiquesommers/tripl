@@ -1,17 +1,25 @@
-<div class="tab-bar-container">
-  @for (tab of tabs(); track tab) {
+ <div class="tab-bar-container">
+  @for (tab of tabs(); track tab.id) {
     <button
       class="tab-item"
-      [class.active]="activeTab() === tab"
-      (click)="handleTabClick(tab)"
-      [attr.aria-label]="'Select ' + tab">
+      [class.active]="activeTab() === tab.id"
+      (click)="handleTabClick(tab.id)"
+      [attr.aria-label]="'Select ' + tab.label">
 
       <div class="tab-icon">
-        <lucide-icon [name]="getIconName(tab)" [size]="22"></lucide-icon>
+        <lucide-icon [name]="tab.icon" [size]="22"></lucide-icon>
       </div>
 
-      <span class="tab-label">{{ tab | titlecase }}</span>
+      <div class="tab-label-container">
+        @if (tab.getValue) {
+          @let val = tab.getValue();
+          @if (val !== null && val !== undefined) {
+            <span class="tab-label">{{ val }}</span>
+          }
+        } @else {
+          <span class="tab-label">{{ tab.label }}</span>
+        }
+      </div>
     </button>
   }
 </div>
-

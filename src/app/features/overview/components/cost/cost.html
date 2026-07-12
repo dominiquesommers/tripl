@@ -14,9 +14,9 @@
         <div class="country-group">
           <div class="country-row">
             <span class="name">Total</span>
-            <span class="val">{{ total().estimated.total | currency:'EUR' }}</span>
-            <span class="val actual">{{ total().actual.total | currency:'EUR' }}</span>
-            <span class="val improved-estimate">{{ total().improvedEstimate.total | currency:'EUR' }}</span>
+            <span class="val">{{ costService.total().estimated.total | currency:'EUR' }}</span>
+            <span class="val actual">{{ costService.total().actual.total | currency:'EUR' }}</span>
+            <span class="val improved-estimate">{{ costService.total().improvedEstimate.total | currency:'EUR' }}</span>
           </div>
 <!--          <div class="country-row">-->
 <!--            <span class="name">Total2</span>-->

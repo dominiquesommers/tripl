@@ -5,6 +5,7 @@ import { Chart, ChartConfiguration, ChartOptions, registerables, ChartType } fro
 import 'chartjs-adapter-date-fns';
 import { ChartModal } from './chart-modal';
 import {TripService} from '../../../../services/trip';
+import {CostService} from '../../../../services/cost';
 import {CurrencyPipe} from '@angular/common';
 import {Country} from '../../../../models/country';
 import {LucideAngularModule} from 'lucide-angular';
@@ -23,37 +24,11 @@ Chart.register(...registerables);
 })
 export class Cost {
   tripService = inject(TripService);
+  costService = inject(CostService);
+
   private dialog = inject(Dialog);
   readonly isCumulative = signal<boolean>(true);
   readonly isBarCumulative = signal<boolean>(false);
-
-  public total = computed<CostComparison>(() => {
-    const trip = this.tripService.trip();
-    const plan = this.tripService.plan();
-    if (!trip || !plan) return CostComparison.empty();
-    const visits = plan.itinerary();
-    const visitedPlaces = new Set<Place>();
-    const visitedCountries = new Set<Country>();
-    let current = CostComparison.empty();
-    let total = CostComparison.empty();
-    visits.forEach((visit) => {
-      if (!visitedPlaces.has(visit.place)) {
-        visitedPlaces.add(visit.place);
-        current = current.add(visit.place.oneTimeCost());
-      }
-      if (!visitedCountries.has(visit.place.country)) {
-        visitedCountries.add(visit.place.country);
-        current = current.add(visit.place.country.oneTimeCost());
-      }
-      current = current.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
-      total = total.add(current);
-      const traverse = visit.nextTraverse();
-      if (traverse) {
-        current = traverse.cost_();
-      }
-    });
-    return total;
-  });
 
   public total2 = computed<CostComparison>(() => {
     const trip = this.tripService.trip();

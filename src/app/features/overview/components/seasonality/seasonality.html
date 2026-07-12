@@ -1,7 +1,7 @@
 <div class="seasonality-card">
   <div class="table-header">
-    <div class="label-col total-score" [style.color]="getColor(totalScore(), 1)">
-      {{ (totalScore() * 10) | number:'1.1-1' }}
+    <div class="label-col total-score" [style.color]="getColor(seasonalityService.totalScore(), 1)">
+      {{ (seasonalityService.totalScore() * 10) | number:'1.1-1' }}
     </div>
     @for (m of monthKeys; track m) {
       <div class="month-col">{{ m }}</div>
@@ -10,7 +10,7 @@
   </div>
 
   <div class="table-body">
-    @for (row of rows(); track $index) {
+    @for (row of seasonalityService.rows(); track $index) {
       <div class="season-row">
         <div class="label-col" [title]="row.season.description()">
           <span class="flag-icon">{{ row.flag }}</span>

@@ -1,6 +1,6 @@
 import {Component, inject, signal, input, effect, computed} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TabBar } from '../../../components/tab-bar/tab-bar';
+import { TabBar, TabConfig } from '../../../components/tab-bar/tab-bar';
 import {Route} from '../../../models/route';
 import {Bookings} from '../components/bookings/bookings';
 import {Notes} from '../components/notes/notes';
@@ -21,12 +21,41 @@ export class RoutePanel {
   route = input.required<Route>();
   uiService = inject(UiService);
   authService = inject(AuthService);
-  readonly routeTabs = computed(() => {
+
+  readonly routeTabs = computed<TabConfig[]>(() => {
     const route = this.route();
-    const baseTabs = ['notes'];
+
+    let baseTabs: TabConfig[] = [
+      {
+        id: 'notes',
+        label: 'Notes',
+        icon: 'sticky-note',
+        getValue: () => route.notes().length
+      }
+    ];
+
     if (!route.isCrossCountry()) {
-      baseTabs.push('country');
+      baseTabs.push(
+        {
+          id: 'country',
+          label: 'Country',
+          icon: 'globe',
+          getValue: () => route.source.country.notes().length
+        }
+      );
     }
-    return this.authService.isPublicMode() ? baseTabs : ['bookings', ...baseTabs];
+
+    if (!this.authService.isPublicMode()) {
+      baseTabs = [
+        {
+          id: 'bookings',
+          label: 'Bookings',
+          icon: 'ticket'
+        },
+        ...baseTabs
+      ];
+    }
+
+    return baseTabs;
   });
 }
