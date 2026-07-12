@@ -54,6 +54,9 @@ export class RouteBookings {
   // ── Update booking ────────────────────────────────────────
   updateBooking(booking: RouteBooking, updates: UpdateRouteBooking) {
     this.tripService.updateRouteBooking(booking.id, updates).subscribe();
+    if (updates.final_price !== undefined) {
+      this.openCostPopup(booking);
+    }
   }
 
   deleteBooking(booking: RouteBooking) {

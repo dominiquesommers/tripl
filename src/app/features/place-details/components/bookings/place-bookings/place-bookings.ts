@@ -67,6 +67,9 @@ export class PlaceBookings {
   // ── Update booking ────────────────────────────────────────
   updateBooking(booking: PlaceBooking, updates: UpdatePlaceBooking) {
     this.tripService.updatePlaceBooking(booking.id, updates).subscribe();
+    if (updates.final_price !== undefined) {
+      this.openCostPopup(booking);
+    }
   }
 
   deleteBooking(booking: PlaceBooking) {
