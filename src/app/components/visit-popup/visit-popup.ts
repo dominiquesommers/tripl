@@ -110,7 +110,6 @@ export class VisitPopup {
       if (!nextWouldBeTraverse) return null;
       return {traverse: nextWouldBeTraverse, planned: false};
     }
-    console.log('nextLeg', nextTraverse, nextTraverse.activeRentalSource(), nextTraverse.activeRentalSource()?.includes_accommodation());
     return {traverse: nextTraverse, planned: true};
   });
 
