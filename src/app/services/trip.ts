@@ -5,7 +5,7 @@ import {
 } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from './api';
-import {IUserPlan, IUserTrip, TripsDataPackage, UserPlan, UserTrip} from '../models/user';
+import {IUserPlan, IUserTrip, TripMember, TripsDataPackage, UpdateUserTrip, UserPlan, UserTrip} from '../models/user';
 import {ITrip, Trip, TripDataPackage, UpdateTrip} from '../models/trip';
 import {IPlan, PersistentUpdatePlan, Plan, PlanDataPackage, UpdatePlan} from '../models/plan';
 import {Country, ICountry} from '../models/country';
@@ -68,7 +68,11 @@ export class TripService {
         if (!user?.uid && !tripId) return of([]);
         // if (!user?.uid) return of([]);
         return this.loadTrips().pipe(
-          map((rawTrips: IUserTrip[]) => rawTrips.map(t => new UserTrip(t)))
+          map((rawTrips: IUserTrip[]) => {
+            const trips = rawTrips.map(t => new UserTrip(t));
+            console.log(trips);
+            return trips;
+          })
         );
       }),
       catchError(err => of([]))
@@ -155,6 +159,7 @@ export class TripService {
   // ── LOAD ─────────────────────────────────────────────────────────────────
 
   loadTrips(): Observable<IUserTrip[]> {
+    console.log('load trips data!!')
     const tripId = this.navigationService.tripId() ?? '';
     const dataSource$: Observable<TripsDataPackage> = !environment.useMock
       ? this.apiService.get<TripsDataPackage>(`trips/${tripId}/meta`)
@@ -167,6 +172,7 @@ export class TripService {
           id: trip.id.toString(),
           name: trip.name,
           role: trip.role,
+          owner_name: trip.owner_name ?? undefined,
           priority: trip.priority,
           plans: data.plans
             .filter((plan: any) => plan.trip_id.toString() === trip.id.toString())
@@ -194,6 +200,7 @@ export class TripService {
     return dataSource$.pipe(
       map(data => {
         console.log('Started mapping', data);
+        const members       = (data.members ?? []).map(m => new TripMember(m, this));
         const countries     = data.countries.map(c => new Country(c, this));
         const countryNotes  = data.countryNotes.map(n => new CountryNote(n, this));
         const seasons       = data.seasons.map((s: any) => new Season(s, this));
@@ -206,7 +213,7 @@ export class TripService {
         const placeBookings = (data.placeBookings ?? []).map(b => new PlaceBooking(b, this));
         const routeBookings = (data.routeBookings ?? []).map(b => new RouteBooking(b, this));
         return new Trip(
-          data.trip, countries, countryNotes, seasons, places, activities,
+          data.trip, members, countries, countryNotes, seasons, places, activities,
           placeNotes, routes, routeNotes, expenses, placeBookings, routeBookings, this
         );
       }),
@@ -245,6 +252,46 @@ export class TripService {
       updates,
       () => trip.update(updates),
       { message: 'Trip updated.' }
+    );
+  }
+
+  // ── TRIP MEMBERS ──────────────────────────────────────────────────────────
+
+  updateTripMember(id: string, updates: UpdateUserTrip): Observable<IUserTrip | null> {
+    const parts = id.split('|');
+    const tripId = parts[0];
+    const userId = parts[1];
+    const userTrip = this.trips().find(t => t.id === tripId);
+    if (!userTrip) {
+      console.log('no user trip found for id', id);
+      return of(null);
+    }
+
+    return this.patchAndPersist<IUserTrip, UpdateUserTrip>(
+      `trip_members/${id}`,
+      updates,
+      () => {
+        if ('priority' in updates) {
+          userTrip.update(updates)
+        } else if ('role' in updates) {
+          const updatedMember = this.trip()!.members().find(m => m.id === userId)!;
+          updatedMember.update(updates);
+        }
+      },
+      { message: 'Trip member updated.' }
+    );
+  }
+
+  deleteTripMember(id: string): Observable<void> {
+    const parts = id.split('|');
+    const tripId = parts[0];
+    const userId = parts[1];
+    return this.persist(
+      this.apiService.delete<void>(`trip_members/${id}`),
+      () => {
+        this.trip()?.removeMember(userId);
+      },
+      { message: 'Trip member removed.' }
     );
   }
 

@@ -2,7 +2,7 @@ import {ApiService} from './api';
 import {Injectable} from '@angular/core';
 import {catchError, EMPTY, forkJoin, Observable, of, switchMap, tap} from 'rxjs';
 import {ICountry} from '../models/country';
-import {IUserPlan, TripsDataPackage} from '../models/user';
+import {ITripMember, IUserPlan, TripsDataPackage} from '../models/user';
 import {ITrip, TripDataPackage} from '../models/trip';
 import {IPlace} from '../models/place';
 import {IRoute} from '../models/route';
@@ -32,6 +32,7 @@ export class MockService {
   fetchTripMockAggregate(tripId: string): Observable<TripDataPackage> {
     return forkJoin({
       trip: this.apiService.get<ITrip>(`trips/${tripId}`),
+      members: this.apiService.get<ITripMember[]>(`members?trip_id=${tripId}`),
       places: this.apiService.get<IPlace[]>(`places?trip_id=${tripId}`),
       activities: this.apiService.get<IActivity[]>(`activities?trip_id=${tripId}`),
       placeNotes: this.apiService.get<IPlaceNote[]>(`place_notes?trip_id=${tripId}`),

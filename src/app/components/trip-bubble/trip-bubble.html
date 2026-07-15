@@ -1,8 +1,20 @@
 @if (tripService.trips()) {
   <div class="bubble-pill-container">
     <div class="bubble-pill">
-      <div class="pill-segment" [class.active]="showTripMenu" (click)="toggleTripMenu($event)">
-        <span class="value">{{ tripService.trip()?.name() || 'Select Trip' }}</span>
+      @if (tripService.trip()) {
+        <div class="pill-segment"
+             [class.active]="showMemberMenu"
+             (click)="toggleMemberMenu($event)">
+          <lucide-icon name="users" [size]="16"></lucide-icon>
+        </div>
+        <div class="pill-divider"></div>
+      }
+
+      <div class="pill-segment"
+        [class.active]="showTripMenu"
+        [class.disabled]="!authService.user()"
+        (click)="authService.user() ? toggleTripMenu($event) : null">
+        <span class="value">{{ selectedTripName() }}</span>
       </div>
 
       @if (!!tripService.trip()) {
@@ -16,37 +28,77 @@
     @if (showTripMenu) {
       <div class="bubble-dropdown manager-view shadow-lg">
         <div class="manager-header">
-          <div style="width: 32px;"></div>
+          <div class="header-side"></div>
+
           <span class="header-title">My Trips</span>
-          @if (canEdit()) {
-            <button class="icon-btn" (click)="addTrip()"><lucide-icon name="plus" [size]="18"></lucide-icon></button>
-          }
+
+          <div class="header-side">
+            @if (authService.user()) {
+              <button class="icon-btn" (click)="addTrip()">
+                <lucide-icon name="plus" [size]="18"></lucide-icon>
+              </button>
+            }
+          </div>
         </div>
 
-        <div class="scroll-container" cdkDropList (cdkDropListDropped)="dropTrip($event)">
-          @for (t of tripService.trips(); track t.id) {
-            <div class="manage-item" cdkDrag (click)="selectTrip(t)" [class.active]="t.id === tripService.trip()?.id">
-              @if (canEdit()) {
+        <div class="scroll-container">
+          <!-- Owner / member trips -->
+          <div cdkDropList (cdkDropListDropped)="dropOwnerMemberTrip($event)">
+            @for (t of ownerMemberTrips(); track t.id) {
+              <div class="manage-item" cdkDrag (click)="selectTrip(t)" [class.active]="t.id === tripService.trip()?.id">
                 <div class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
                   <lucide-icon name="grip-vertical" [size]="16"></lucide-icon>
                 </div>
+
+                @if (isOwner(t)) {
+                  <div class="input-wrapper" (click)="$event.stopPropagation()">
+                    <span class="input-sizer">{{ t.name() }}</span>
+                    <input type="text" #tripInput class="edit-input-transparent" [value]="t.name()"
+                           (change)="renameTrip(t, tripInput.value)" (keydown.enter)="tripInput.blur()"/>
+                  </div>
+                } @else {
+                  <span class="destination">{{ displayTripName(t) }}</span>
+                }
+
+                <div class="spacer"></div>
+
+                <div class="item-actions">
+                  @if (t.id === tripService.trip()?.id) {
+                    <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
+                  }
+                  @if (isOwner(t)) {
+                    <button class="icon-btn delete-item" (click)="deleteTrip($event, t)" title="Remove Trip">
+                      <lucide-icon name="trash2" [size]="16"></lucide-icon>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Viewer trips -->
+          @if (viewerTrips().length > 0) {
+            @if (ownerMemberTrips().length > 0) {
+              <div class="manager-divider"></div>
+            }
+            <div cdkDropList (cdkDropListDropped)="dropViewerTrip($event)">
+              @for (t of viewerTrips(); track t.id) {
+                <div class="manage-item" cdkDrag (click)="selectTrip(t)" [class.active]="t.id === tripService.trip()?.id">
+                  <div class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
+                    <lucide-icon name="grip-vertical" [size]="16"></lucide-icon>
+                  </div>
+
+                  <span class="destination">{{ t.name() }}</span>
+
+                  <div class="spacer"></div>
+
+                  <div class="item-actions">
+                    @if (t.id === tripService.trip()?.id) {
+                      <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
+                    }
+                  </div>
+                </div>
               }
-
-              <div class="input-wrapper" (click)="$event.stopPropagation()">
-                <input type="text" #tripInput class="edit-input-transparent" [value]="t.name()"
-                       (change)="renameTrip(t, tripInput.value)" (keydown.enter)="tripInput.blur()"/>
-              </div>
-
-              <div class="item-actions">
-                @if (t.id === tripService.trip()?.id) {
-                  <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
-                }
-                @if (canEdit()) {
-                  <button class="icon-btn delete-item" (click)="deleteTrip($event, t)">
-                    <lucide-icon name="trash2" [size]="16"></lucide-icon>
-                  </button>
-                }
-              </div>
             </div>
           }
         </div>
@@ -56,11 +108,17 @@
     @if (showPlanMenu && tripService.trip()) {
       <div class="bubble-dropdown manager-view shadow-lg">
         <div class="manager-header">
-          <div style="width: 32px;"></div>
+          <div class="header-side"></div>
+
           <span class="header-title">Plans of {{ tripService.trip()?.name() }}</span>
-          @if (canEdit()) {
-            <button class="icon-btn" (click)="addPlan()"><lucide-icon name="plus" [size]="18"></lucide-icon></button>
-          }
+
+          <div class="header-side">
+            @if (canEdit()) {
+              <button class="icon-btn" (click)="addPlan()">
+                <lucide-icon name="plus" [size]="18"></lucide-icon>
+              </button>
+            }
+          </div>
         </div>
 
         <div class="scroll-container" cdkDropList (cdkDropListDropped)="dropPlan($event)">
@@ -81,13 +139,7 @@
                        [readonly]="authService.isPublicMode()"
                        (change)="canEdit() && renamePlan(p, planInput.value)"
                        (keydown.enter)="canEdit() && planInput.blur()"/>
-                       <!-- (input)="authService.canEdit() && (p.name = planInput.value)" -->
               </div>
-
-<!--              <div class="input-wrapper" (click)="$event.stopPropagation()">-->
-<!--                <input type="text" #planInput class="edit-input-transparent" [value]="p.name"-->
-<!--                       (change)="renamePlan(p, planInput.value)" (keydown.enter)="planInput.blur()"/>-->
-<!--              </div>-->
 
               <div class="spacer"></div>
 
@@ -111,5 +163,79 @@
         </div>
       </div>
     }
+
+    <!-- Dropdown for Members -->
+    @if (showMemberMenu && tripService.trip()) {
+      <div class="bubble-dropdown manager-view shadow-lg">
+        <div class="manager-header">
+            <div class="header-side"></div>
+            <span class="header-title">Members</span>
+            <div class="header-side">
+              <button class="icon-btn">
+                <lucide-icon name="user-plus" [size]="18"></lucide-icon>
+              </button>
+            </div>
+        </div>
+
+        <div class="scroll-container">
+          @for (member of selectedTripSortedMembers(); track member.id) {
+            <div class="manage-item no-select" [class.active]="member.id === authService.user().uid">
+              <span class="destination">{{ member.display_name }}</span>
+
+              <div class="spacer"></div>
+
+              <!-- Role Display/Editor -->
+              <div class="item-actions">
+                @if (isOwner(selectedUserTrip()!) && member.id !== tripService.trip()!.owner()!.id) {
+                  <!-- Dropdown for Owner to change others' roles -->
+                  <select class="role-select"
+                          [value]="member.role()"
+                          (change)="updateRole(member, $event)">
+                    <option value="member">MEMBER</option>
+                    <option value="viewer">VIEWER</option>
+                  </select>
+                  <button class="icon-btn delete-item" (click)="deleteTripMember(member, $event)" title="Remove Member">
+                    <lucide-icon name="trash2" [size]="16"></lucide-icon>
+                  </button>
+                } @else {
+                  <span class="role-label">{{ member.role() }}</span>
+                  <div style="width: 35px;"></div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (selectedTripSortedViewers().length > 0) {
+            <div class="manager-divider"></div>
+            @for (member of selectedTripSortedViewers(); track member.id) {
+              <div class="manage-item no-select" [class.active]="member.id === authService.user().uid">
+                <span class="destination">{{ member.display_name }}</span>
+
+                <div class="spacer"></div>
+
+                <!-- Role Display/Editor -->
+                <div class="item-actions">
+                  @if (isOwner(selectedUserTrip()!) && member.id !== tripService.trip()!.owner()!.id) {
+                    <!-- Dropdown for Owner to change others' roles -->
+                    <select class="role-select" 
+                            [value]="member.role()"
+                            (change)="updateRole(member, $event)">
+                      <option value="member">Member</option>
+                      <option value="viewer">Viewer</option>
+                    </select>
+                    <button class="icon-btn delete-item" (click)="deleteTripMember(member, $event)" title="Remove Member">
+                      <lucide-icon name="trash2" [size]="16"></lucide-icon>
+                    </button>
+                  } @else {
+                    <span class="role-label">{{ member.role() }}</span>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
   </div>
 }

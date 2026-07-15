@@ -11,9 +11,12 @@ import {CountryNote, ICountryNote} from './country-note';
 import { Expense, IExpense } from './expense';
 import { PlaceBooking, IPlaceBooking } from './place-booking';
 import { RouteBooking, IRouteBooking } from './route-booking';
+import { ITripMember, TripMember } from './user';
+
 
 export interface TripDataPackage {
   readonly trip: ITrip;
+  readonly members: ITripMember[];
   readonly places: IPlace[];
   readonly activities: IActivity[];
   readonly placeNotes: IPlaceNote[];
@@ -32,6 +35,7 @@ export interface ITrip {
   name: string;
   role: string;
   priority: number;
+  owner_name: string | null;
 }
 
 export type NewTrip = Omit<ITrip, 'id'>;
@@ -42,6 +46,10 @@ export class Trip {
   name = signal<string>('');
   role = signal<string>('viewer');
   priority = signal<number>(0);
+
+  readonly members = signal<TripMember[]>([]);
+  readonly owner = computed(() => this.members().find(m => m.role() === 'owner') ?? null);
+  readonly ownerName = computed(() => this.owner()?.display_name ?? null);
 
   readonly countries = signal<Map<string, Country>>(new Map());
   readonly countryNotes = signal<Map<string, CountryNote>>(new Map());
@@ -78,6 +86,7 @@ export class Trip {
 
   constructor(
     data: ITrip,
+    members: TripMember[],
     countries: Country[],
     countryNotes: CountryNote[],
     seasons: Season[],
@@ -93,6 +102,7 @@ export class Trip {
   ) {
     this.id = data.id.toString();
     this.update(data);
+    this.members.set(members);
     this.countries.set(new Map(countries.map(c => [c.id, c])));
     this.countryNotes.set(new Map(countryNotes.map(n => [n.id, n])));
     this.seasons.set(new Map(seasons.map(s => [s.id, s])));
@@ -108,6 +118,14 @@ export class Trip {
 
   update(data: Partial<ITrip>) {
     if ('name' in data) this.name.set(data.name ?? '');
+  }
+
+  updateMembers(members: TripMember[]) {
+    this.members.set(members);
+  }
+
+  removeMember(memberId: string) {
+    this.members.update(ms => ms.filter(m => m.id !== memberId));
   }
 
   addCountry(country: Country) {

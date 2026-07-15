@@ -7,7 +7,7 @@ import { LucideAngularModule, ArrowUpRight, Plane, MapPin, Moon, Trash2, TrainFr
   MapPinOff, ChevronUp, ChevronDown, Plus, Bed, Route, CloudSun, Wallet, TriangleAlert, Ticket, StickyNote, Globe, Home,
   Utensils, ShoppingBag, Hotel, Maximize2, Sigma, Activity, Circle, Clock, Info, Copy, Euro, Map, Crosshair, NotebookPen,
   Tag, Receipt, Link, Calendar, CreditCard, Shield, HelpCircle, Mail, MessageCircle, Star, Sparkles, Binoculars, Camera,
-  Zap, Compass, Telescope, LogOut, LogIn, ArrowRight, CalendarX, Banknote
+  Zap, Compass, Telescope, LogOut, LogIn, ArrowRight, CalendarX, Banknote, Users, UserPlus
 } from 'lucide-angular';
 
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -40,7 +40,7 @@ export const appConfig: ApplicationConfig = {
         MapPinMinus, MapPinPlus, MapPinOff, TrainFront, Bed, Route, CloudSun, Wallet, TriangleAlert, Ticket, StickyNote, Globe,
         Home, Utensils, ShoppingBag, Hotel, Maximize2, Sigma, Activity, Circle, Clock, Info, Copy, Euro, Map, Crosshair,
         Receipt, Link, Calendar, CreditCard, Shield, HelpCircle, Mail, MessageCircle, Star, Sparkles, Binoculars, Camera,
-        Zap, Compass, Telescope, LogOut, LogIn, ArrowRight, CalendarX, Banknote
+        Zap, Compass, Telescope, LogOut, LogIn, ArrowRight, CalendarX, Banknote, Users, UserPlus
       })
     ),
     provideAnimationsAsync()

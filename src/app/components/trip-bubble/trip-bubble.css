@@ -31,6 +31,11 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.pill-segment.disabled:hover {
+  background: transparent;
+  cursor: auto;
+}
+
 .pill-segment:active {
   /* A slightly deeper press effect */
   background: rgba(255, 255, 255, 0.15);
@@ -40,8 +45,11 @@
 .pill-segment {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 0 8px;
-  margin: 0 7px;
+  margin: -5px 7px;
+  height: 28px;
   cursor: pointer;
   border-radius: 40px;
   transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
@@ -55,6 +63,16 @@
   background: rgba(255, 255, 255, 0.1);
   /*background: rgba(255, 255, 255, 0.15);*/
   /*transform: scale(0.98);*/
+}
+
+.pill-segment:has(lucide-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: -5px 4px;
 }
 
 .label {
@@ -160,12 +178,24 @@
   /*height: 32px;*/
 }
 
+.header-side {
+  flex: 1; /* Each side takes equal space */
+  display: flex;
+  align-items: center;
+}
+
+.header-side:last-child {
+  justify-content: flex-end;
+}
+
 .header-title {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05rem;
   opacity: 0.7;
+  flex-shrink: 0;
+  padding: 0 10px;
 }
 
 .scroll-container {
@@ -190,8 +220,12 @@
   color: rgb(237, 237, 237);
 }
 
-.manage-item:hover {
+.manage-item:not(.no-select):not(.active):hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.manage-item.no-select {
+  cursor: auto;
 }
 
 .manage-item.active {
@@ -387,4 +421,35 @@
   background: rgba(255, 255, 255, 0.1);
   /* Optional: Remove ellipsis on focus so user can see what they type */
   text-overflow: clip;
+}
+
+.manager-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 6px 4px 8px;
+}
+
+.role-select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color 0.15s ease;
+}
+
+.role-select:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.role-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  padding-right: 8px;
 }
