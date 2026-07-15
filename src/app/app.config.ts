@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, importProvidersFrom } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { provideRouter, RouteReuseStrategy, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { LucideAngularModule, ArrowUpRight, Plane, MapPin, Moon, Trash2, TrainFront, Bus, Car, Ship, Footprints, Milestone,
@@ -15,6 +15,8 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { routes } from './app.routes';
 import {authInterceptor} from './interceptors/auth.interceptor';
+import { TripViewReuseStrategy } from './route-reuse.strategy';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +27,7 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withRouterConfig({ paramsInheritanceStrategy: 'always' })
     ),
+    { provide: RouteReuseStrategy, useClass: TripViewReuseStrategy },
     provideClientHydration(withEventReplay()),
     provideHttpClient(
       withInterceptors([authInterceptor])

@@ -48,15 +48,14 @@
 
 <div style="position: absolute; left: -9999px;">
   @if (tripService.trip(); as trip) {
-    @for (place of trip.placesArray(); track place.id) {
-      <app-place-marker
-        [place]="place"
-        [hoveredPlace]="uiService.hoveredPlace"
-        [hoveredVisit]="uiService.hoveredVisit"
-        [selectedVisit]="uiService.selectedVisit"
-        [zoom]="zoom">
-      </app-place-marker>
-    }
+    <app-place-marker *ngFor="let place of tripService.trip()?.placesArray()"
+      [place]="place"
+      [hoveredPlace]="uiService.hoveredPlace"
+      [hoveredVisit]="uiService.hoveredVisit"
+      [selectedVisit]="uiService.selectedVisit"
+      [zoom]="zoom"
+    >
+    </app-place-marker>
   }
 </div>
 

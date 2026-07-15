@@ -32,6 +32,7 @@ import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICONS} from './config/ma
 import { MapSearch } from '../map-search/map-search';
 import {RoutePopup} from '../route-popup/route-popup';
 import {NotificationService} from '../../services/notification';
+import { NavigationService } from '../../services/navigation';
 
 
 @Component({
@@ -45,6 +46,7 @@ import {NotificationService} from '../../services/notification';
 export class MapHandler implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   readonly tripService = inject(TripService);
+  readonly navigationService = inject(NavigationService);
   readonly uiService = inject(UiService);
   readonly notifierService = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
@@ -115,6 +117,12 @@ export class MapHandler implements OnInit, OnDestroy {
     }
   }
 
+  private computeInitialStyle(): string {
+    const user = this.authService.user();
+    const trip = this.tripService.trip();
+    return trip ? MAP_STYLES.ACTIVE_TRIP : (user ? MAP_STYLES.LOGGED_IN : MAP_STYLES.LOGGED_OUT);
+  }
+
   private async initializeMap() {
     console.log('Initialize map.')
     this.mapbox = (await import('mapbox-gl')).default;
@@ -122,7 +130,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
     const map = new this.mapbox.Map({
       container: this.mapContainer().nativeElement,
-      style: `mapbox://styles/mapbox/${MAP_STYLES.LOGGED_OUT}`,
+      style: `mapbox://styles/mapbox/${this.computeInitialStyle()}`,
       center: this.center(),
       zoom: this.zoom(),
       config: { basemap: { lightPreset: 'night' } },
@@ -184,11 +192,19 @@ export class MapHandler implements OnInit, OnDestroy {
 
   private syncTheme() {
     const offline = !this.authService.isOnline();
+    const ready = this.layersReady();
     const user = this.authService.user();
-    const plan = this.tripService.plan();
+    const trip = this.tripService.trip();
+
+    const expectedTripId = this.tripService.navigationService.tripId();
+    if (expectedTripId && !trip) return;
+
     const map = this.map();
-    if (!map) return;
-    this.layerManager?.updateStyle(user, plan);
+    if (!map || !ready) return;
+
+    const willChange = this.layerManager.currentStyle() !== this.layerManager.computeTargetStyle(user, trip);
+    if (willChange) this.layersReady.set(false);
+    this.layerManager.updateStyle(user, trip);
   }
 
   private syncSelectedVisit() {
@@ -200,16 +216,10 @@ export class MapHandler implements OnInit, OnDestroy {
   private syncMarkers() {
     const map = this.map();
     const trip = this.tripService.trip();
-    console.log('syncMarkers!', trip?.placesArray().length);
-    // TODO delete existing markers if no places.
     if (!map || !trip) return;
-    // console.log('syncMarkers111!', trip?.placesArray().length);
-    // TODO this should no need a timeout as this.markerElements is a signal, but without, it doesn't seem to work.
     setTimeout(() => {
       const components = this.markerElements();
-      // console.log('syncMarkers222!', trip?.placesArray().length);
       if (!components || components.length === 0) return;
-      // console.log('syncMarkers333!', trip?.placesArray().length);
       this.updateMarkers(trip.placesArray() ?? [], components);
     }, 500);
   }
@@ -309,7 +319,13 @@ export class MapHandler implements OnInit, OnDestroy {
 
   private getInitialStyle() {
     const user = this.authService.user();
-    const plan = this.tripService.plan();
-    return (!user) ? MAP_STYLES.LOGGED_OUT : (!plan ? MAP_STYLES.LOGGED_IN : MAP_STYLES.ACTIVE_TRIP);
+    const tripId = this.navigationService.tripId();
+
+    const isAuthenticated = !!user;
+    const hasSelectedTrip = !!tripId;
+
+    if (hasSelectedTrip) return MAP_STYLES.ACTIVE_TRIP;
+    if (isAuthenticated) return MAP_STYLES.LOGGED_IN;
+    return MAP_STYLES.LOGGED_OUT;
   }
 }

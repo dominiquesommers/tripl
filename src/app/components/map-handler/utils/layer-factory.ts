@@ -7,6 +7,7 @@ import {
   ROUTE_ICONS
 } from '../config/map-styles.config';
 import { AuthService } from '../../../services/auth';
+import { Trip } from '../../../models/trip';
 
 
 export class MapLayerManager {
@@ -18,21 +19,22 @@ export class MapLayerManager {
     private authService: AuthService,
   ) {}
 
-  private getStyle(user: any, plan: any) {
-    return (!user) ? MAP_STYLES.LOGGED_OUT : (!plan ? MAP_STYLES.LOGGED_IN : MAP_STYLES.ACTIVE_TRIP);
+  private getStyle(user: any, trip: Trip | null) {
+    return (!user) ? MAP_STYLES.LOGGED_OUT : (!trip ? MAP_STYLES.LOGGED_IN : MAP_STYLES.ACTIVE_TRIP);
   }
 
-  public updateStyle(user: any, plan: any) {
-    const isOffline = !this.authService.isOnline();
-    const nextStyle = isOffline ? MAP_STYLES.OFFLINE : this.getStyle(user, plan);
-    if (this.currentStyle() !== nextStyle) {
-      if (nextStyle === MAP_STYLES.OFFLINE) {
-        this.map.setStyle(OFFLINE_BASE_STYLE);
-      } else {
-        this.map.setStyle(`mapbox://styles/mapbox/${nextStyle}?optimize=true`);
-      }
-      this.currentStyle.set(nextStyle);
-    }
+  public computeTargetStyle(user: any, trip: Trip | null) {
+    return trip
+        ? MAP_STYLES.ACTIVE_TRIP
+        : (user ? MAP_STYLES.LOGGED_IN : MAP_STYLES.LOGGED_OUT);
+  }
+
+  public updateStyle(user: any, trip: Trip | null) {
+    const targetStyle = this.computeTargetStyle(user, trip);
+    if (this.currentStyle() === targetStyle) return;
+    this.currentStyle.set(targetStyle);
+    this.routesLayerReady.set(false);   // mark layers gone right away
+    this.map.setStyle(`mapbox://styles/mapbox/${targetStyle}?optimize=true`);
   }
 
   // The helper accepts raw GeoJSON, not a Signal
