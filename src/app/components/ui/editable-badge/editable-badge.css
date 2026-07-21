@@ -104,7 +104,9 @@
   flex-shrink: 0;
   padding: 0;
   margin: 0;
-  font-size: 13px;
+  font-size: 16px;
+  transform: scale(0.8125);
+  transform-origin: center;
   font-weight: 600;
   text-align: center;
   outline: none;
