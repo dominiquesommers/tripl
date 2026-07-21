@@ -7,9 +7,12 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
+  height: 74px;
 
-  padding: 12px 0 calc(env(safe-area-inset-bottom) + 12px) 0;
+  padding: 6px 0 calc(env(safe-area-inset-bottom) + 6px) 0;
+}
 
+.tab-bar-container:not(.peek) {
   border-top: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -18,8 +21,9 @@
   background: none;
   border: none;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   color: #8e8e93; /* Inactive grey */
   cursor: pointer;
@@ -42,9 +46,15 @@
   transition: background 0.2s;
 }
 
+.tab-label-container {
+  line-height: 0.9;
+  text-align: left;
+}
+
 .tab-label {
   font-size: 11px;
   font-weight: 500;
+  white-space: pre-line;
 }
 
 

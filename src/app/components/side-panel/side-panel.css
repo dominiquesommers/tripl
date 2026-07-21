@@ -1,9 +1,9 @@
 .panel-container {
-  position: fixed; /* Keep as fixed to stay on screen */
+  position: fixed;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Important: keeps tabs/mask inside the rounded corners */
+  overflow: hidden;
   padding: 0;
 
   background: rgba(30, 30, 35, 0.75);
@@ -13,35 +13,35 @@
   border-right: 0.5px solid rgba(255, 255, 255, 0.1);
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
 
-  --sheet-offset: 0;
-
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
 }
 
-/* 1. Header & Title: Floating atop the container */
-.panel-title {
+/* Header: title + (desktop-only) close button */
+.panel-header {
   position: absolute;
-  /*top: 12px;*/
-  /*left: 12px;*/
   padding: 12px;
   padding-bottom: 2px;
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
   z-index: 20;
-  pointer-events: none; /* Allows scrolling if user grabs the text area */
   width: 100%;
   border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  touch-action: pan-y;
+}
+
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  pointer-events: none;
 }
 
 .header-actions {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 20;
+  pointer-events: auto;
 }
 
 .content {
@@ -49,19 +49,24 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding-top: 50px; /* Keep this for title clearance */
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  opacity: 1;
+  transition: padding-top 0.3s ease;
 }
 
-/* Ensure the mounted feature panel expands to fill the slot */
+.desktop-sidebar .content {
+/* .mobile-sheet.state-half .content,
+.mobile-sheet.state-full .content { */
+  padding-top: 50px; /* clears the floating header */
+}
+
 app-overview-panel, app-place-panel, app-route-panel {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
 }
 
-/* --- Keep your Existing Desktop/Mobile Geometry --- */
+/* --- Desktop --- */
 
 .desktop-sidebar {
   top: 15px;
@@ -72,67 +77,50 @@ app-overview-panel, app-place-panel, app-route-panel {
   border: 0.5px solid rgba(255, 255, 255, 0.15);
 }
 
+.desktop-sidebar.closed {
+  transform: translateX(-445px);
+}
+
+/* --- Mobile: iOS-style morphing sheet ---
+   --sheet-* custom properties are driven from side-panel.ts (applyProgress()).
+   progress 0 = peek, 0.5 = half, 1 = full. */
 .mobile-sheet {
-  position: fixed;
-  --sheet-offset: calc(100% - 72px);
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: calc(100dvh - max(72px, env(safe-area-inset-top)));
-  border-radius: 25px 25px 0 0;
+  --sheet-height: 74px;
+  --sheet-inset: 2.5%;
+  --sheet-bottom: 12px;
+  --sheet-radius-top: 999px;
+  --sheet-radius-bottom: 999px;
+
+  left: var(--sheet-inset);
+  right: var(--sheet-inset);
+  bottom: var(--sheet-bottom);
+  height: var(--sheet-height);
   border-right: 0;
-  transform: translate3d(0, var(--sheet-offset), 0);
-  transition: transform 0.48s cubic-bezier(0.32, 0.72, 0, 1);
-  will-change: transform;
+  border-radius: var(--sheet-radius-top) var(--sheet-radius-top) var(--sheet-radius-bottom) var(--sheet-radius-bottom);
   box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.32);
-}
 
-/* State: Peek (Collapsed at bottom) */
-.mobile-sheet.sheet-peek {
-  transform: translate3d(0, var(--sheet-offset), 0);
-}
-
-/* State: Open (Expanded) */
-.mobile-sheet.sheet-open {
-  transform: translate3d(0, var(--sheet-offset), 0);
+  transition: height 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+              left 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+              right 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+              bottom 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+              border-radius 0.42s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .mobile-sheet.is-dragging {
   transition: none;
 }
 
-/* Content Visibility */
-.mobile-sheet .content {
-  opacity: 0;
-  pointer-events: none;
-  padding-top: 0;
-  transition: opacity 0.2s ease;
-}
-
-.mobile-sheet.sheet-open .content {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Optional: Mobile Title styling to make it look like a real app */
-.mobile-title {
-  text-align: center;
-  font-size: 1.1rem;
-  margin-top: 5px;
-  font-weight: 600;
+/* Peek: header hidden — bubble shows only grabber + whatever sits at the
+   bottom of .content (the tab bar), because feature-content collapses
+   toward 0 and the tab bar (flex-shrink: 0) stays put. */
+.mobile-sheet .panel-header {
   display: none;
+  position: relative;
 }
 
-.mobile-sheet .mobile-title {
-  display: block;
-}
-
-.desktop-sidebar.closed {
-  transform: translateX(-445px);
-}
-
-.sheet-open .content, .desktop-sidebar .content {
-  opacity: 1;
+.mobile-sheet.state-half .panel-header,
+.mobile-sheet.state-full .panel-header {
+  display: flex;
 }
 
 .toggle-btn {
@@ -172,15 +160,34 @@ app-overview-panel, app-place-panel, app-route-panel {
   border-right: 1.2px solid rgba(255, 255, 255, 0.9);
 }
 
-.sheet-grabber {
-  height: 22px;
+/* .sheet-grabber {
+  height: 16px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 12px;
+  padding-top: 6px;
   flex-shrink: 0;
   cursor: grab;
   touch-action: none;
+} */
+
+.sheet-grabber {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 25;
+  display: flex;
+  align-items: flex-start;;
+  justify-content: center;
+  padding-top: 10px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mobile-sheet.state-peek .sheet-grabber {
+  pointer-events: none;
 }
 
 .sheet-grabber:active {

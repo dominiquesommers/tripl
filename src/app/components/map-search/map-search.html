@@ -1,7 +1,8 @@
 
 <div class="search-layout-wrapper"
      [style.left.px]="uiService.isMobile() ? 12 : uiService.sidePanelWidth() + 12"
-     [class.is-hidden]="uiService.isMobile() && uiService.isSidebarOpen()">
+     [style.bottom.px]="bottomOffset()"
+     [class.is-hidden]="uiService.isMobile() && uiService.sheetState() === 'full'">
 <!--     [class.sheet-expanded]="uiService.isMobile() && uiService.isSidebarOpen()">-->
   <div class="search-container" [class.expanded]="uiService.isSearchExpanded()">
 

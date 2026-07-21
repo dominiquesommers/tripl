@@ -22,6 +22,8 @@ export class RoutePanel {
   uiService = inject(UiService);
   authService = inject(AuthService);
 
+  isPeek = computed(() => this.uiService.isMobile() && this.uiService.sheetState() === 'peek');
+
   readonly routeTabs = computed<TabConfig[]>(() => {
     const route = this.route();
 

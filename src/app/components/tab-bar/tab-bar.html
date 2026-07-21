@@ -1,4 +1,4 @@
- <div class="tab-bar-container">
+ <div class="tab-bar-container"[class.peek]="isPeek()">
   @for (tab of tabs(); track tab.id) {
     <button
       class="tab-item"
@@ -16,8 +16,6 @@
           @if (val !== null && val !== undefined) {
             <span class="tab-label">{{ val }}</span>
           }
-        } @else {
-          <span class="tab-label">{{ tab.label }}</span>
         }
       </div>
     </button>

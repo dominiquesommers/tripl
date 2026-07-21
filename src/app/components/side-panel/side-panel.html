@@ -9,18 +9,12 @@
      [class.desktop-sidebar]="!uiService.isMobile()"
      [class.mobile-sheet]="uiService.isMobile()"
      [class.closed]="!uiService.isSidebarOpen() && !uiService.isMobile()"
-     [class.sheet-open]="uiService.isMobile() && sheetState === 'open'"
-     [class.sheet-peek]="uiService.isMobile() && sheetState === 'peek'"
+     [class.state-peek]="uiService.isMobile() && uiService.sheetState() === 'peek'"
+     [class.state-half]="uiService.isMobile() && uiService.sheetState() === 'half'"
+     [class.state-full]="uiService.isMobile() && uiService.sheetState() === 'full'"
      [class.is-dragging]="isDragging">
 
-  @if (!uiService.isMobile()) {
-    <h2 class="panel-title">{{ headerTitle() }}</h2>
-    <div class="header-actions">
-      <button class="toggle-btn" (click)="uiService.toggleSidebar()">
-        <div class="icon-box"><div class="sidebar-icon-bar"></div></div>
-      </button>
-    </div>
-  } @else {
+  @if (uiService.isMobile()) {
     <div class="sheet-grabber"
          (pointerdown)="onGrabberPointerDown($event)"
          (pointermove)="onGrabberPointerMove($event)"
@@ -30,7 +24,26 @@
     </div>
   }
 
-  <div class="content">
+  <div class="panel-header"
+       (pointerdown)="onHeaderPointerDown($event)"
+       (pointermove)="onHeaderPointerMove($event)"
+       (pointerup)="onHeaderPointerUp($event)"
+       (pointercancel)="onHeaderPointerUp($event)">
+    <h2 class="panel-title">{{ headerTitle() }}</h2>
+    @if (!uiService.isMobile()) {
+      <div class="header-actions">
+        <button class="toggle-btn" (click)="uiService.toggleSidebar()">
+          <div class="icon-box"><div class="sidebar-icon-bar"></div></div>
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="content"
+      (pointerdown)="onContentPointerDown($event)"
+      (pointermove)="onContentPointerMove($event)"
+      (pointerup)="onContentPointerUp($event)"
+      (pointercancel)="onContentPointerUp($event)">
     @if (uiService.selectedVisit(); as visit) {
       <app-place-panel [visit]="visit" />
     } @else {
@@ -41,4 +54,16 @@
       }
     }
   </div>
+
+  <!-- <div class="content">
+    @if (uiService.selectedVisit(); as visit) {
+      <app-place-panel [visit]="visit" />
+    } @else {
+      @if (uiService.selectedRoute(); as route) {
+        <app-route-panel [route]="route" />
+      } @else {
+        <app-overview-panel />
+      }
+    }
+  </div> -->
 </div>

@@ -36,6 +36,7 @@ export class UiService {
   readonly isLoading: WritableSignal<boolean> = signal(false);
   readonly isSearchExpanded: WritableSignal<boolean> = signal(false);
   readonly isCustomSearchActive: WritableSignal<boolean> = signal(false);
+  readonly currentSheetHeight: WritableSignal<number> = signal(0);
 
   // --- Interaction State (Moved from TripService) ---
   selectedVisitId = signal<string | null>(null);
@@ -65,6 +66,7 @@ export class UiService {
     { initialValue: false }
   );
   readonly sidePanelWidth = computed(() => (this.isMobile() || !this.tripService.plan() || !this.isSidebarOpen()) ? 0 : 445);
+  sheetState = signal<'peek' | 'half' | 'full'>('half');
 
   private flyToSubject = new Subject<FlyToRequest>();
   flyToRequested$ = this.flyToSubject.asObservable();

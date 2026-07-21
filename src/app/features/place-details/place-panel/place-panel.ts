@@ -25,6 +25,8 @@ export class PlacePanel {
   uiService = inject(UiService);
   authService = inject(AuthService);
 
+  isPeek = computed(() => this.uiService.isMobile() && this.uiService.sheetState() === 'peek');
+
   readonly placeTabs = computed<TabConfig[]>(() => {
     let baseTabs: TabConfig[] = [
       {

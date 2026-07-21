@@ -37,6 +37,8 @@ export class OverviewPanel {
   costService = inject(CostService);
   warningsService = inject(WarningsService);
 
+  isPeek = computed(() => this.uiService.isMobile() && this.uiService.sheetState() === 'peek');
+
   readonly overviewTabs = computed<TabConfig[]>(() => {
     const tabs: TabConfig[] = [
       {
@@ -67,7 +69,7 @@ export class OverviewPanel {
             const sign = diff >= 0 ? '+' : '';
 
             // return `${format(totals.actual.total)}k/${format(totals.estimated.total)}k (${sign}${format(diff)}k)`;
-            return `${format(totals.actual.total)}k/${format(totals.estimated.total)}k (${sign}${format(diff)}k)`;
+            return `${format(totals.actual.total)}k\n~${format(totals.estimated.total)}k\n(${sign}${format(diff)}k)`;
           }
         },
         {
@@ -88,7 +90,7 @@ export class OverviewPanel {
             .map(p => `${p.count}${p.label}`); // Format as "3e", "2w", etc.
 
             // Join them with the pipe separator
-            return (parts.length > 0) ? parts.join(' | ') : '✓';
+            return (parts.length > 0) ? parts.join('\n') : '✓';
           }
         }
       );

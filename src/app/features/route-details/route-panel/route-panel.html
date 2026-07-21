@@ -1,11 +1,13 @@
 <div class="feature-wrapper">
-  <div class="feature-content">
-    @switch (uiService.activeTab()) {
-      @case ('bookings') { <app-bookings [route]="route()" /> }
-      @case ('notes') { <app-notes [route]="route()" /> }
-      @case ('country') { <app-country [country]="route().source.country" /> }
-    }
-  </div>
+  @if (!isPeek()) {
+    <div class="feature-content">
+      @switch (uiService.activeTab()) {
+        @case ('bookings') { <app-bookings [route]="route()" /> }
+        @case ('notes') { <app-notes [route]="route()" /> }
+        @case ('country') { <app-country [country]="route().source.country" /> }
+      }
+    </div>
+  }
 
   <app-tab-bar
     [tabs]="routeTabs()"

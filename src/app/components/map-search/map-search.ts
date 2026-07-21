@@ -1,4 +1,4 @@
-import {Component, effect, ElementRef, inject, Input, signal, Signal, ViewChild} from '@angular/core';
+import {Component, computed, effect, ElementRef, inject, Input, signal, Signal, ViewChild} from '@angular/core';
 import {environment} from '../../../environments/environment';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { LucideAngularModule, Search } from 'lucide-angular';
@@ -31,6 +31,16 @@ export class MapSearch {
   readonly SearchIcon = Search;
 
   private searchBoxElement: any;
+
+  bottomOffset = computed(() => {
+    if (!this.uiService.isMobile()) {
+      return 16;
+    }
+    const bottomPadding = 12;
+    const gap = 4;
+    const sidePanelSheetHeight = this.uiService.currentSheetHeight();
+    return sidePanelSheetHeight + gap + bottomPadding;
+  });
 
   constructor() {
     effect(() => {
