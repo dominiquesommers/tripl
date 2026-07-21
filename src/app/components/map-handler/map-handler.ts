@@ -184,10 +184,17 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncUI() {
-    const padding = this.uiService.sidePanelWidth();
+    const isMobile = this.uiService.isMobile();
     const map = this.map();
     if (!map) return;
-    map.easeTo({ padding: { left: padding }, duration: 500 });
+
+    if (isMobile) {
+      const bottomPadding = this.uiService.currentSheetHeight();
+      map.jumpTo({ padding: { bottom: bottomPadding } });
+    } else {
+      const leftPadding = this.uiService.sidePanelWidth();
+      map.easeTo({ padding: { left: leftPadding }, duration: 500 });
+    }
   }
 
   private syncTheme() {
