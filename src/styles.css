@@ -10,6 +10,12 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: #121212;
+  overflow: hidden;
+  overscroll-behavior-y: none;
+}
+
+body {
+  overscroll-behavior-y: contain;
 }
 
 .mat-mdc-snack-bar-container .mdc-snackbar__surface {
