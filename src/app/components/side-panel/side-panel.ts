@@ -101,6 +101,7 @@ export class SidePanel implements AfterViewInit {
   // ---------- Grabber: peek / half / full drag ----------
 
   onGrabberPointerDown(event: PointerEvent) {
+    event.preventDefault();
     if (!this.uiService.isMobile()) return;
 
     this.activePointerId = event.pointerId;
@@ -112,16 +113,17 @@ export class SidePanel implements AfterViewInit {
   }
 
   onGrabberPointerMove(event: PointerEvent) {
+    event.preventDefault();
     if (!this.isDragging || event.pointerId !== this.activePointerId) return;
 
     const { peekH, fullH } = this.getMetrics();
     const span = Math.max(fullH - peekH, 1);
     const deltaY = event.clientY - this.dragStartY;
     this.applyProgress(this.dragStartProgress - deltaY / span);
-    event.preventDefault();
   }
 
   onGrabberPointerUp(event: PointerEvent) {
+    event.preventDefault();
     if (!this.isDragging || event.pointerId !== this.activePointerId) return;
 
     const draggedY = event.clientY - this.dragStartY;
