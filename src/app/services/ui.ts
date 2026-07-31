@@ -142,7 +142,8 @@ export class UiService {
     this.activeTab.set(this.authService.isPublicMode() ? 'notes' : 'bookings');
   }
 
-  clearSelection() {
+  clearSelection(event?: Event) {
+    if (event) event.stopPropagation();
     console.log('clear selection');
     this.selectedVisitId.set(null);
     this.selectedRouteId.set(null);
