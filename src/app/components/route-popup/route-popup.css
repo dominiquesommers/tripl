@@ -97,6 +97,20 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.location-name.location-link {
+  display: inline-block;
+  max-width: 100%;
+  cursor: pointer;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.location-name.location-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .badge-row {
   display: flex;
   flex-wrap: wrap;
@@ -136,6 +150,7 @@
 } */
 
 .text-truncate {
+  width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

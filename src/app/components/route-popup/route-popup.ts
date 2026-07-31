@@ -5,6 +5,8 @@ import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {LucideAngularModule } from 'lucide-angular';
 import {TripService} from '../../services/trip';
 import {AuthService} from '../../services/auth';
+import {UiService} from '../../services/ui';
+import {Place} from '../../models/place';
 
 @Component({
   selector: 'app-route-popup',
@@ -15,6 +17,7 @@ import {AuthService} from '../../services/auth';
 })
 export class RoutePopup {
   readonly tripService = inject(TripService);
+  readonly uiService = inject(UiService);
   authService = inject(AuthService);
 
   route = input.required<Route>();
@@ -59,6 +62,44 @@ export class RoutePopup {
 
   updateRoute(route: Route, patch: UpdateRoute) {
     this.tripService.updateRoute(route.id, patch).subscribe();
+  }
+
+  onFlyTo(place?: Place | null) {
+    if (!place) return;
+    this.uiService.triggerFlyTo({center: [place.lng, place.lat]});
+    const firstVisit = place.visits;
+    const visits = place.visits();
+    if (!visits) return;
+
+    const sortedVisits = [...visits].sort((a, b) => {
+      if (a.included() !== b.included()) {
+        return a.included() ? -1 : 1;
+      }
+      const dateA = a.entryDate()?.getTime() || Infinity;
+      const dateB = b.entryDate()?.getTime() || Infinity;
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      return a.id.localeCompare(b.id);
+    });
+
+    this.uiService.selectVisit(sortedVisits[0].id);
+  }
+
+  highlightTraverse(route?: Route | null) {
+    this.uiService.hoveredRoute.set(route ?? null);
+  }
+
+  clearTraverseHighlight() {
+    this.uiService.hoveredRoute.set(null);
+  }
+
+  highlightPlace(place?: Place | null) {
+    this.uiService.hoveredPlace.set(place ?? null);
+  }
+
+  clearPlaceHighlight() {
+    this.uiService.hoveredPlace.set(null);
   }
 
   getRouteIcon(type: string | undefined | null): string {

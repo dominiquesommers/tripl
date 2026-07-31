@@ -12,7 +12,12 @@
             </div>
           </div>
           <div class="content-cell">
-            <span class="text-truncate location-name">From: {{ route().source.name() }}</span>
+            <span class="text-truncate location-name location-link"
+                  (click)="onFlyTo(route().source)"
+                  (mouseenter)="highlightTraverse(route()); highlightPlace(route().source)"
+                  (mouseleave)="clearTraverseHighlight(); clearPlaceHighlight()">
+              From: {{ route().source.name() }}
+            </span>
           </div>
 
           <div class="spine-cell">
@@ -72,7 +77,12 @@
             </div>
           </div>
           <div class="content-cell">
-            <span class="text-truncate location-name">To: {{ route().target.name() }}</span>
+            <span class="text-truncate location-name location-link"
+                  (click)="onFlyTo(route().target)"
+                  (mouseenter)="highlightTraverse(route()); highlightPlace(route().target)"
+                  (mouseleave)="clearTraverseHighlight(); clearPlaceHighlight()">
+              To: {{ route().target.name() }}
+            </span>
           </div>
 
           @if (sortedTraverses().length > 0) {
