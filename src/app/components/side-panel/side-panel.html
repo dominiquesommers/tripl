@@ -39,6 +39,16 @@
     }
   </div>
 
+  @if (uiService.isMobile() && (uiService.selectedVisit() || uiService.selectedRoute())) {
+    <button
+      type="button"
+      class="icon-btn mobile-close-btn"
+      aria-label="Close selection"
+      (click)="uiService.clearSelection()">
+      <lucide-icon name="x" [size]="20"></lucide-icon>
+    </button>
+  }
+
   <div class="content"
       (pointerdown)="onContentPointerDown($event)"
       (pointermove)="onContentPointerMove($event)"
@@ -54,16 +64,4 @@
       }
     }
   </div>
-
-  <!-- <div class="content">
-    @if (uiService.selectedVisit(); as visit) {
-      <app-place-panel [visit]="visit" />
-    } @else {
-      @if (uiService.selectedRoute(); as route) {
-        <app-route-panel [route]="route" />
-      } @else {
-        <app-overview-panel />
-      }
-    }
-  </div> -->
 </div>

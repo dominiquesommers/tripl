@@ -9,6 +9,7 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { UiService } from '../../services/ui';
 import { TripService } from '../../services/trip';
 import { OverviewPanel } from '../../features/overview/overview-panel/overview-panel';
@@ -22,6 +23,7 @@ type SheetState = 'peek' | 'half' | 'full';
   standalone: true,
   imports: [
     CommonModule,
+    LucideAngularModule,
     OverviewPanel,
     PlacePanel,
     RoutePanel

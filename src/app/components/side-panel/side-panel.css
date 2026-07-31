@@ -44,6 +44,32 @@
   pointer-events: auto;
 }
 
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
 .content {
   flex: 1;
   display: flex;
