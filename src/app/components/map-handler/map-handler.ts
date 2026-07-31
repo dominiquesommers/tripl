@@ -73,6 +73,7 @@ export class MapHandler implements OnInit, OnDestroy {
   layersReady = signal(false);
 
   private markers: Map<string, Marker> = new Map();
+  private markerElementsById: Map<string, HTMLElement> = new Map();
 
   // TODO move to config.
   private readonly routeIconMap: Record<string, string> = {
@@ -223,12 +224,18 @@ export class MapHandler implements OnInit, OnDestroy {
   private syncMarkers() {
     const map = this.map();
     const trip = this.tripService.trip();
-    if (!map || !trip) return;
+    const places = trip?.placesArray() ?? [];
+    this.markerElements();
+    const isReady = this.layersReady();
+
+    if (!map || !trip || !isReady) return;
+
+    // Both signals above are intentionally read outside the deferred callback:
+    // adding a place updates `placesArray`, and Angular then updates the
+    // `viewChildren` query with its rendered marker component.
     setTimeout(() => {
-      const components = this.markerElements();
-      if (!components || components.length === 0) return;
-      this.updateMarkers(trip.placesArray() ?? [], components);
-    }, 500);
+      this.updateMarkers(places, this.markerElements());
+    });
   }
 
   private syncRoutes() {
@@ -260,12 +267,16 @@ export class MapHandler implements OnInit, OnDestroy {
       const el = (component as any).elementRef.nativeElement;
       const place = component.place();
       const placeId = place.id;
-      if (!this.markers.has(placeId) || true) { // TODO fix this.
+      const marker = this.markers.get(placeId);
+
+      // Mapbox takes ownership of the component's host element. Angular can
+      // replace that host during a re-render, so reattach only when needed.
+      if (!marker || this.markerElementsById.get(placeId) !== el) {
+        marker?.remove();
         const marker = new this.mapbox.Marker({ element: el }).setLngLat([place.lng, place.lat]).addTo(map);
         this.markers.set(placeId, marker);
+        this.markerElementsById.set(placeId, el);
         component.setResources(this.interactionManager, marker);
-      } else {
-        console.log('skip marker');
       }
     });
     this.markers.forEach((marker, id) => {
@@ -273,6 +284,7 @@ export class MapHandler implements OnInit, OnDestroy {
         marker.remove();
         console.log('deleting marker');
         this.markers.delete(id);
+        this.markerElementsById.delete(id);
       }
     });
   }
