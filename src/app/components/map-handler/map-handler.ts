@@ -273,10 +273,10 @@ export class MapHandler implements OnInit, OnDestroy {
       // replace that host during a re-render, so reattach only when needed.
       if (!marker || this.markerElementsById.get(placeId) !== el) {
         marker?.remove();
-        const marker = new this.mapbox.Marker({ element: el }).setLngLat([place.lng, place.lat]).addTo(map);
-        this.markers.set(placeId, marker);
+        const newMarker = new this.mapbox.Marker({ element: el }).setLngLat([place.lng, place.lat]).addTo(map);
+        this.markers.set(placeId, newMarker);
         this.markerElementsById.set(placeId, el);
-        component.setResources(this.interactionManager, marker);
+        component.setResources(this.interactionManager, newMarker);
       }
     });
     this.markers.forEach((marker, id) => {
