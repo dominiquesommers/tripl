@@ -31,6 +31,8 @@ export class CostBadge extends EditableBadge {
   // ─── Draft signals for dynamic width ──────────────────────
   estimateDraft = signal<string>('');
   actualDraft   = signal<string>('');
+  isEstimateFocused = signal(false);
+  isActualFocused = signal(false);
 
   // ─── ViewChild refs ───────────────────────────────────────
   @ViewChild('estimateInput') estimateInputRef!: ElementRef<HTMLInputElement>;
@@ -53,22 +55,34 @@ export class CostBadge extends EditableBadge {
   estimateOpacity = computed(() => this.actualCost() != null ? 0.6 : 1);
 
   estimateWidth = computed(() => {
-    const str = this.estimateDraft() || this.formatValue(this.estimatedCost());
-    return Math.max(str.length, 1);
+    return Math.max(this.estimateDisplayValue().length, 1);
   });
 
   actualWidth = computed(() => {
-    const val = this.actualCost();
-    const str = this.actualDraft() || (val !== null ? this.formatValue(val) : '');
-    return Math.max(str.length, 1);
+    return Math.max(this.actualDisplayValue().length, 1);
+  });
+
+  estimateDisplayValue = computed(() => {
+    const value = this.estimatedCost();
+    if (!this.isEstimateFocused() && !this.estimateDraft() && value === 0) return 'Free';
+    return this.estimateDraft() || this.formatValue(value);
+  });
+
+  actualDisplayValue = computed(() => {
+    const value = this.actualCost();
+    if (value === null) return '';
+    if (!this.isActualFocused() && !this.actualDraft() && value === 0) return 'Free';
+    return this.actualDraft() || this.formatValue(value);
   });
 
   // ─── Focus Wrappers for Auto-Selection ────────────────────
   onEstimateFocus() {
+    this.isEstimateFocused.set(true);
     setTimeout(() => this.estimateInputRef?.nativeElement?.select());
   }
 
   onActualFocus() {
+    this.isActualFocused.set(true);
     setTimeout(() => this.actualInputRef?.nativeElement?.select());
   }
 
@@ -106,6 +120,7 @@ export class CostBadge extends EditableBadge {
     const sanitized = this.parseInputValue(this.estimateInputRef.nativeElement.value);
     super.onBlur();
     this.estimateDraft.set('');
+    this.isEstimateFocused.set(false);
     this.saveEstimated.emit(sanitized);
     // this.saveEstimated.emit(this.estimateInputRef.nativeElement.valueAsNumber);
   }
@@ -116,6 +131,7 @@ export class CostBadge extends EditableBadge {
     const sanitized = this.parseInputValue(this.actualInputRef.nativeElement.value);
     super.onBlur();
     this.actualDraft.set('');
+    this.isActualFocused.set(false);
     this.saveActual.emit(sanitized);
     // this.saveActual.emit(this.actualInputRef.nativeElement.valueAsNumber);
   }
