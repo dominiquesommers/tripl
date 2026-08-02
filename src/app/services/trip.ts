@@ -658,7 +658,7 @@ export class TripService {
     }
     const newPlaceNoteData: NewPlaceNote = {
       place_id: placeId, trip_id: currentTrip.id,
-      description, category: 'undefined', included: true, estimated_cost: 0
+      description, category: 'undefined', status: 'planned', estimated_cost: 0
     };
 
     return this.persist(
@@ -717,7 +717,7 @@ export class TripService {
     }
     const newCountryNoteData: NewCountryNote = {
       country_id: countryId, trip_id: currentTrip.id,
-      description, category: 'undefined', included: true, estimated_cost: 0
+      description, category: 'undefined', status: 'planned', estimated_cost: 0
     };
 
     return this.persist(
