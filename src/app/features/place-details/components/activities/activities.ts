@@ -68,6 +68,21 @@ export class Activities {
     });
   }
 
+  toggleExcluded(activity: Activity) {
+    if (activity.status() !== 'excluded') {
+      const hasCost = activity.actual_cost() !== null || activity.expenses().length > 0;
+      if (hasCost) {
+        alert('This activity has recorded costs — mark it skipped instead, or delete its expenses first.');
+        return;
+      }
+    }
+    this.updateActivity(activity, { status: activity.status() === 'excluded' ? 'planned' : 'excluded' });
+  }
+
+  toggleSkipped(activity: Activity) {
+    this.updateActivity(activity, { status: activity.status() === 'skipped' ? 'planned' : 'skipped' });
+  }
+
   deleteActivity(activity: Activity) {
     if (confirm('Are you sure you want to delete this activity?')) {
       this.tripService.removeActivity(activity).subscribe({

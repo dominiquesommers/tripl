@@ -3,6 +3,9 @@ import {computed, signal} from '@angular/core';
 import {Place} from './place';
 
 
+export type ActivityStatus = 'planned' | 'excluded' | 'skipped';
+
+
 export interface IActivity {
   id: string;
   place_id: string;
@@ -10,14 +13,17 @@ export interface IActivity {
   description: string;
   category: string | null;
   estimated_cost?: number | null;
-  included: boolean;
+  status: ActivityStatus;
   actual_cost?: number | null;
+  /** @deprecated legacy field, old site only — ignored by this frontend */
+  included?: boolean;
+  /** @deprecated legacy field, old site only — ignored by this frontend */
   paid?: boolean;
 }
 
 
 export type NewActivity = Omit<IActivity, 'id'>;
-export type UpdateActivity = Partial<Pick<IActivity, 'description' | 'category' | 'estimated_cost' | 'actual_cost' | 'paid' | 'included'>>;
+export type UpdateActivity = Partial<Pick<IActivity, 'description' | 'category' | 'estimated_cost' | 'actual_cost' | 'paid' | 'status'>>;
 
 
 export class Activity {
@@ -28,8 +34,10 @@ export class Activity {
   category = signal<string | null>(null);
   estimated_cost = signal<number | null>(null);
   included = signal<boolean>(false);
-  actual_cost = signal<number | null>(null);    // commitment_cost post-migration
-  paid = signal<boolean>(false);                    // drop post-migration
+  status = signal<ActivityStatus>('planned');
+  actual_cost = signal<number | null>(null);
+
+  // paid = signal<boolean>(false);
   descriptionFetched = signal<boolean>(false);
 
   readonly expenses = computed(() =>
@@ -43,6 +51,23 @@ export class Activity {
 
   readonly isPaid = computed(() =>
     this.actual_cost() !== null && this.paidAmount() >= this.actual_cost()!
+  );
+
+  /** Inferred, never stored — matches our earlier decision. */
+  readonly isDone = computed(() =>
+    this.status() === 'planned' && this.actual_cost() !== null
+  );
+
+  /** actualCost != null ? actualCost : (status === 'planned' ? estimatedCost : 0) */
+  readonly projectedCost = computed(() => {
+    const actual = this.actual_cost();
+    if (actual !== null) return actual;
+    return this.status() === 'planned' ? (this.estimated_cost() ?? 0) : 0;
+  });
+
+  /** estimatedCost counts toward budget unless excluded — skipped still counts */
+  readonly budgetCost = computed(() =>
+    this.status() !== 'excluded' ? (this.estimated_cost() ?? 0) : 0
   );
 
   constructor(
@@ -65,7 +90,8 @@ export class Activity {
     if ('estimated_cost' in data) this.estimated_cost.set(data.estimated_cost ?? null);
     if ('included' in data) this.included.set(data.included ?? false);
     if ('actual_cost' in data) this.actual_cost.set(data.actual_cost ?? null);
-    if ('paid' in data) this.paid.set(data.paid ?? false);
+    if ('status' in data) this.status.set(data.status ?? 'planned');
+    // if ('paid' in data) this.paid.set(data.paid ?? false);
   }
 
   get place(): Place | undefined {
@@ -82,7 +108,8 @@ export class Activity {
       estimated_cost: this.estimated_cost(),
       included: this.included(),
       actual_cost: this.actual_cost(),
-      paid: this.paid()
+      status: this.status(),
+      // paid: this.paid()
     } as IActivity;
   }
 }

@@ -1,14 +1,25 @@
 <div class="activities-container">
 <!--  <h3 class="section-title">Activities</h3>-->
   @for (act of activities(); track act.id) {
-    <div class="activity-item" [class.excluded]="!act.included()">
+    <div class="activity-item"
+     [class.excluded]="act.status() === 'excluded'"
+     [class.skipped]="act.status() === 'skipped'">
 
       @if (authService.canEdit()) {
         <div class="activity-actions-top">
+          @if (act.status() !== 'excluded') {
+            <button class="icon-btn skip"
+                    [class.active]="act.status() === 'skipped'"
+                    (click)="toggleSkipped(act)"
+                    [title]="act.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'">
+              <lucide-icon name="skip-forward" [size]="14"></lucide-icon>
+            </button>
+          }
+
           <button class="icon-btn visibility"
-                  (click)="updateActivity(act, { included: !act.included() })"
-                  [title]="act.included() ? 'Exclude from trip' : 'Include in trip'">
-            <lucide-icon [name]="act.included() ? 'eye' : 'eye-off'" [size]="14"></lucide-icon>
+                  (click)="toggleExcluded(act)"
+                  [title]="act.status() === 'excluded' ? 'Include in trippp' : 'Exclude from trip'">
+            <lucide-icon [name]="act.status() === 'excluded' ? 'eye-off' : 'eye'" [size]="14"></lucide-icon>
           </button>
 
           <button class="icon-btn delete" (click)="deleteActivity(act)">

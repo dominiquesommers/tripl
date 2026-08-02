@@ -599,7 +599,7 @@ export class TripService {
     }
     const newActivityData: NewActivity = {
       place_id: placeId, trip_id: currentTrip.id,
-      description, category: 'undefined', included: true, estimated_cost: 0
+      description, category: 'undefined', status: 'planned', estimated_cost: 0
     };
 
     return this.persist(
