@@ -190,11 +190,6 @@ export class Visit {
         const bookingNights = this.daysBetween(bIn, bOut);
         if (!bookingNights) return sum;
         const nightlyRate = (b.final_price()! * ((100 - b.food_pct()) / 100)) / bookingNights;
-        if (this.place.name() === 'Singapore') {
-          console.log(b.final_price(), b.food_pct());
-          console.log(overlapNights, bookingNights);
-          console.log(nightlyRate);
-        }
         return sum + overlapNights * nightlyRate;
       }, 0);
       impEstAccommodation = actualAccommodation;
@@ -202,10 +197,6 @@ export class Visit {
 
     // ── Food ──────────────────────────────────────────────────────────────
     const foodFromExpenses = this.foodExpenses().reduce((sum, e) => sum + e.amount(), 0);
-    if (this.place.name() === 'Singapore') {
-      console.log(this.foodExpenses());
-      console.log('foodFromExpenses', foodFromExpenses);
-    }
     const foodFromBookings = this.overlappingBookings()
       .filter(b => b.food_pct() > 0)
       .reduce((sum, b) => {
@@ -227,12 +218,6 @@ export class Visit {
 
     const act = new CostBreakdown(actualAccommodation, 0, actualFood, 0, actualMisc);
     const impEst = new CostBreakdown(impEstAccommodation, 0, impEstFood, 0, impEstMisc);
-    if (this.place.name() === 'Sydney') {
-      console.log('Sydney');
-      console.log(est);
-      console.log(act);
-      console.log(impEst);
-    }
     return new CostComparison(est, act, impEst);
   });
 
