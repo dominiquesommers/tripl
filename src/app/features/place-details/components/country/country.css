@@ -18,6 +18,27 @@
   filter: grayscale(0.8);
 }
 
+.note-item.skipped {
+  opacity: 0.65;
+}
+
+.note-item.skipped .display-text {
+  text-decoration: line-through;
+  text-decoration-color: rgba(245, 158, 11, 0.5);
+}
+
+/* --- Skip icon button --- */
+.icon-btn.skip:hover {
+  color: #f59e0b; /* amber, distinct from blue (visibility) and red (delete) */
+  background: rgba(245, 158, 11, 0.1);
+}
+
+/* Keep it visibly "on" once active, same treatment as .excluded gets on .visibility */
+.note-item.skipped .icon-btn.skip {
+  opacity: 0.8;
+  color: #f59e0b;
+}
+
 .note-header {
   display: flex;
   align-items: center;

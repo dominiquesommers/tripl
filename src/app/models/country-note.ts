@@ -1,6 +1,7 @@
 import { TripService } from '../services/trip';
 import {computed, signal} from '@angular/core';
 import {Country} from './country';
+import { ActivityStatus } from './activity';
 
 
 export interface ICountryNote {
@@ -10,14 +11,17 @@ export interface ICountryNote {
   description: string;
   category: string | null;
   estimated_cost?: number | null;
-  included: boolean;
+  status: ActivityStatus;
   actual_cost?: number | null;
+  /** @deprecated legacy field, old site only — ignored by this frontend */
+  included?: boolean;
+  /** @deprecated legacy field, old site only — ignored by this frontend */
   paid?: boolean;
 }
 
 
 export type NewCountryNote = Omit<ICountryNote, 'id'>;
-export type UpdateCountryNote= Partial<Pick<ICountryNote, 'description' | 'category' | 'estimated_cost' | 'actual_cost' | 'paid' | 'included'>>;
+export type UpdateCountryNote= Partial<Pick<ICountryNote, 'description' | 'category' | 'estimated_cost' | 'actual_cost' | 'status'>>;
 
 
 export class CountryNote {
@@ -27,9 +31,8 @@ export class CountryNote {
   description = signal<string>('');
   category = signal<string | null>(null);
   estimated_cost = signal<number | null>(null);
-  included = signal<boolean>(false);
+  status = signal<ActivityStatus>('planned');
   actual_cost = signal<number | null>(null);
-  paid = signal<boolean>(false);
   descriptionFetched = signal<boolean>(false);
 
 
@@ -44,6 +47,23 @@ export class CountryNote {
 
   readonly isPaid = computed(() =>
     this.actual_cost() !== null && this.paidAmount() >= this.actual_cost()!
+  );
+
+  /** Inferred, never stored — matches our earlier decision. */
+  readonly isDone = computed(() =>
+    this.status() === 'planned' && this.actual_cost() !== null
+  );
+
+  /** actualCost != null ? actualCost : (status === 'planned' ? estimatedCost : 0) */
+  readonly projectedCost = computed(() => {
+    const actual = this.actual_cost();
+    if (actual !== null) return actual;
+    return this.status() === 'planned' ? (this.estimated_cost() ?? 0) : 0;
+  });
+
+  /** estimatedCost counts toward budget unless excluded — skipped still counts */
+  readonly budgetCost = computed(() =>
+    this.status() !== 'excluded' ? (this.estimated_cost() ?? 0) : 0
   );
 
   constructor(
@@ -64,9 +84,8 @@ export class CountryNote {
     }
     if ('category' in data) this.category.set(data.category ?? null);
     if ('estimated_cost' in data) this.estimated_cost.set(data.estimated_cost ?? null);
-    if ('included' in data) this.included.set(data.included ?? false);
+    if ('status' in data) this.status.set(data.status ?? 'planned');
     if ('actual_cost' in data) this.actual_cost.set(data.actual_cost ?? null);
-    if ('paid' in data) this.paid.set(data.paid ?? false);
   }
 
   get country(): Country | undefined {
@@ -81,9 +100,8 @@ export class CountryNote {
       description: this.description(),
       category: this.category(),
       estimated_cost: this.estimated_cost(),
-      included: this.included(),
       actual_cost: this.actual_cost(),
-      paid: this.paid()
+      status: this.status()
     } as ICountryNote;
   }
 }

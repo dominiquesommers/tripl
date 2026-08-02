@@ -23,7 +23,7 @@ export interface IActivity {
 
 
 export type NewActivity = Omit<IActivity, 'id'>;
-export type UpdateActivity = Partial<Pick<IActivity, 'description' | 'category' | 'estimated_cost' | 'actual_cost' | 'paid' | 'status'>>;
+export type UpdateActivity = Partial<Pick<IActivity, 'description' | 'category' | 'estimated_cost' | 'actual_cost' | 'status'>>;
 
 
 export class Activity {
@@ -36,8 +36,6 @@ export class Activity {
   included = signal<boolean>(false);
   status = signal<ActivityStatus>('planned');
   actual_cost = signal<number | null>(null);
-
-  // paid = signal<boolean>(false);
   descriptionFetched = signal<boolean>(false);
 
   readonly expenses = computed(() =>
@@ -88,10 +86,8 @@ export class Activity {
     }
     if ('category' in data) this.category.set(data.category ?? null);
     if ('estimated_cost' in data) this.estimated_cost.set(data.estimated_cost ?? null);
-    if ('included' in data) this.included.set(data.included ?? false);
     if ('actual_cost' in data) this.actual_cost.set(data.actual_cost ?? null);
     if ('status' in data) this.status.set(data.status ?? 'planned');
-    // if ('paid' in data) this.paid.set(data.paid ?? false);
   }
 
   get place(): Place | undefined {
@@ -106,10 +102,8 @@ export class Activity {
       description: this.description(),
       category: this.category(),
       estimated_cost: this.estimated_cost(),
-      included: this.included(),
       actual_cost: this.actual_cost(),
-      status: this.status(),
-      // paid: this.paid()
+      status: this.status()
     } as IActivity;
   }
 }

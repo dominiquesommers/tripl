@@ -107,17 +107,19 @@ export class Country implements ICountry {
 
   readonly oneTimeCost = computed<CostComparison>(() => {
     if (!this.inItinerary()) return CostComparison.empty();
+    const budgetedNotes = this.notes().filter(a => a.status() !== 'excluded');
+
     const est = new CostBreakdown(
       0, 0, 0, 0,
-      this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.estimated_cost() ?? 0), 0)
+      budgetedNotes.reduce((sum, a) => sum + (a.estimated_cost() ?? 0), 0)
     );
     const act = new CostBreakdown(
       0, 0, 0, 0,
-      this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.actual_cost() ?? 0), 0)
+      budgetedNotes.reduce((sum, a) => sum + (a.actual_cost() ?? 0), 0)
     );
     const impEst = new CostBreakdown(
       0, 0, 0, 0,
-      this.notes().filter(n => n.included()).reduce((sum, n) => sum + (n.actual_cost() ?? n.estimated_cost() ?? 0), 0)
+      budgetedNotes.reduce((sum, a) => sum + a.projectedCost(), 0),
     );
     return new CostComparison(est, act, impEst);
   });

@@ -67,6 +67,21 @@ export class Notes {
     });
   }
 
+  toggleExcluded(note: PlaceNote) {
+    if (note.status() !== 'excluded') {
+      const hasCost = note.actual_cost() !== null || note.expenses().length > 0;
+      if (hasCost) {
+        alert('This note has recorded costs — mark it skipped instead, or delete its expenses first.');
+        return;
+      }
+    }
+    this.updateNote(note, { status: note.status() === 'excluded' ? 'planned' : 'excluded' });
+  }
+
+  toggleSkipped(note: PlaceNote) {
+    this.updateNote(note, { status: note.status() === 'skipped' ? 'planned' : 'skipped' });
+  }
+
   deleteNote(note: PlaceNote) {
     if (confirm('Are you sure you want to delete this note?')) {
       this.tripService.removePlaceNote(note).subscribe({

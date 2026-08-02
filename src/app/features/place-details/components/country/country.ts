@@ -68,6 +68,21 @@ export class Country {
     });
   }
 
+  toggleExcluded(note: CountryNote) {
+    if (note.status() !== 'excluded') {
+      const hasCost = note.actual_cost() !== null || note.expenses().length > 0;
+      if (hasCost) {
+        alert('This note has recorded costs — mark it skipped instead, or delete its expenses first.');
+        return;
+      }
+    }
+    this.updateNote(note, { status: note.status() === 'excluded' ? 'planned' : 'excluded' });
+  }
+
+  toggleSkipped(note: CountryNote) {
+    this.updateNote(note, { status: note.status() === 'skipped' ? 'planned' : 'skipped' });
+  }
+
   deleteNote(note: CountryNote) {
     if (confirm('Are you sure you want to delete this note?')) {
       this.tripService.removeCountryNote(note).subscribe({

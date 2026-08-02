@@ -92,13 +92,13 @@
 
   <!-- Info + clock icons — hidden in readonly -->
   @if (!(readonly() || actualReadonly())) {
-    @if (hasExpenses() || cost !== null) {
+    <!-- @if (hasExpenses() || cost !== null) {
       <div class="details-superscript"
            (click)="openDetails.emit(); $event.stopPropagation()"
            title="View payments">
         <lucide-icon name="receipt" class="details-icon" [size]="13"></lucide-icon>
       </div>
-    }
+    } -->
     <!-- @if (!isPaid() || cost !== null) {
       <div class="details-subscript"
            (click)="openDetails.emit(); $event.stopPropagation()"

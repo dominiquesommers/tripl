@@ -54,21 +54,21 @@ export class Place {
   readonly oneTimeCost = computed<CostComparison>(() => {
     if (!this.inItinerary()) return CostComparison.empty();
     const budgetedActivities = this.activities().filter(a => a.status() !== 'excluded');
-    const includedNotes = this.notes().filter(n => n.included());
+    const budgetedNotes = this.notes().filter(a => a.status() !== 'excluded');
     const est = new CostBreakdown(
       0, 0, 0,
       budgetedActivities.reduce((sum, a) => sum + (a.estimated_cost() ?? 0), 0),
-      includedNotes.reduce((sum, n) => sum + (n.estimated_cost() ?? 0), 0)
+      budgetedNotes.reduce((sum, a) => sum + (a.estimated_cost() ?? 0), 0)
     );
     const act = new CostBreakdown(
       0, 0, 0,
       budgetedActivities.reduce((sum, a) => sum + (a.actual_cost() ?? 0), 0),
-      includedNotes.reduce((sum, n) => sum + (n.actual_cost() ?? 0), 0)
+      budgetedNotes.reduce((sum, a) => sum + (a.actual_cost() ?? 0), 0)
     );
     const impEst = new CostBreakdown(
       0, 0, 0,
       budgetedActivities.reduce((sum, a) => sum + a.projectedCost(), 0),
-      includedNotes.reduce((sum, n) => sum + (n.actual_cost() ?? n.estimated_cost() ?? 0), 0)
+      budgetedNotes.reduce((sum, a) => sum + a.projectedCost(), 0),
     );
     return new CostComparison(est, act, impEst);
   });

@@ -21,14 +21,26 @@
 <div class="notes-container">
   <h3 class="section-title">Notes</h3>
   @for (note of notes(); track note.id) {
-    <div class="note-item bottom-right-radius" [class.excluded]="!note.included()">
+    <div class="note-item bottom-right-radius"
+     [class.excluded]="note.status() === 'excluded'"
+     [class.skipped]="note.status() === 'skipped'">
 
       @if (authService.canEdit()) {
         <div class="note-actions-top">
+          @if (note.status() !== 'excluded') {
+            <button class="icon-btn skip"
+                    [class.active]="note.status() === 'skipped'"
+                    (click)="toggleSkipped(note)"
+                    [title]="note.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'">
+              <lucide-icon name="skip-forward" [size]="14"></lucide-icon>
+            </button>
+          }
+
+
           <button class="icon-btn visibility"
-                  (click)="updateNote(note, { included: !note.included() })"
-                  [title]="note.included() ? 'Exclude from trip' : 'Include in trip'">
-            <lucide-icon [name]="note.included() ? 'eye' : 'eye-off'" [size]="14"></lucide-icon>
+                  (click)="toggleExcluded(note)"
+                  [title]="note.status() === 'excluded' ? 'Include in trip' : 'Exclude from trip'">
+            <lucide-icon [name]="note.status() === 'excluded' ? 'eye-off' : 'eye'" [size]="14"></lucide-icon>
           </button>
 
           <button class="icon-btn delete" (click)="deleteNote(note)">
@@ -48,6 +60,7 @@
       @if (authService.canEdit()) {
         <div class="cost-row">
           <app-cost
+            [actualReadonly]="note.status() === 'excluded'"
             [estimatedCost]="note.estimated_cost() ?? 0"
             [actualTotal]="note.actual_cost()"
             [isPaid]="note.isPaid()"
