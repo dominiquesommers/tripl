@@ -19,6 +19,8 @@ export class Cost {
   private injector = inject(Injector);
 
   // ─── Inputs ───────────────────────────────────────────────
+  readonly      = input<boolean>(false);
+  actualReadonly = input<boolean>(false);
   estimatedCost = input.required<number>();
   actualTotal   = input<number | null>(null);
   isPaid        = input.required<boolean>();

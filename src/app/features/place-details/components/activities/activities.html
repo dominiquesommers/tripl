@@ -39,6 +39,7 @@
       @if (authService.canEdit()) {
         <div class="cost-row">
           <app-cost
+            [actualReadonly]="act.status() === 'excluded'"
             [estimatedCost]="act.estimated_cost() ?? 0"
             [actualTotal]="act.actual_cost()"
             [isPaid]="act.isPaid()"

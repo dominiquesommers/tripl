@@ -1,5 +1,7 @@
 <div class="cost-anchor">
   <app-cost-badge
+    [readonly]="readonly()"
+    [actualReadonly]="actualReadonly()"
     [estimatedCost]="estimatedCost()"
     [actualCost]="actualTotal()"
     [hasExpenses]="hasExpenses()"
