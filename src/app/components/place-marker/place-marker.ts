@@ -12,6 +12,9 @@ import {take} from 'rxjs';
   selector: 'app-place-marker',
   templateUrl: './place-marker.html',
   styleUrl: './place-marker.css',
+  host: {
+    '[class.itinerary-marker]': 'place().inItinerary()',
+  },
 })
 export class PlaceMarker {
   public elementRef = inject(ElementRef);
@@ -43,6 +46,10 @@ export class PlaceMarker {
       return a.id.localeCompare(b.id);
     });
   });
+
+  readonly hasNoItineraryVisits = computed(() =>
+    this.place().visits().every(visit => !visit.inItinerary()),
+  );
 
   public setResources(interactionManager: MapInteractionManager, marker: Marker) {
     this.interactionManager = interactionManager;

@@ -1,5 +1,9 @@
 <div>
-  <div class="marker-pill" [class.hovered]="isHovered()">
+  <div
+    class="marker-pill"
+    [class.hovered]="isHovered()"
+    [class.compact]="hasNoItineraryVisits() || isZoomLow()"
+    [class.no-itinerary-visits]="hasNoItineraryVisits()">
     @let visits = sortedVisits();
 
     @if (!isHovered() && (!visits.length || isZoomLow())) {

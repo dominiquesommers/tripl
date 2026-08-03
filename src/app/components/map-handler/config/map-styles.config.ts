@@ -5,7 +5,8 @@ export const INITIAL_ZOOM = 3.2;
 export const MAP_STYLES = {
   LOGGED_OUT: 'dark-v11',
   LOGGED_IN: 'light-v11',
-  ACTIVE_TRIP: 'streets-v12',
+  ACTIVE_TRIP_: 'streets-v12',
+  ACTIVE_TRIP: 'outdoors-v12',
   OFFLINE: 'OFFLINE_STYLE'
 };
 

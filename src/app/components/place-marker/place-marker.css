@@ -2,6 +2,16 @@
   display: block;
   /* Ensure the left edge of the pill stays at the coordinate */
   transform: translate(0, -50%);
+  z-index: 1;
+}
+
+/* Mapbox markers are layered by their host element, not the pill within it. */
+:host.itinerary-marker {
+  z-index: 2;
+}
+
+:host:hover {
+  z-index: 3;
 }
 
 .marker-pill {
@@ -96,13 +106,31 @@
 }
 
 .marker-pill {
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s, opacity 0.2s;
 }
 
 .marker-pill:hover {
   transform: scale(1.02);
   background: rgba(60, 60, 65, 0.95);
   border-color: rgba(0, 122, 255, 0.5); /* Apple Blue border on hover */
+}
+
+/* Use a smaller visual weight for out-of-itinerary and zoomed-out markers. */
+.marker-pill.compact {
+  transform: scale(0.75);
+}
+
+.marker-pill.compact:hover {
+  transform: scale(1.02);
+}
+
+/* Keep places without itinerary visits discoverable, but visually secondary. */
+.marker-pill.no-itinerary-visits {
+  opacity: 0.55;
+}
+
+.marker-pill.no-itinerary-visits:hover {
+  opacity: 1;
 }
 
 .status-indicator {
