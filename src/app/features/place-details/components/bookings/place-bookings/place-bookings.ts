@@ -8,7 +8,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { TripService } from '../../../../../services/trip';
 import { Place } from '../../../../../models/place';
 import { PlaceBooking, UpdatePlaceBooking } from '../../../../../models/place-booking';
-import { FoodInclusion, FOOD_PCT } from '../../../../../models/route-booking';
+import { FoodInclusion, FOOD_PCT } from '../../../../../models/place-booking';
 import { Expense, NewExpense } from '../../../../../models/expense';
 import {EditableBadge} from '../../../../../components/ui/editable-badge/editable-badge';
 import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
