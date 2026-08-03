@@ -64,6 +64,11 @@
   width: 320px;
 }
 
+/* Keep visit and route popups above the marker hierarchy. */
+::ng-deep .apple-glass-popup.mapboxgl-popup {
+  z-index: 4;
+}
+
 /* Tip (the little arrow at the bottom) */
 ::ng-deep .mapboxgl-popup-tip {
   border-top-color: rgba(30, 30, 35, 0.7) !important;
@@ -127,6 +132,11 @@
   padding: 6px 12px !important;
   pointer-events: none !important;
   animation: tooltipFadeIn 0.2s ease-out forwards;
+}
+
+/* Keep visit and route popups above the marker hierarchy. */
+::ng-deep .hover-tooltip.mapboxgl-popup {
+  z-index: 4;
 }
 
 ::ng-deep .hover-tooltip .mapboxgl-popup-tip {
