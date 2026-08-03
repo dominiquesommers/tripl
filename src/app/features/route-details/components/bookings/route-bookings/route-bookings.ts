@@ -1,6 +1,6 @@
 import {
   Component, inject, input, computed, signal,
-  ViewChildren, QueryList, ElementRef, HostListener
+  ViewChildren, QueryList, ElementRef, HostListener, effect, untracked
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +42,19 @@ export class RouteBookings {
 
   toggleExpanded(id: string) {
     this.expandedId.update(cur => cur === id ? null : id);
+  }
+
+  constructor() {
+    effect(() => {
+      const route = this.route();
+      const bookings = this.bookings();
+      const needsFetching = bookings.length > 0 && bookings.some(b => !b.detailsFetched());
+      if (needsFetching) {
+        untracked(() => {
+          this.tripService.fetchRouteBookingDetails(route.id).subscribe();
+        });
+      }
+    });
   }
 
   // ── Add booking immediately ───────────────────────────────

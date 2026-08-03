@@ -1028,7 +1028,7 @@ export class TripService {
     }
 
     return this.persist(
-      this.apiService.get<IRouteBooking[]>(`route_bookings/route/${routeId}`),
+      this.apiService.get<IRouteBooking[]>(`route_bookings/${routeId}/route`),
       (bookings) => {
         bookings.forEach(b => {
           const existing = currentTrip.routeBookings().get(b.id);
