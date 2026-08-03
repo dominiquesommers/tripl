@@ -97,10 +97,10 @@
                 </div>
                 @if (booking.foodInclusion() !== 'excluded') {
                   <select class="food-select"
-                          [value]="booking.foodInclusion()"
-                          (change)="setFoodInclusion(booking, $any($event.target).value)">
+                          [ngModel]="booking.foodInclusion()"
+                          (ngModelChange)="setFoodInclusion(booking, $event)">
                     @for (opt of foodOptions; track opt.value) {
-                      <option [value]="opt.value">{{ opt.label }}</option>
+                      <option [ngValue]="opt.value">{{ opt.label }}</option>
                     }
                   </select>
                 }
