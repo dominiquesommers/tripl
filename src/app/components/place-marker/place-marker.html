@@ -11,14 +11,16 @@
     } @else {
       @for (visit of visits; track visit.id; let last = $last) {
         <span class="night-count"
+              [class.zero-nights]="visit.nights() === 0"
+              [class.single-visit]="visits.length === 1"
               [class.itinerary]="!!visit.entryDate()"
               [class.excluded]="!visit.included()"
               [class.active]="uiService.selectedVisit()?.id === visit.id || uiService.hoveredVisit()?.id === visit.id"
               (click)="handleVisitClick($event, visit)">
 
-          {{ visit.nights() }}
+          {{ visit.nights() === 0 ? '·' : visit.nights() }}
 
-          @if (visit.entryDate() !== null && visit.included()) {
+          @if (visit.nights() > 0 && visit.entryDate() !== null && visit.included()) {
             <div class="status-indicator" [class]="getBookingStatus(visit)"></div>
           }
         </span>
@@ -34,35 +36,3 @@
     }
   </div>
 </div>
-
-<!--<div>-->
-<!--  <div class="marker-pill">-->
-<!--    @let v = sortedVisits();-->
-<!--    @if (!isHovered() && (!v || v.length === 0 || isZoomLow())) {-->
-
-<!--    } @else {-->
-<!--      @for (visit of v; track $index) {-->
-<!--        <span class="night-count"-->
-<!--              [class.itinerary]="visit.entryDate() !== null"-->
-<!--              [class.excluded]="!visit.included()"-->
-<!--              (click)="handleVisitClick($event, visit)">-->
-
-<!--          {{ visit.nights() }}-->
-
-<!--&lt;!&ndash;          @if (visit.entryDate() !== null && visit.included()) {&ndash;&gt;-->
-<!--&lt;!&ndash;            <div class="status-indicator" [ngClass]="getBookingStatus(visit)"></div>&ndash;&gt;-->
-<!--&lt;!&ndash;          }&ndash;&gt;-->
-<!--        </span>-->
-<!--&lt;!&ndash;        <span class="night-count" (click)="handleVisitClick($event, visit)">{{ visit.nights() }}</span>&ndash;&gt;-->
-
-<!--        @if (!$last || isHovered() || isSelected() || false) {-->
-<!--          <div class="marker-divider"></div>-->
-<!--        }-->
-<!--      }-->
-
-<!--      @if (isHovered() || isSelected() || false) {-->
-<!--        <span class="night-count" (click)="handleAddClick($event)">+</span>-->
-<!--      }-->
-<!--    }-->
-<!--  </div>-->
-<!--</div>-->

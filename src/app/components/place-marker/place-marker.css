@@ -177,3 +177,15 @@
   color: #ffffff;
   /*background: rgba(225, 225, 225, 0.1); !* Subtle blue tint on hover *!*/
 }
+
+/* Narrow down zero-night spans, but keep circular width if it's the only visit */
+.night-count.zero-nights {
+  min-width: 14px;
+  padding: 0 2px;
+}
+
+/* Maintain circular 19px min-width if the marker total is just 1 visit, even when hovered */
+.night-count.zero-nights.single-visit {
+  min-width: 19px;
+  padding: 0 4px;
+}
