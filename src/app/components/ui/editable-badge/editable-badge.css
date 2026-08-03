@@ -8,9 +8,9 @@
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.1);
-  padding: 4px 4px;
+  padding: 2px 2px;
   border-radius: 15px;
-  gap: 1px;
+  /* gap: 1px; */
   height: 30px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s;
