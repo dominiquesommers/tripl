@@ -128,7 +128,7 @@ export class Plan {
     if ('start_date' in data) this.start_date.set(data.start_date ?? null);
     if ('note' in data) this.note.set(data.note ?? '');
     if ('priority' in data) this.priority.set(data.priority ?? 0);
-    if ('source_visit_id' in data) this.source_visit_id.set(data.source_visit_id ?? null);
+    if ('source_visit_id' in data) this.source_visit_id.set(data.source_visit_id?.toString() ?? null);
   }
 
   addVisit(visit: Visit) {

@@ -223,7 +223,6 @@ export class TripService {
 
   loadPlan(planId: string): Observable<Plan> {
     if (this.loadingPlanId() === planId) return EMPTY;
-    console.log('load plan', planId);
     this.loadingPlanId.set(planId);
 
     const dataSource$: Observable<PlanDataPackage> = !environment.useMock
