@@ -10,17 +10,6 @@ import {EditableBadge} from '../../../../../components/ui/editable-badge/editabl
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
 
 
-// import { Component, inject, input, signal, computed } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import { FormsModule } from '@angular/forms';
-// import { LucideAngularModule } from 'lucide-angular';
-// import { TripService } from '../../../../../services/trip';
-// import { Place } from '../../../../../models/place';
-// import { Expense, NewExpense, UpdateExpense } from '../../../../../models/expense';
-// import { EditableBadge } from '../../../ui/editable-badge/editable-badge';
-// import { DatePicker } from '../../../ui/date-picker/date-picker';
-
-
 type ExpenseCategory = 'food' | 'miscellaneous';
 
 
