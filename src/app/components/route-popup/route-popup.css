@@ -114,7 +114,7 @@
 .badge-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   /* align-content: flex-start; */
   align-content: center; /* Centers the wrapped lines of badges */
 }
