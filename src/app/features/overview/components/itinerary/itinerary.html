@@ -35,7 +35,17 @@
 
         <div class="sub-line">
           <span class="date-range">
-            {{ visit.entryDateString() }}
+            @if (first) {
+              <app-date-picker
+                mode="date"
+                displayFormat="compact"
+                [value]="toDate(visit.entryDate())"
+                (valueChange)="onStartDateChange($event)">
+              </app-date-picker>
+            } @else {
+              {{ visit.entryDateString() }}
+            }
+
             @if (visit.entryDateString() !== visit.exitDateString()) {
               — {{ visit.exitDateString() }}
             }

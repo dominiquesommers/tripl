@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TripService } from '../../../../services/trip';
 import { UiService } from '../../../../services/ui';
 import { LucideAngularModule } from 'lucide-angular';
+import {DatePicker} from '../../../../components/ui/date-picker/date-picker';
 import {
   ROUTE_COLORS,
   ROUTE_ICON_MAP,
@@ -14,7 +15,7 @@ import {take} from 'rxjs';
 @Component({
   selector: 'app-itinerary',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, DatePicker],
   templateUrl: './itinerary.html',
   styleUrl: './itinerary.css'
 })
@@ -110,5 +111,30 @@ export class Itinerary implements AfterViewInit {
     if (!type) return 'move-right';
     const key = type.toLowerCase() as keyof typeof ROUTE_LUCIDE_ICONS;
     return this.iconConfig[key] || 'move-right';
+  }
+
+  // Helper to convert Signal/string/null value to Date object for app-date-picker
+  toDate(dateValue: string | Date | null | undefined): Date | null {
+    if (!dateValue) return null;
+    return dateValue instanceof Date ? dateValue : new Date(dateValue);
+  }
+
+  toISODate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // Handle updating the trip's start date
+  onStartDateChange(newDate: Date | null): void {
+    const plan = this.tripService.plan();
+    if (!plan || !newDate) return;
+
+    this.tripService.updateCurrentPlan({ start_date: this.toISODate(newDate) }).subscribe(
+      () => {
+        console.log('successs')
+      }
+    );
   }
 }
