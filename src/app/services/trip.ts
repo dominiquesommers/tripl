@@ -321,6 +321,18 @@ export class TripService {
     );
   }
 
+  updateCurrentPlan(updates: UpdatePlan): Observable<IPlan | null> {
+    const plan = this.plan();
+    if (!plan) return of(null);
+
+    return this.patchAndPersist<IPlan, UpdatePlan>(
+      `plans/${plan.id}`,
+      updates,
+      () => { plan.update(updates) },
+      { message: 'Plan updated.' }
+    );
+  }
+
   // ── PLACES ────────────────────────────────────────────────────────────────
 
   addPlace(placeData: { name: string, lat: number, lng: number, countryName: string }): Observable<IPlace | null> {

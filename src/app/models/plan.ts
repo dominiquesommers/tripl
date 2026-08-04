@@ -24,10 +24,11 @@ export interface IPlan {
   lng: number;
   zoom: number;
   trip_id: string;
+  source_visit_id: string | null;
 }
 
 export type NewPlan = Omit<IPlan, 'id'>;
-export type UpdatePlan = Partial<Pick<IPlan, 'name' | 'start_date' | 'note' | 'priority'>>;
+export type UpdatePlan = Partial<Pick<IPlan, 'name' | 'start_date' | 'note' | 'priority' | 'source_visit_id'>>;
 export type PersistentUpdatePlan = Partial<Pick<IPlan, 'lat' | 'lng' | 'zoom'>>;
 
 export class Plan {
@@ -36,6 +37,7 @@ export class Plan {
   lng!: number;
   lat!: number;
   zoom!: number;
+  source_visit_id = signal<string | null>(null);
   name = signal<string>('');
   start_date = signal<string | null>(null);
   note = signal<string>('');
@@ -43,9 +45,7 @@ export class Plan {
 
   readonly visits = signal<Map<string, Visit>>(new Map());
   readonly visitsArray = computed(() => Array.from(this.visits().values()));
-  readonly sourceVisit = computed(() => this.visitsArray()?.find(
-    v => v.place?.name() === 'Eindhoven' && v.ingoingTraverses().length === 0
-  ));
+  readonly sourceVisit = computed(() => this.visits()?.get(this.source_visit_id() ?? '') ?? null);
 
   readonly traverses = signal<Map<string, Traverse>>(new Map());
   readonly traversesArray = computed(() => Array.from(this.traverses().values()));
@@ -125,13 +125,10 @@ export class Plan {
 
   update(data: Partial<IPlan>) {
     if ('name' in data) this.name.set(data.name ?? '');
-    if ('start_date' in data) this.start_date.set(data.start_date ?? null)
-    // if ('start_date' in data) this.start_date.set(data.start_date ? new Date(data.start_date) : null);
+    if ('start_date' in data) this.start_date.set(data.start_date ?? null);
     if ('note' in data) this.note.set(data.note ?? '');
     if ('priority' in data) this.priority.set(data.priority ?? 0);
-    // if ('lat' in data) this.lat.set(data.lat ?? 0);
-    // if ('lng' in data) this.lng.set(data.lng ?? 0);
-    // if ('zoom' in data) this.zoom.set(data.zoom ?? 0);
+    if ('source_visit_id' in data) this.source_visit_id.set(data.source_visit_id ?? null);
   }
 
   addVisit(visit: Visit) {
@@ -182,9 +179,10 @@ export class Plan {
       id: this.id,
       trip_id: this.trip_id,
       name: this.name(),
-      start_date: this.start_date()?.split('T')[0], //?.toISOString().split('T')[0] ?? null,
+      start_date: this.start_date()?.split('T')[0],
       note: this.note(),
       priority: this.priority(),
+      source_visit_id: this.source_visit_id(),
       lat: this.lat,
       lng: this.lng,
       zoom: this.zoom

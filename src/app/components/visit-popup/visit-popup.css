@@ -267,8 +267,12 @@
 }
 .icon-btn:hover { color: white; }
 .icon-btn.delete:hover { color: #ef4444; }
+.icon-btn.flag:hover { color: #3b82f6; }
 
 .delete-btn-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
 }

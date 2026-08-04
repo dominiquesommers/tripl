@@ -69,7 +69,6 @@ export class VisitPopup {
   }
 
   highlightVisit(visit?: Visit | null) {
-    // TODO highlight visit
     this.uiService.hoveredVisit.set(visit ?? null);
   }
 
@@ -219,8 +218,13 @@ export class VisitPopup {
     });
   }
 
+  setAsSource() {
+    const visit = this.visit();
+    if (!confirm('Are you sure you want to set this visit as the source?')) return;
+    this.tripService.updateCurrentPlan({ source_visit_id: visit.id }).subscribe();
+  }
+
   delete() {
-    console.log('delete visit');
     const visit = this.visit();
     if (!confirm('Are you sure you want to remove this visit?')) return;
 

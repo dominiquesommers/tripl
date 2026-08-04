@@ -155,7 +155,10 @@
               </div>
               @if (authService.canEdit()) {
                 <div class="delete-btn-wrapper">
-                  <button class="icon-btn delete" (click)="delete()">
+                  <button class="icon-btn flag" (click)="setAsSource()" tooltip="Set as Source">
+                    <lucide-icon name="flag" [size]="16"></lucide-icon>
+                  </button>
+                  <button class="icon-btn delete" (click)="delete()" tooltip="Delete Visit">
                     <lucide-icon name="trash-2" [size]="18"></lucide-icon>
                   </button>
                 </div>
