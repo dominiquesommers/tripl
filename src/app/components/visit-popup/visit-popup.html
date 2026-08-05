@@ -109,7 +109,9 @@
             }
 
             <div class="spine-center full-row-content">
-              <div class="node-icon main-pin" (click)="authService.canEdit() && toggleIncluded()">
+              <div class="node-icon main-pin"
+                   (click)="authService.canEdit() && toggleIncluded()"
+                   [title]="pinTooltip()">
                 @if (!visit().included()) {
                   <lucide-icon name="map-pin-off" [size]="20" class="gray"></lucide-icon>
                 } @else if (!visit().entryDate()) {
@@ -148,17 +150,33 @@
             <div class="line-2">
               <div class="date-text">
                 @if (visit().included() && visit().entryDate()) {
-                  {{ visit().entryDateString() }} – {{ visit().exitDateString() }}
+                  {{ visit().entryDateString() }}
+                  @if (visit().entryDate() !== visit().exitDate()) {
+                    — {{ visit().exitDateString() }}
+                  }
                 } @else {
                   <span class="unscheduled-label">Not in itinerary</span>
                 }
               </div>
               @if (authService.canEdit()) {
-                <div class="delete-btn-wrapper">
-                  <button class="icon-btn flag" (click)="setAsSource()" tooltip="Set as Source">
-                    <lucide-icon name="flag" [size]="16"></lucide-icon>
+                <div class="action-btn-wrapper" [class.is-source]="isSourceVisit()">
+                  <button
+                    class="icon-btn flag"
+                    [class.active]="isSourceVisit()"
+                    (mouseenter)="isFlagHovered = true"
+                    (mouseleave)="isFlagHovered = false"
+                    (click)="toggleSource()"
+                    [title]="isSourceVisit() ? (isFlagHovered ? 'Deselect as start' : 'Itinerary start') : 'Set as itinerary start'">
+                    <lucide-icon
+                      [name]="isSourceVisit() && isFlagHovered ? 'flag-off' : 'flag'"
+                      [size]="18">
+                    </lucide-icon>
                   </button>
-                  <button class="icon-btn delete" (click)="delete()" tooltip="Delete Visit">
+
+                  <button
+                    class="icon-btn delete"
+                    (click)="delete()"
+                    tooltip="Delete Visit">
                     <lucide-icon name="trash-2" [size]="18"></lucide-icon>
                   </button>
                 </div>

@@ -261,22 +261,63 @@
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 2px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
-.icon-btn:hover { color: white; }
-.icon-btn.delete:hover { color: #ef4444; }
-.icon-btn.flag:hover { color: #3b82f6; }
 
-.delete-btn-wrapper {
+/* Standard button hover state */
+.icon-btn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Flag button default hover */
+.icon-btn.flag:hover {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ACTIVE SOURCE STATE: Remains blue and visible */
+.icon-btn.flag.active {
+  color: #3b82f6;
+  opacity: 1;
+}
+
+/* ACTIVE SOURCE HOVER: Turn red on hover to indicate deselection/cancellation */
+.icon-btn.flag.active:hover {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+/* Delete button hover */
+.icon-btn.delete:hover {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+/* Container flex arrangement */
+.action-btn-wrapper {
   display: flex;
   align-items: center;
   gap: 4px;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s ease-in-out;
 }
-.middle-content:hover .delete-btn-wrapper {
+/* Show container when parent row is hovered OR if this visit is active source */
+.middle-content:hover .action-btn-wrapper,
+.action-btn-wrapper.is-source {
+  opacity: 1;
+}
+
+/* Hide the delete button by default on source visits, unless card is hovered */
+.action-btn-wrapper.is-source .icon-btn.delete {
+  opacity: 0;
+}
+
+.middle-content:hover .action-btn-wrapper.is-source .icon-btn.delete {
   opacity: 1;
 }
 

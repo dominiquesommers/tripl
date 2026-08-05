@@ -28,6 +28,20 @@ export class VisitPopup {
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);
   isManagingRentUntil = signal(false);
+  isSourceVisit = computed(() => this.tripService.plan()?.sourceVisit()?.id === this.visit().id);
+
+  readonly pinTooltip = computed(() => {
+    const v = this.visit();
+    if (!v.included()) {
+      return 'Click to include in itinerary options';
+    }
+    if (!v.entryDate()) {
+      return 'Click to explicitly exclude from itinerary';
+    }
+    return 'Click to exclude and recalculate itinerary';
+  });
+
+  isFlagHovered = false;
 
   constructor() {
     effect(() => {
@@ -218,10 +232,11 @@ export class VisitPopup {
     });
   }
 
-  setAsSource() {
-    const visit = this.visit();
-    if (!confirm('Are you sure you want to set this visit as the source?')) return;
-    this.tripService.updateCurrentPlan({ source_visit_id: visit.id }).subscribe();
+  toggleSource() {
+    const confirmMessage = this.isSourceVisit() ? 'Are you sure you want to deselect this visit as the source?' : 'Are you sure you want to set this visit as the source?';
+    const newSourceVisitId = this.isSourceVisit() ? null : this.visit().id;
+    if (!confirm(confirmMessage)) return;
+    this.tripService.updateCurrentPlan({ source_visit_id: newSourceVisitId }).subscribe();
   }
 
   delete() {
