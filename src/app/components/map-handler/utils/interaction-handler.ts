@@ -362,7 +362,7 @@ export class MapInteractionManager {
   }
 
   public attachLayerListeners() {
-    this.map.on('click', ['route-icons'], (e) => {
+    this.map.on('click', ['route-icons', 'route-icons-aligned'], (e) => {
       (e.originalEvent as any)._routeClicked = true;
 
       const feature = e.features?.[0];
@@ -390,7 +390,7 @@ export class MapInteractionManager {
       }
     });
 
-    this.map.on('mouseenter', ['route-icons'], (e) => {
+    this.map.on('mouseenter', ['route-icons', 'route-icons-aligned'], (e) => {
       if (this.uiService.hoveredPlace()) return;
       const feature = e.features?.[0];
       const routeId = feature?.properties?.['routeId'];
@@ -404,7 +404,8 @@ export class MapInteractionManager {
       this.currentRouteTooltipCoords = e.lngLat;
     });
 
-    this.map.on('mouseleave', ['route-icons'], () => {
+    this.map.on('mouseleave', ['route-icons', 'route-icons-aligned'], () => {
+      this.map.getCanvas().style.cursor = '';
       this.uiService.hoveredRoute.set(null);
       this.currentRouteTooltipCoords = null;
     });

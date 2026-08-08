@@ -71,6 +71,11 @@ export class Route {
     )];
   });
 
+  readonly traversedAs = computed(() => {
+    // TODO implement when updating the 'tour' concept.
+    return this.type() === 'driving' ? 'tour' : 'segment';
+  });
+
   readonly inItinerary = computed((): boolean => this.traverses().some(t => t.inItinerary()));
 
   readonly cost = computed<CostComparison>(() => {

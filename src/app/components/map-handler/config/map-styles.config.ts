@@ -31,13 +31,14 @@ export const ROUTE_ICON_MAP: Record<string, string> = {
 
 
 export const ROUTE_ICONS = {
-  driving: 'icon_driving',
-  flying: 'icon_flying',
-  boat: 'icon_boat',
-  bus: 'icon_bus',
-  train: 'icon_train',
+  driving: 'car-front',
+  flying: 'plane',
+  boat: 'ship',
+  bus: 'bus-front',
+  train: 'train-front',
   undefined: 'icon_marker',
   icon_marker: 'icon_marker',
+  map_pin: 'map-pin',
 } as const;
 
 export const ROUTE_LUCIDE_ICONS = {

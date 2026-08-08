@@ -74,6 +74,7 @@ export class Trip {
         id: Number(route.id),
         properties: {
           type: route.type(),
+          traversedAs: route.traversedAs(),
           routeId: route.id
         },
         geometry: {

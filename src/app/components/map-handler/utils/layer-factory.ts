@@ -10,6 +10,8 @@ import { AuthService } from '../../../services/auth';
 import { Trip } from '../../../models/trip';
 
 
+export const ALIGNED_ROUTE_TYPES = ['flying', 'walking'] as const;
+
 export class MapLayerManager {
   currentStyle = signal<string>('');
   routesLayerReady = signal<boolean>(false);
@@ -56,8 +58,7 @@ export class MapLayerManager {
     if (!this.map.getSource('all-routes')) {
       this.map.addSource('all-routes', {
         type: 'geojson',
-        data: data || {type: 'FeatureCollection', features: []},
-        // generateId: true
+        data: data || {type: 'FeatureCollection', features: []}
       });
     }
 
@@ -74,16 +75,23 @@ export class MapLayerManager {
         paint: {
           'line-width': [
             'case',
-            ['boolean', ['feature-state', 'hover'], false], 6,
-            ['boolean', ['feature-state', 'disabled'], false], 1.5,
-            3 //2.4
+            ['boolean', ['feature-state', 'hover'], false], 4,
+            ['boolean', ['feature-state', 'disabled'], false], 2.5,
+            3
           ],
           'line-color': ROUTE_COLOR_EXPRESSION,
           'line-opacity': [
             'case',
-            ['boolean', ['feature-state', 'hover'], false], 0.8,
+            ['boolean', ['feature-state', 'hover'], false], 1,
             ['boolean', ['feature-state', 'disabled'], false], 0.2,
             0.8
+          ],
+          'line-dasharray': [
+            'match', ['get', 'traversedAs'],
+            'tour', ['literal', [2, 3]],      // Dashed (2 unit line, 3 unit gap)
+            'both', ['literal', [0.5, 2]],    // Dotted (short dot, wider gap)
+            'segment', ['literal', [1, 0]],   // Solid (1 unit line, 0 gap)
+            ['literal', [1, 0]]               // Default / null fallback: Solid
           ]
         }
       });
@@ -97,33 +105,33 @@ export class MapLayerManager {
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 150,
-          // Use a generic circle icon or 'circle-15' from mapbox styles
-          'icon-image': 'icon_marker',
-          'icon-size': 1.3, // Make it slightly larger than the type icon
+          'icon-image': 'map-pin',
+          'icon-size': 0.85,
           'icon-allow-overlap': true,
-          'icon-rotate': -90, // Adjust this so the "tip" points along the line
+          'icon-rotate': -90,
           'icon-rotation-alignment': 'map',
-          'icon-offset': [0, 3],
+          'icon-offset': [0, 2.5],
           'icon-keep-upright': false
         },
         paint: {
-          'icon-color': 'rgba(45, 45, 50, 0.85)', // ROUTE_COLOR_EXPRESSION
+          'icon-color': ROUTE_COLOR_EXPRESSION,
           'icon-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false], 1,
-            ['boolean', ['feature-state', 'disabled'], false], 0.05,
-            0.3
+            ['boolean', ['feature-state', 'disabled'], false], 0.2,
+            0.8
           ]
         }
       });
     }
-    // TODO separate layer for flying icons which rotate.
+
     // 3. THE BASE ICON LAYER (Static size)
     if (!this.map.getLayer('route-icons')) {
       this.map.addLayer({
         id: 'route-icons',
         type: 'symbol',
         source: 'all-routes',
+        filter: ['!', ['in', ['get', 'type'], ['literal', ALIGNED_ROUTE_TYPES]]],
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 150,
@@ -131,7 +139,6 @@ export class MapLayerManager {
             'match', ['get', 'type'],
             'driving', ROUTE_ICONS.driving,
             'boat', ROUTE_ICONS.boat,
-            'flying', ROUTE_ICONS.flying,
             'bus', ROUTE_ICONS.bus,
             'train', ROUTE_ICONS.train,
             ROUTE_ICONS.undefined
@@ -144,18 +151,52 @@ export class MapLayerManager {
         paint: {
           'icon-color': [
             'case',
-            ['boolean', ['feature-state', 'hover'], false], '#ffffff',
-            ['boolean', ['feature-state', 'disabled'], false], '#323232',
+            ['boolean', ['feature-state', 'hover'], false], '#121212',
+            ['boolean', ['feature-state', 'disabled'], false], '#a5a5a5',
             '#ffffff'
           ],
           'icon-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false], 1,
-            ['boolean', ['feature-state', 'disabled'], false], 0.04,
-            0.5
+            ['boolean', ['feature-state', 'disabled'], false], 0.2,
+            0.8
           ]
         }
       });
+
+      if (!this.map.getSource('route-icons-aligned')) {
+        this.map.addLayer({
+          id: 'route-icons-aligned',
+          type: 'symbol',
+          source: 'all-routes',
+          filter: ['in', ['get', 'type'], ['literal', ALIGNED_ROUTE_TYPES]],
+          layout: {
+            'symbol-placement': 'line',
+            'symbol-spacing': 150,
+            'icon-image': ROUTE_ICONS.flying,
+            'icon-size': 0.5,
+            'icon-allow-overlap': true,
+            'icon-rotation-alignment': 'map',
+            'icon-pitch-alignment': 'map',
+            'icon-keep-upright': false,
+            'icon-rotate': 45
+          },
+          paint: {
+            'icon-color': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false], '#121212',
+              ['boolean', ['feature-state', 'disabled'], false], '#a5a5a5',
+              '#ffffff'
+            ],
+            'icon-opacity': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false], 1,
+              ['boolean', ['feature-state', 'disabled'], false], 0.2,
+              0.8
+            ]
+          }
+        });
+      }
 
       if (!this.map.getSource('drawing-line')) {
         this.map.addSource('drawing-line', {
@@ -172,12 +213,12 @@ export class MapLayerManager {
           layout: {
             'line-cap': 'round',
             'line-join': 'round',
-            'visibility': 'none' // Hidden by default
+            'visibility': 'none'
           },
           paint: {
             'line-color': '#252525',
             'line-width': 3,
-            'line-dasharray': [2, 2], // Creates the dashed effect
+            'line-dasharray': [2, 2],
             'line-opacity': 0.6
           }
         });
