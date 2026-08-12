@@ -71,6 +71,7 @@ export class MapHandler implements OnInit, OnDestroy {
   routeTooltipEl = viewChild(RouteTooltip, { read: ElementRef });
   selectorVisible = signal(false);
   selectorPos = signal({ x: 0, y: 0 });
+  private selectedOffsetPlaceId: string | null = null;
 
   isMapVisible = signal(false);
   layersReady = signal(false);
@@ -300,9 +301,22 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private syncSelectedVisit() {
-    const selectedPlace = this.uiService.selectedVisit();
-    if (!selectedPlace) return;
-    this.interactionManager.handleMarkerUnhover();
+    const selectedVisit = this.uiService.selectedVisit();
+    const newPlaceId = selectedVisit?.place_id ?? null;
+
+    if (this.selectedOffsetPlaceId && this.selectedOffsetPlaceId !== newPlaceId) {
+      this.markers.get(this.selectedOffsetPlaceId)?.setOffset([0, 0]);
+    }
+
+    if (newPlaceId && (newPlaceId !== this.selectedOffsetPlaceId)) {
+      const place = selectedVisit!.place;
+      if (place.visits()?.length > 0) {
+        this.markers.get(newPlaceId)?.setOffset([8, 0]);
+      }
+    }
+
+    this.selectedOffsetPlaceId = newPlaceId;
+    if (selectedVisit) this.interactionManager.handleMarkerUnhover();
   }
 
   private syncMarkers() {

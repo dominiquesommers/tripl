@@ -1,6 +1,5 @@
 import {Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
-import {OverlayModule} from '@angular/cdk/overlay';
-import {ConnectedPosition} from '@angular/cdk/overlay';
+import {OverlayModule, ConnectedPosition} from '@angular/cdk/overlay';
 import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Visit } from '../../models/visit';
