@@ -73,7 +73,7 @@ export class Route {
 
   readonly traversedAs = computed(() => {
     const traverses = this.traverses();
-    if (traverses.some(t => t.activeRentalSources().length)) {
+    if (traverses.some(t => t.activeRentalSources().filter(rs => rs.route.type() === this.type()).length)) {
       return (traverses.some(t => t.inItinerary() && !t.activeRentalSources().length) ? 'both' : 'tour');
     };
     return this.inItinerary() ? 'segment' : null;
