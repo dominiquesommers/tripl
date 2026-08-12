@@ -369,10 +369,8 @@ export class MapInteractionManager {
       const routeId = feature?.properties?.['routeId'];
       const featureId = feature?.id;
 
-      console.log('route icon clicked.', routeId, featureId);
       if (!routeId || featureId === undefined) return;
       const route = this.tripService.trip()?.routes()?.get(routeId);
-      console.log('select.', route, this.uiService.drawingState().active);
       if (!this.uiService.drawingState().active) {
         this.uiService.selectRoute(route?.id ?? null, e.lngLat);
         console.log(this.uiService.selectedRoute());
@@ -383,8 +381,7 @@ export class MapInteractionManager {
           const drawingSource = this.map.getSource('drawing-line') as mapboxgl.GeoJSONSource;
           if (drawingSource) drawingSource.setData({ type: 'FeatureCollection', features: [] });
           this.map.getCanvas().style.cursor = 'pointer';
-          console.log('flying to target, drawing state:', this.uiService.drawingState().active)
-          this.map.flyTo({center: [targetPlace.lng, targetPlace.lat], zoom: Math.max(this.map.getZoom(), 7), essential: true});
+          this.uiService.triggerFlyTo({center: [targetPlace.lng, targetPlace.lat], zoom: Math.max(this.map.getZoom(), 7)});
           this.toggleMapInteractions(false);
         }
       }
