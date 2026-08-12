@@ -9,28 +9,35 @@
           <!-- Left Column: Spine -->
           <div class="spine-cell">
             @if (previousLeg(); as leg) {
-              <!-- Line is always present, active if driving -->
-              @if (leg.traverse.route.type() === 'driving') {
-                <div class="spine-line top-third dashed"
-                     [style.background-color]="getRouteColor(undefined)"
+              <!-- Line is always present, active if tour mode -->
+              @let activeRental = getActiveRentalForLeg(leg.traverse);
+              @let activeRentalStart = activeRentalStartForLeg(leg.traverse);
+              @let topTraverse = activeRentalStart ? activeRentalStart.previousTraverse() : leg.traverse.source.previousTraverse();
+              @if (activeRentalStart && activeRentalStart !== leg.traverse.source) {
+                @if (topTraverse) {
+                  <div class="spine-line top-third dashed"
+                     [style.background-color]="getRouteColor(topTraverse.route.type())"
                      [class.active]="!!leg"></div>
+                }
                 <div class="spine-line middle-third dashed"
-                     [style.background-color]="getRouteColor(leg.traverse.route.type())"
+                     [style.background-color]="getRouteColor(activeRental!.route.type())"
                      [class.active]="!!leg"></div>
                 <div class="spine-line bottom-third"
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
                      [class.active]="!!leg"></div>
               } @else {
-                <div class="spine-line top-half dashed"
-                     [style.background-color]="getRouteColor(undefined)"
+                @if (topTraverse) {
+                  <div class="spine-line top-third dashed"
+                     [style.background-color]="getRouteColor(topTraverse.route.type())"
                      [class.active]="!!leg"></div>
+                }
                 <div class="spine-line bottom-half"
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
                      [class.active]="!!leg"></div>
               }
 
-              @if (leg.traverse.route.type() === 'driving') {
-                <!-- Option 3: Driving (Split Spine) -->
+              @if (activeRentalStart && activeRentalStart !== leg.traverse.source) {
+                <!-- Option 3: Tour mode (Split Spine) -->
                 <div class="spine-split">
                   <div class="subrow-30 spine-center">
                     <div class="node-small"></div>
@@ -40,7 +47,7 @@
                   </div>
                 </div>
               } @else {
-                <!-- Option 2: Not Driving (Single Node) -->
+                <!-- Option 2: Regular mode (Single Node) -->
                 <div class="spine-split">
                   <div class="full-row-content spine-center">
                     <div class="node-small"></div>
@@ -49,8 +56,16 @@
               }
 
               <!-- Transport Icon between rows (at bottom edge) -->
+
+              <button class="overnight-toggle"
+                      [style.top]="activeRentalStart ? '112%' : '100%'"
+                      [class.active]="leg.traverse.is_overnight()"
+                      click)="toggleOvernight($event, leg.traverse)"
+                      title="Overnight travel">
+                <lucide-icon name="moon" [size]="14"></lucide-icon>
+              </button>
               <div class="transport-icon"
-                   [style.top]="leg.traverse.route.type() === 'driving' ? '112%' : '100%'"
+                   [style.top]="activeRentalStart ? '112%' : '100%'"
                    [style.background-color]="getRouteColor(leg.traverse.route.type())"
                    (click)="onRouteClick($event, leg.traverse.route)"
                    (mouseenter)="highlightTraverse(leg.traverse)"
@@ -63,20 +78,21 @@
           <!-- Right Column: Content -->
           <div class="content-cell">
             @if (previousLeg(); as leg) {
-              @if (leg.traverse.route.type() === 'driving') {
+              @let activeRental = getActiveRentalForLeg(leg.traverse);
+              @if (activeRental) {
                 <!-- Option 3: Split Content -->
                 <div class="split-row">
                   <div class="subrow-30 top"
-                   [class.hoverable-row]="rentingFromVisit()"
-                   (click)="onFlyTo(rentingFromVisit())"
-                   (mouseenter)="highlightVisit(rentingFromVisit())"
-                   (mouseleave)="clearVisitHighlight()">
-                    <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting from: {{ rentingFromVisit()?.place?.name() || "-" }}</span>
+                  [class.hoverable-row]="activeRental"
+                  (click)="onFlyTo(activeRental.source)"
+                  (mouseenter)="highlightVisit(activeRental.source)"
+                  (mouseleave)="clearVisitHighlight()">
+                    <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Tour start: {{ activeRental.source.place.name() || "-" }}</span>
                   </div>
                   <div class="subrow-30 hoverable-row"
-                   (click)="onFlyTo(leg.traverse.source)"
-                   (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.source)"
-                   (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
+                  (click)="onFlyTo(leg.traverse.source)"
+                  (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.source)"
+                  (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
                     <span class="text-truncate" style="font-weight: 500; font-size: 13px;">From: {{ leg.traverse.source.place.name() }}</span>
                   </div>
                 </div>
@@ -109,24 +125,76 @@
             }
 
             <div class="spine-center full-row-content">
-              <div class="node-icon main-pin"
-                   (click)="authService.canEdit() && toggleIncluded()"
-                   [title]="pinTooltip()">
-                @if (!visit().included()) {
-                  <lucide-icon name="map-pin-off" [size]="20" class="gray"></lucide-icon>
-                } @else if (!visit().entryDate()) {
-                  <lucide-icon name="map-pin-minus" [size]="20" class="yellow"></lucide-icon>
-                } @else {
-                  <lucide-icon name="map-pin-check" [size]="20" class="blue"></lucide-icon>
-                }
+              <div class="night-badge-backing">
+                <app-editable-badge
+                  [value]="visit().nights()"
+                  [readonly]="authService.isPublicMode()"
+                  iconName="moon"
+                  iconColor="#f1c40f"
+                  (save)="persistNights($event)">
+                </app-editable-badge>
               </div>
             </div>
           </div>
 
           <!-- Right Column: Visit Info -->
           <div class="content-cell middle-content">
-            <!-- Line 1: Name + Nights -->
+            <!-- Line 1: Name + Actions -->
             <div class="line-2">
+              <div></div>
+              @if (authService.canEdit()) {
+                <button #trigger="cdkOverlayOrigin" cdkOverlayOrigin
+                  class="icon-btn"
+                  (click)="isVisitOptionsOpen.set(!isVisitOptionsOpen())"
+                  tooltip="Visit options">
+                  <lucide-icon name="ellipsis" [size]="18"></lucide-icon>
+                </button>
+
+                <ng-template
+                  cdkConnectedOverlay
+                  [cdkConnectedOverlayOrigin]="trigger"
+                  [cdkConnectedOverlayOpen]="isVisitOptionsOpen()"
+                  [cdkConnectedOverlayPositions]="overlayPositions"
+                  [cdkConnectedOverlayHasBackdrop]="true"
+                  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+                  (backdropClick)="isVisitOptionsOpen.set(false)"
+                  (detach)="isVisitOptionsOpen.set(false)">
+
+                  <div class="options-dropdown">
+                    <div class="manage-item simple-select"
+                        (click)="toggleIncluded(); isVisitOptionsOpen.set(false)">
+                      <lucide-icon [name]="visit().included() ? 'map-pin-off' : 'map-pin-check'" [size]="16"></lucide-icon>
+                      <span class="destination">{{ visit().included() ? 'Exclude from itinerary' : 'Include in itinerary' }}</span>
+                    </div>
+
+                    @if (nextLeg() && getActiveRentalForLeg(nextLeg()!.traverse) && getActiveRentalForLeg(nextLeg()!.traverse) === nextLeg()!.traverse) {
+                      <div class="manage-item simple-select"
+                          (click)="toggleStartOfTour(); isVisitOptionsOpen.set(false)">
+                        <lucide-icon name="milestone" [size]="16"></lucide-icon>
+                        <span class="destination">{{ 'Unset as tour start' }}</span>
+                      </div>
+                    } @else if (nextLeg() && (!getActiveRentalForLeg(nextLeg()!.traverse) || getActiveRentalForLeg(nextLeg()!.traverse)!.route.type() !== nextLeg()!.traverse.route.type())) {
+                      <div class="manage-item simple-select"
+                          (click)="toggleStartOfTour(); isVisitOptionsOpen.set(false)">
+                        <lucide-icon name="milestone" [size]="16"></lucide-icon>
+                        <span class="destination">{{ 'Set as tour start' }}</span>
+                      </div>
+                    }
+
+                    <div class="manage-item simple-select"
+                        (click)="toggleSource(); isVisitOptionsOpen.set(false)">
+                      <lucide-icon [name]="isSourceVisit() ? 'flag-off' : 'flag'" [size]="16"></lucide-icon>
+                      <span class="destination">{{ isSourceVisit() ? 'Unset as itinerary start' : 'Set as itinerary start' }}</span>
+                    </div>
+
+                    <div class="manage-item simple-select delete-option"
+                        (click)="delete(); isVisitOptionsOpen.set(false)">
+                      <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+                      <span class="destination">Delete visit</span>
+                    </div>
+                  </div>
+                </ng-template>
+              }
             </div>
             <div class="line-1">
               <textarea #nameInput
@@ -136,14 +204,6 @@
                      cdkAutosizeMaxRows="2"
                      (keydown.enter)="$event.preventDefault(); nameInput.blur()"
                      (blur)="saveName(nameInput.value)">{{ visit().place.name() }}</textarea>
-
-              <app-editable-badge
-                [value]="visit().nights()"
-                [readonly]="authService.isPublicMode()"
-                iconName="moon"
-                iconColor="#f1c40f"
-                (save)="persistNights($event)">
-              </app-editable-badge>
             </div>
 
             <!-- Line 2: Dates + Delete -->
@@ -151,7 +211,7 @@
               <div class="date-text">
                 @if (visit().included() && visit().entryDate()) {
                   {{ visit().entryDateString() }}
-                  @if (visit().entryDate() !== visit().exitDate()) {
+                  @if (visit().entryDateString() !== visit().exitDateString()) {
                     — {{ visit().exitDateString() }}
                   }
                 } @else {
@@ -159,26 +219,46 @@
                 }
               </div>
               @if (authService.canEdit()) {
-                <div class="action-btn-wrapper" [class.is-source]="isSourceVisit()">
-                  <button
-                    class="icon-btn flag"
-                    [class.active]="isSourceVisit()"
-                    (mouseenter)="isFlagHovered = true"
-                    (mouseleave)="isFlagHovered = false"
-                    (click)="toggleSource()"
-                    [title]="isSourceVisit() ? (isFlagHovered ? 'Deselect as start' : 'Itinerary start') : 'Set as itinerary start'">
-                    <lucide-icon
-                      [name]="isSourceVisit() && isFlagHovered ? 'flag-off' : 'flag'"
-                      [size]="18">
-                    </lucide-icon>
-                  </button>
+                <div class="status-indicators">
+                  @if (isSourceVisit()) {
+                    <lucide-icon name="flag" [size]="16" class="status-icon source" title="Itinerary start"></lucide-icon>
+                  }
+                  @for (rental of sortRentalsByRouteType(nextLeg()?.traverse?.activeRentalSources() ?? []); track rental.id) {
+                    @if (rental.source_visit_id === visit().id) {
+                      <lucide-icon 
+                        name="milestone" 
+                        [size]="16" 
+                        class="status-icon tour" 
+                        [style.color]="getRouteColor(rental.route.type())" 
+                        title="Tour start">
+                      </lucide-icon>
+                    } @else {
+                      <lucide-icon 
+                        name="signpost" 
+                        [size]="16" 
+                        class="status-icon tour" 
+                        [style.color]="getRouteColor(rental.route.type())" 
+                        title="Part of a tour">
+                      </lucide-icon>
+                    }
+                  }
 
-                  <button
-                    class="icon-btn delete"
-                    (click)="delete()"
-                    tooltip="Delete Visit">
-                    <lucide-icon name="trash-2" [size]="18"></lucide-icon>
-                  </button>
+                  @for (rental of sortRentalsByRouteType(previousLeg()?.traverse?.activeRentalSources() ?? []); track rental.id) {
+                    @if (rental.rent_until() === visit().id) {
+                      <lucide-icon 
+                        name="milestone" 
+                        [size]="16" 
+                        style="transform: scaleX(-1);" 
+                        class="status-icon tour" 
+                        [style.color]="getRouteColor(rental.route.type())" 
+                        title="Tour ends here">
+                      </lucide-icon>
+                    }
+                  }
+
+                  @if (!visit().included()) {
+                    <lucide-icon name="map-pin-off" [size]="16" class="status-icon excluded" title="Not in itinerary"></lucide-icon>
+                  }
                 </div>
               }
             </div>
@@ -189,8 +269,15 @@
           <div class="spine-cell">
             @if (nextLeg(); as leg) {
               <!-- Transport Icon between rows (at top edge) -->
+               <button class="overnight-toggle"
+                      [style.top]="leg.traverse.activeRentalSources().length ? '-12%' : '0%'"
+                      [class.active]="leg.traverse.is_overnight()"
+                      (click)="toggleOvernight($event, leg.traverse)"
+                      title="Overnight travel">
+                <lucide-icon name="moon" [size]="14"></lucide-icon>
+              </button>
               <div class="transport-icon"
-                   [style.top]="leg.traverse.route.type() === 'driving' ? '-12%' : '0%'"
+                   [style.top]="leg.traverse.activeRentalSources().length ? '-12%' : '0%'"
                    [style.background-color]="getRouteColor(leg.traverse.route.type())"
                    (click)="onRouteClick($event, leg.traverse.route)"
                    (mouseenter)="highlightTraverse(leg.traverse)"
@@ -198,26 +285,35 @@
                 <lucide-icon [name]="getRouteIcon(leg.traverse.route.type())" [size]="16"></lucide-icon>
               </div>
 
-              @if (leg.traverse.route.type() === 'driving') {
+              @let activeRental = getActiveRentalForLeg(leg.traverse);
+              @let activeRentalEnd = activeRentalEndForLeg(leg.traverse);
+              @let bottomTraverse = activeRentalEnd ? activeRentalEnd.nextTraverse() : leg.traverse.target.nextTraverse();
+              @if (activeRentalEnd && activeRentalEnd !== leg.traverse.target) {
                 <div class="spine-line top-third"
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
                      [class.active]="!!leg"></div>
                 <div class="spine-line middle-third dashed"
-                     [style.background-color]="getRouteColor(leg.traverse.route.type())"
+                     [style.background-color]="getRouteColor(activeRental!.route.type())"
                      [class.active]="!!leg"></div>
-                <div class="spine-line bottom-third dashed"
-                     [style.background-color]="getRouteColor(undefined)"
+                <!-- TODO hide this one if the bottom one the itinerary final destination and set the route color correctly if not hidden -->
+                @if (bottomTraverse) {
+                  <div class="spine-line bottom-third dashed"
+                     [style.background-color]="getRouteColor(bottomTraverse.route.type())"
                      [class.active]="!!leg"></div>
+                }
               } @else {
                 <div class="spine-line top-half"
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
                      [class.active]="!!leg"></div>
-                <div class="spine-line bottom-half dashed"
-                     [style.background-color]="getRouteColor(undefined)"
+                <!-- TODO hide this one if the bottom one the itinerary final destination and set the route color correctly if not hidden -->
+                @if (bottomTraverse) {
+                  <div class="spine-line bottom-half dashed"
+                     [style.background-color]="getRouteColor(bottomTraverse.route.type())"
                      [class.active]="!!leg"></div>
+                }
               }
 
-              @if (leg.traverse.route.type() === 'driving') {
+              @if (activeRentalEnd && activeRentalEnd !== leg.traverse.target) {
                 <div class="spine-split">
                   <div class="subrow-30 spine-center">
                     <div class="node-small"></div>
@@ -239,14 +335,16 @@
           <!-- Right Column: Content -->
           <div class="content-cell">
             @if (nextLeg(); as leg) {
-<!--              @if (leg.traverse.route.type() === 'driving' && rentingUntilVisit() === null) {-->
-              @if (leg.traverse.route.type() === 'driving' && (previousLeg()?.traverse?.route?.type() !== 'driving' || rentingUntilVisit() === null)) {
-                <!-- Option 3: Split Content -->
+              @let activeRental = getActiveRentalForLeg(leg.traverse);
+              @let activeRentalTarget = activeRentalEndForLeg(leg.traverse);
+
+              @if (activeRental) {
+                <!-- Option 3: Split Content (Tour ends on this traverse) -->
                 <div class="split-row">
                   <div class="subrow-30 hoverable-row"
-                   (click)="onFlyTo(leg.traverse.target)"
-                   (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
-                   (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
+                  (click)="onFlyTo(leg.traverse.target)"
+                  (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
+                  (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
                     <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target.place.name() }}</span>
                     @if (authService.canEdit()) {
                       <div class="config-btn-wrapper">
@@ -258,18 +356,18 @@
                   </div>
 
                   <div class="subrow-30 top rent_until-row"
-                   [class.hoverable-row]="rentingUntilVisit()"
-                   (click)="onFlyTo(rentingUntilVisit())"
-                   (mouseenter)="highlightVisit(rentingUntilVisit())"
-                   (mouseleave)="clearVisitHighlight()">
+                  [class.hoverable-row]="activeRentalTarget"
+                  (click)="onFlyTo(activeRentalTarget)"
+                  (mouseenter)="highlightVisit(activeRentalTarget)"
+                  (mouseleave)="clearVisitHighlight()">
                     <div class="rent-until-wrapper" style="display: flex; align-items: center; gap: 8px; flex-grow: 1;">
-                      <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting until: {{ rentingUntilVisit()?.place?.name() || "-"}}</span>
-                      <div class="bed-check icon-btn" [class.active]="leg.traverse.activeRentalSource()?.includes_accommodation()"
-                           (click)="authService.canEdit() && $event.stopPropagation(); authService.canEdit() && toggleAccommodation(leg.traverse)">
+                      <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Tour end: {{ activeRentalTarget!.place.name() || "-"}}</span>
+                      <div class="bed-check icon-btn" [class.active]="activeRental.includes_accommodation()"
+                          (click)="authService.canEdit() && $event.stopPropagation(); authService.canEdit() && toggleAccommodation(activeRental)">
                         <lucide-icon name="bed" [size]="16"></lucide-icon>
                       </div>
                     </div>
-                    @if (authService.canEdit()) {
+                    @if (authService.canEdit() && activeRental.source === visit()) {
                       <div class="config-btn-wrapper">
                         <button class="icon-btn" (click)="toggleManagingRentUntil($event)">
                           <lucide-icon name="settings-2" [size]="16"></lucide-icon>
@@ -278,38 +376,12 @@
                     }
                   </div>
                 </div>
-              } @else if (leg.traverse.route.type() === 'driving') {
-                <div class="split-row">
-                  <div class="subrow-30 hoverable-row"
-                   (click)="onFlyTo(leg.traverse.target)"
-                   (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
-                   (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
-                    <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target.place.name() }}</span>
-                    @if (authService.canEdit()) {
-                      <div class="config-btn-wrapper">
-                        <button class="icon-btn" (click)="toggleManagingTraverses($event)">
-                          <lucide-icon name="settings-2" [size]="16"></lucide-icon>
-                        </button>
-                      </div>
-                    }
-                  </div>
-                  <div class="subrow-30 top rent_until-row"
-                   [class.hoverable-row]="rentingUntilVisit()"
-                   (click)="onFlyTo(rentingUntilVisit())"
-                   (mouseenter)="highlightVisit(rentingUntilVisit())"
-                   (mouseleave)="clearVisitHighlight()">
-                    <span class="text-truncate" style="opacity: 0.7; font-size: 11px;">Renting until: {{ rentingUntilVisit()?.place?.name() || "-" }}</span>
-                    <div class="bed-check icon-btn no-interaction" [class.active]="leg.traverse.activeRentalSource()?.includes_accommodation()">
-                      <lucide-icon name="bed" [size]="16"></lucide-icon>
-                    </div>
-                  </div>
-                </div>
               } @else {
                 <!-- Option 2: Single Content -->
                 <div class="full-row-content subrow-30 hoverable-row"
-                 (click)="onFlyTo(leg.traverse.target)"
-                 (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
-                 (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
+                (click)="onFlyTo(leg.traverse.target)"
+                (mouseenter)="highlightTraverse(leg.traverse); highlightVisit(leg.traverse.target)"
+                (mouseleave)="clearTraverseHighlight(); clearVisitHighlight()">
                   <span class="text-truncate" style="font-weight: 500; font-size: 13px;">To: {{ leg.traverse.target.place.name() }}</span>
                   @if (authService.canEdit()) {
                     <div class="config-btn-wrapper">
@@ -325,8 +397,8 @@
                 <span class="text-truncate" style="font-weight: 500; font-size: 13px;"></span>
                 @if (authService.canEdit()) {
                   <div class="config-btn-wrapper">
-                    <button class="icon-btn" (click)="toggleManagingTraverses($event)">
-                      <lucide-icon name="settings-2" [size]="14"></lucide-icon>
+                    <button class="icon-btn add" (click)="addNewTraverse()" title="Add Connection">
+                      <lucide-icon name="plus" [size]="18"></lucide-icon>
                     </button>
                   </div>
                 }

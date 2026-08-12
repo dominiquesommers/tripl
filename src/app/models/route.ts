@@ -7,7 +7,7 @@ import { computeRouteSpline, LngLat } from '../utils/geo';
 import {CostBreakdown, CostComparison} from './cost';
 import {LngLatLike} from 'mapbox-gl';
 
-export type RouteType = 'flying' | 'driving' | 'bus' | 'train' | 'boat' | undefined;
+export type RouteType = 'flying' | 'driving' | 'bus' | 'train' | 'boat' | 'walking' | 'cycling' | 'taxi' | undefined;
 
 export interface IRoute {
   id: string;
@@ -72,8 +72,11 @@ export class Route {
   });
 
   readonly traversedAs = computed(() => {
-    // TODO implement when updating the 'tour' concept.
-    return this.type() === 'driving' ? 'tour' : 'segment';
+    const traverses = this.traverses();
+    if (traverses.some(t => t.activeRentalSources().length)) {
+      return (traverses.some(t => t.inItinerary() && !t.activeRentalSources().length) ? 'both' : 'tour');
+    };
+    return this.inItinerary() ? 'segment' : null;
   });
 
   readonly inItinerary = computed((): boolean => this.traverses().some(t => t.inItinerary()));
@@ -117,7 +120,7 @@ export class Route {
 
   get target(): Place {
     const place = this.tripService.trip()?.places().get(this.targetId);
-    if (!place) throw new Error(`Invariant Violation: Traverse ${this.id} references non-existent target Visit ${this.targetId}`);
+    if (!place) throw new Error(`Invariant Violation: Route ${this.id} references non-existent target Place ${this.targetId}`);
     return place;
   }
 

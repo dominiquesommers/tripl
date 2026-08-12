@@ -449,7 +449,7 @@ export class TripService {
 
   // ── ROUTES ────────────────────────────────────────────────────────────────
 
-  addRoute(sourceId: string, targetId: string, type: RouteType = 'driving'): Observable<Route | null> {
+  addRoute(sourceId: string, targetId: string, type: RouteType): Observable<Route | null> {
     const currentTrip = this.trip();
     if (!currentTrip) return of(null);
     const source = currentTrip.places().get(sourceId);
@@ -502,7 +502,7 @@ export class TripService {
     console.log(route);
     if (!route) return of(null);
 
-    const landModes: RouteType[] = ['driving', 'train', 'bus'];
+    const landModes: RouteType[] = ['driving', 'train', 'bus', 'walking', 'cycling', 'taxi'];
     const needsEnrichment = !!(updates.type && landModes.includes(updates.type) && !landModes.includes(route.type()));
     console.log(needsEnrichment);
     const enrichment$: Observable<UpdateRoute> = needsEnrichment

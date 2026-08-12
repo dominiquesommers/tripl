@@ -1,4 +1,6 @@
 import {Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
+import {OverlayModule} from '@angular/cdk/overlay';
+import {ConnectedPosition} from '@angular/cdk/overlay';
 import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Visit } from '../../models/visit';
@@ -16,7 +18,7 @@ import {AuthService} from '../../services/auth';
 @Component({
   selector: 'app-visit-popup',
   standalone: true,
-  imports: [LucideAngularModule, DragDropModule, CommonModule, CdkTextareaAutosize, EditableBadge],
+  imports: [LucideAngularModule, DragDropModule, CommonModule, CdkTextareaAutosize, EditableBadge, OverlayModule],
   templateUrl: './visit-popup.html',
   styleUrl: './visit-popup.css',
 })
@@ -28,6 +30,12 @@ export class VisitPopup {
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);
   isManagingRentUntil = signal(false);
+  isVisitOptionsOpen = signal(false);
+  overlayPositions: ConnectedPosition[] = [
+    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
+    { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 },
+  ];
+
   isSourceVisit = computed(() => this.tripService.plan()?.sourceVisit()?.id === this.visit().id);
 
   readonly pinTooltip = computed(() => {
@@ -67,6 +75,19 @@ export class VisitPopup {
     this.tripService.updateTraverse(traverse.id, {rent_until: visit.id}).subscribe();
   }
 
+  toggleStartOfTour() {
+    const traverse = this.nextLeg()?.traverse;
+    if (!traverse) return;
+    if (traverse.rent_until()) {
+      this.tripService.updateTraverse(traverse.id, {rent_until: null}).subscribe();
+    } else {
+      const options: Visit[] = this.rentUntilOptions();
+      this.tripService.updateTraverse(traverse.id, {rent_until: options[options.length - 1].id}).subscribe(() => {
+        this.isManagingRentUntil.set(true);
+      });
+    }
+  }
+
   onFlyTo(visit?: Visit | null) {
     const place = visit?.place;
     if (!visit || !place) return;
@@ -93,6 +114,11 @@ export class VisitPopup {
   toggleAccommodation(traverse: Traverse) {
     console.log('toggleAccommodation', traverse);
     this.tripService.updateTraverse(traverse.id, {includes_accommodation: !traverse.includes_accommodation()}).subscribe();
+  }
+
+  toggleOvernight(event: MouseEvent, traverse: Traverse) {
+    event.stopPropagation();
+    this.tripService.updateTraverse(traverse.id, {is_overnight: !traverse.is_overnight()}).subscribe();
   }
 
   getRouteIcon(type: string | undefined | null): string {
@@ -126,69 +152,34 @@ export class VisitPopup {
     return {traverse: nextTraverse, planned: true};
   });
 
-  rentingFromVisit: Signal<Visit | null> = computed(() => {
-    const nextLeg = this.nextLeg();
-    if (nextLeg?.traverse?.rentUntilVisit()) return this.visit();
-    const previousLeg = this.previousLeg();
-    if (!previousLeg) return null;
-    const previousTraverse = previousLeg.traverse;
-    if (!previousTraverse || !previousLeg.planned || previousTraverse.route.type() !== 'driving') return null;
-    if (previousTraverse.rentUntilVisit()) return previousTraverse.source;
-    const itineraryTraverses = this.tripService.plan()?.itineraryTraverses();
-    if (!itineraryTraverses) return null;
-    const traverseIndex = itineraryTraverses.indexOf(previousTraverse);
-    const visitedIdsBetween = [];
-    let t_ = null;
-    for (let i = traverseIndex - 1; i >= 0; i--) {
-      const current = itineraryTraverses[i];
-      visitedIdsBetween.push(current.target_visit_id);
-      if (current.rent_until() !== null) {
-        t_ = current;
-        break;
-      }
-    }
-    console.log(visitedIdsBetween);
-    if (t_) {
-      const deadlineId = t_.rent_until();
-      console.log(deadlineId);
-      if (deadlineId && visitedIdsBetween.includes(deadlineId)) {
-        return null;
-      }
-      return t_.source ?? null;
-    }
-    return null;
-  });
-
-  rentingUntilVisit: Signal<Visit | null>  = computed(() => {
-    const rentingUntilVisit = this.rentingFromVisit()?.nextTraverse()?.rentUntilVisit();
-    if (!rentingUntilVisit || rentingUntilVisit === this.visit()) return null;
-    return rentingUntilVisit;
-  });
-
   rentUntilOptions: Signal<Visit[]> = computed(() => {
     const nextLeg = this.nextLeg();
     if (!nextLeg || !nextLeg.planned) return [];
     const nextTraverse = nextLeg.traverse;
-    if (nextTraverse.route.type() !== 'driving') return [];
+    const routeType = nextTraverse.route.type();
     const itineraryTraverses = this.tripService.plan()?.itineraryTraverses();
     if (!itineraryTraverses) return [];
 
     const traverseIndex = itineraryTraverses.indexOf(nextTraverse);
-    const drivingTargets: Visit[] = [];
-    let nonDrivingCount = 0;
+    const tourTargets: Visit[] = [];
+    let nonMatchingCount = 0;
     for (let i = traverseIndex; i < itineraryTraverses.length; i++) {
       const current = itineraryTraverses[i];
-      if (current.route.type() === 'driving') {
-        nonDrivingCount = 0;
-        drivingTargets.push(current.target);
+      if (current.route.type() === routeType) {
+        if (i > traverseIndex && current.rent_until()) {
+          break;
+        }
+
+        nonMatchingCount = 0;
+        tourTargets.push(current.target);
       } else {
-        nonDrivingCount++;
+        nonMatchingCount++;
       }
-      if (nonDrivingCount >= 3) {
+      if (nonMatchingCount >= 3) {
         break;
       }
     }
-    return drivingTargets;
+    return tourTargets;
   });
 
   persistNights(value: number ) {
@@ -347,5 +338,59 @@ export class VisitPopup {
       preselectedRoute: undefined
     });
     this.uiService.clearSelection();
+  }
+
+  getActiveRentalForLeg(traverse: Traverse): Traverse | null {
+    const sources = traverse.activeRentalSources();
+    if (this.visit().place.name() === 'Hasselt') console.log(sources);
+    if (sources.length === 0) return null;
+
+    // 1. Try to find the exact match for this traverse's specific route type first
+    const exactMatch = sources.find(r => r.route.type() === traverse.route.type());
+    if (exactMatch) {
+      if (this.visit().place.name() === 'Hasselt') console.log('exact match', exactMatch);
+      return exactMatch;
+    }
+
+    // 2. If none match the route type (intervening segment), pick the closest one 
+    // (the one whose source visit appears latest in the itinerary)
+    const itinerary = this.tripService.plan()?.itinerary() ?? [];
+    
+    const closestActive = sources.reduce((latest, current) => {
+      const latestIndex = itinerary.findIndex(v => v.id === latest.source_visit_id);
+      const currentIndex = itinerary.findIndex(v => v.id === current.source_visit_id);
+      return currentIndex > latestIndex ? current : latest;
+    }, sources[0]);
+    if (this.visit().place.name() === 'Hasselt') console.log('closestActive', closestActive);
+    return closestActive;
+  }
+
+  activeRentalStartForLeg(traverse: Traverse): Visit | null {
+    const activeRental = this.getActiveRentalForLeg(traverse);
+    if (!activeRental || !activeRental.rent_until()) {
+      return null;
+    }
+    return activeRental.source;
+  }
+
+  activeRentalEndForLeg(traverse: Traverse): Visit | null {
+    const activeRental = this.getActiveRentalForLeg(traverse);
+    if (!activeRental || !activeRental.rent_until()) {
+      return null;
+    }
+    return this.tripService.plan()!.visits()!.get(activeRental.rent_until()!)!;
+  }
+
+  sortRentalsByRouteType(rentals: Traverse[]): Traverse[] {
+    return [...rentals].sort((a, b) => {
+      const typeA = a.route.type();
+      const typeB = b.route.type();
+
+      if (!typeA && !typeB) return 0;
+      if (!typeA) return 1;
+      if (!typeB) return -1;
+
+      return typeA.localeCompare(typeB);
+    });
   }
 }

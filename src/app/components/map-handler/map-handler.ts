@@ -241,7 +241,6 @@ export class MapHandler implements OnInit, OnDestroy {
   private syncRoutes() {
     const routesData = this.tripService.trip()?.routesGeoJson();
     const isReady = this.layersReady();
-    // console.log('sync routes');
     if (isReady && routesData && this.layerManager) {
       console.log(routesData);
       this.layerManager.updateRouteData(routesData);
@@ -260,9 +259,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
   private updateMarkers(places: Place[], components: readonly PlaceMarker[]) {
     const map = this.map();
-    // console.log('trying to update markers!!!', !map, !this.interactionManager)
     if (!map || !this.interactionManager) return;
-    // console.log('updating markers!!!')
     components.forEach((component) => {
       const el = (component as any).elementRef.nativeElement;
       const place = component.place();

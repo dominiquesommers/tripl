@@ -25,7 +25,7 @@
 
 .view-stack {
   display: grid;
-  grid-template-columns: 40px 280px;
+  grid-template-columns: 70px 250px;
   grid-template-rows: 60px 80px 60px;
   width: 100%;
   height: 100%;
@@ -324,16 +324,16 @@
 /* BOTTOM ROW EXTRAS */
 .config-btn-wrapper {
   margin-left: auto;
-  opacity: 0;
-  transition: opacity 0.2s;
+  /* opacity: 0;
+  transition: opacity 0.2s; */
 }
-.hoverable-row:hover .config-btn-wrapper {
+/* .hoverable-row:hover .config-btn-wrapper {
   opacity: 1;
-}
+} */
 
-.rent_until-row:hover .config-btn-wrapper {
+/* .rent_until-row:hover .config-btn-wrapper {
   opacity: 1;
-}
+} */
 
 /* RENT UNTIL SELECTOR */
 .rent-until-wrapper {
@@ -559,6 +559,16 @@
   height: 100%;
 }
 
+.night-badge-backing {
+  background: rgb(68, 68, 75);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -569,3 +579,71 @@
     transform: translateY(0);
   }
 }
+
+.overnight-toggle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  position: absolute;
+  left: 50%;
+  transform: translate(calc(-50% - 22px), -50%);
+  z-index: 6;
+  background: transparent;
+  color: rgba(164, 164, 164, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.overnight-toggle:hover {
+  color: #f1c40f;
+}
+
+.overnight-toggle.active {
+  color: #f1c40f;
+  /* border-color: rgba(241, 196, 15, 0.4); */
+}
+
+
+.options-dropdown {
+  min-width: 190px;
+  background: rgba(30, 30, 35, 0.75);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px;
+}
+
+.options-dropdown .manage-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.options-dropdown .manage-item:last-child {
+  margin-bottom: 0;
+}
+
+.options-dropdown .delete-option {
+  color: #ef4444;
+}
+
+.options-dropdown .delete-option:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Status indicators — always visible when the state is true, not hover-based */
+.status-indicators {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-icon.source { color: #3b82f6; }
+/* .status-icon.tour { color: #f1c40f; } */
+.status-icon.excluded { color: rgba(255, 255, 255, 0.4); }

@@ -74,7 +74,7 @@ export class Visit {
       }
       totalNights += v.nights();
       const traverse = v.nextTraverse();
-      totalNights += traverse?.route?.nights() ?? 0;
+      totalNights += (traverse?.is_overnight() ? 1 : 0)
     }
     return null;
   });
@@ -141,18 +141,30 @@ export class Visit {
     }, 0);
   });
 
-  readonly activeRentalSource = computed<Traverse | null>(() => {
+  readonly activeRentalSources = computed<Traverse[]>(() => {
     const plan = this.tripService.plan();
-    if (!plan) return null;
+    if (!plan) return [];
     const itinerary = plan.itinerary();
-    let currentRental: Traverse | null = null;
+    let activeRentals: Traverse[] = [];
+
     for (const visit of itinerary) {
-      if (currentRental?.rent_until() === visit.id) currentRental = null;
-      if (visit.id === this.id) return currentRental;
-      const traverse = visit.nextTraverse()!;
-      if (traverse.rent_until()) currentRental = traverse;
+      // 1. Clear out rentals that end at this visit FIRST,
+      // because arriving at C means the tour is no longer active at C.
+      activeRentals = activeRentals.filter(rental => rental.rent_until() !== visit.id);
+
+      // 2. Check if this is our target visit *before* cleaning up ending rentals
+      if (visit.id === this.id) {
+        return activeRentals;
+      }
+
+      // 3. Add any new rentals starting from this visit's outgoing traverse
+      const traverse = visit.nextTraverse();
+      if (traverse && traverse.rent_until()) {
+        activeRentals = activeRentals.filter(r => r.route.type() !== traverse.route.type());
+        activeRentals.push(traverse);
+      }
     }
-    return null;
+    return [];
   });
 
   readonly cost = computed<CostComparison>(() => {
@@ -160,11 +172,13 @@ export class Visit {
 
     const n = this.nights() || 0;
     const p = this.place;
-    const rental = this.activeRentalSource();
+    const activeRentals = this.activeRentalSources();
     const entry  = this.entryDate();
     const exit   = this.exitDate();
     // If there's an active rental that includes accommodation, we set the "base" accommodation cost to 0.
-    const shouldChargeAcc = !(rental && rental.includes_accommodation());
+    // If any active rental includes accommodation, we waive the base accommodation cost
+    const shouldChargeAcc = !activeRentals.some(rental => rental.includes_accommodation());
+    // const shouldChargeAcc = !(rental && rental.includes_accommodation());
     // console.log(this.place.name(), shouldChargeAcc);
     const est = new CostBreakdown(
       shouldChargeAcc ? n * (p.accommodation_cost() ?? 0) : 0,
@@ -249,13 +263,6 @@ export class Visit {
     const entry = this.entryDate();
     const exit  = this.exitDate();
     if (!entry || !exit) return [];
-    // const routeBookings = Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
-    //   .filter(b => {
-    //     if (b.place_id !== this.place_id || !b.check_in() || !b.check_out() || !b.final_price()) return false;
-    //     const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
-    //     const bOut = new Date(b.check_out()! + 'T00:00:00Z');
-    //     return bIn < exit && bOut > entry;
-    // });
     const placeBookings = Array.from(this.tripService.trip()?.placeBookings().values() ?? [])
       .filter(b => {
         if (b.place_id !== this.place_id || !b.check_in() || !b.check_out()) return false;
@@ -277,10 +284,16 @@ export class Visit {
   readonly bookingStatus = computed(() => {
     if (!this.inItinerary()) return 'not-in-itinerary';
     if (this.nights() === 0) return 'layover';
-    const activeRentalSource = this.activeRentalSource();
-    if (activeRentalSource && activeRentalSource.includes_accommodation()) {
-      return activeRentalSource.bookingStatus();
+    const activeRentals = this.activeRentalSources();
+
+    const housingRentals = activeRentals.filter(rental => rental.includes_accommodation());
+    if (housingRentals.length > 0) {
+      const statuses = housingRentals.map(r => r.bookingStatus());
+      if (statuses.includes('paid')) return 'paid';
+      if (statuses.includes('pending')) return 'pending';
+      return 'unbooked';
     }
+
     if (!this.hasBookings()) return 'unbooked';
     return this.allBookingsPaid() ? 'paid' : 'pending';
   });

@@ -19,13 +19,14 @@
   min-width: 20px;
   display: flex;
   align-items: center;
-  background: rgba(30, 30, 35, 0.7);
+  /* background: rgba(30, 30, 35, 0.7); */
+  background: rgba(77, 77, 85, 0.7);
   /*backdrop-filter: blur(20px) saturate(180%);*/
   /*-webkit-backdrop-filter: blur(20px) saturate(180%);*/
 
   /*background: rgba(45, 45, 50, 0.85);*/
   backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border: 0.5px solid rgba(78, 78, 95, 0.15);
   /*border: 1px solid rgba(255, 255, 255, 0.2);*/
   border-radius: 20px;
   /*padding: 0px 1px;*/

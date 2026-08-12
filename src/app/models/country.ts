@@ -57,7 +57,7 @@ export class Country implements ICountry {
 
       // 1. Handle Transit within the same country visit
       if (nextT && !nextT.route.isCrossCountry()) {
-        const transitNights = nextT.route.nights();
+        const transitNights = (nextT.is_overnight() ? 1 : 0);
         if (transitNights > 0) {
           // Add transit time to current segment
           currentDays += transitNights;
