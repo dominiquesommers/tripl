@@ -37,6 +37,7 @@ export class UiService {
   readonly isSearchExpanded: WritableSignal<boolean> = signal(false);
   readonly isCustomSearchActive: WritableSignal<boolean> = signal(false);
   readonly currentSheetHeight: WritableSignal<number> = signal(0);
+  readonly currentSheetProgress: WritableSignal<number> = signal(0);
 
   // --- Interaction State (Moved from TripService) ---
   selectedVisitId = signal<string | null>(null);

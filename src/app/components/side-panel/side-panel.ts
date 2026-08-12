@@ -213,6 +213,7 @@ export class SidePanel implements AfterViewInit {
     const el = this.sheet?.nativeElement;
     if (el) {
       this.uiService.currentSheetHeight.set(height);
+      this.uiService.currentSheetProgress.set(p);
       el.style.setProperty('--sheet-height', `${height}px`);
       el.style.setProperty('--sheet-inset', `${inset}%`);
       el.style.setProperty('--sheet-bottom', `${bottom}px`);
