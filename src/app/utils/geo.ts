@@ -1,5 +1,33 @@
-
 export type LngLat = [number, number]; // [lng, lat] consistent with Mapbox/Leaflet
+
+/**
+ * Normalizes longitude delta to the range (-180, 180]
+ */
+function normalizeAngle(degrees: number): number {
+  return degrees - 360 * Math.floor((degrees + 180) / 360);
+}
+
+/**
+ * Unwraps an array of coordinates sequentially so longitude jumps across
+ * the anti-meridian (+180/-180) transition continuously.
+ */
+export function unwrapCoordinates(points: LngLat[]): LngLat[] {
+  if (!points || points.length <= 1) return points;
+
+  const unwrapped: LngLat[] = [[...points[0]]];
+
+  for (let i = 1; i < points.length; i++) {
+    const prevLon = unwrapped[i - 1][0];
+    const [currLon, currLat] = points[i];
+
+    // Compute shortest directional step between currLon and prevLon
+    const delta = normalizeAngle(currLon - prevLon);
+
+    unwrapped.push([prevLon + delta, currLat]);
+  }
+
+  return unwrapped;
+}
 
 export function computeRouteSpline(
   controlPoints: LngLat[],
@@ -17,6 +45,9 @@ export function computeRouteSpline(
   if (startDist > 0.05 && startDist < 100) points = [sourceCoords, ...points];
   if (endDist > 0.05 && endDist < 100) points = [...points, targetCoords];
 
+  // UNWRAP points before performing spline calculations
+  points = unwrapCoordinates(points);
+
   if (points.length > 2) {
     const omitFactor: Record<string, number> = { 'boat': 1, 'flying': 1, 'bus': 7, 'train': 10, 'driving': 5 };
     const factor = omitFactor[routeType] || 1;
@@ -28,15 +59,7 @@ export function computeRouteSpline(
     ];
     return interpolateBSpline(filtered, 5);
   } else {
-    // Logic for straight lines or world-wrapping (Date Line logic)
-    const diff = points[0][0] - points[1][0];
-    if (Math.abs(diff) > 180) {
-      // ... (Your date-line splitting logic from the original code)
-      // TODO return splitAtDateLine(points[0], points[1]);
-      return [points[0], points[1]]
-    }
-
-    const bearingMap: Record<string, number> = { 'Schiphol': -40, 'Buenos Aires': -20 };
+    const bearingMap: Record<string, number> = {};
     const bearing = bearingMap[sourceName] ?? 10;
     const pointC = calculatePointC(points[0], points[points.length - 1], bearing);
 
