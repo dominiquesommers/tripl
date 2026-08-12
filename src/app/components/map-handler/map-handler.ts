@@ -224,7 +224,6 @@ export class MapHandler implements OnInit, OnDestroy {
       : zoom > threshold + buffer;
 
     const target: 'globe' | 'mercator' = wantsMercator ? 'mercator' : 'globe';
-    console.log('target', target, this.currentProjection);
     if (target === this.currentProjection) return;
 
     this.currentProjection = target;
