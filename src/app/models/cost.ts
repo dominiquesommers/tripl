@@ -25,6 +25,14 @@ export class CostBreakdown implements ICostBreakdown {
     );
   }
 
+  equals(other: ICostBreakdown): boolean {
+    return Math.abs(this.accommodation - other.accommodation) < Number.EPSILON && 
+           Math.abs(this.transport - other.transport) < Number.EPSILON &&
+           Math.abs(this.food - other.food) < Number.EPSILON &&
+           Math.abs(this.activities - other.activities) < Number.EPSILON &&
+           Math.abs(this.miscellaneous - other.miscellaneous) < Number.EPSILON;
+  }
+
   static empty(): CostBreakdown {
     return new CostBreakdown();
   }
