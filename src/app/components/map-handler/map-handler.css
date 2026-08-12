@@ -161,8 +161,6 @@
 }
 
 .route-type-selector {
-  position: absolute;
-  z-index: 1000;
   display: flex;
   gap: 8px;
   padding: 8px;
@@ -170,11 +168,10 @@
   backdrop-filter: blur(10px);
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  transform: translate(-50%, -120%); /* Sit above the click point */
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-.route-type-selector button {
+/* .route-type-selector button {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -183,10 +180,29 @@
   justify-content: center;
   color: white;
   transition: background 0.2s;
+} */
+
+/* .route-type-selector button:hover {
+  background: rgba(255, 255, 255, 0.1);
+} */
+
+
+.transport-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  /* background color set dynamically */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: transform 0.2s ease;
+  cursor: pointer;
 }
 
-.route-type-selector button:hover {
-  background: rgba(255, 255, 255, 0.1);
+.transport-icon:hover {
+  transform: scale(1.2);
 }
 
 .interaction-overlay {
@@ -202,10 +218,6 @@
 
 .drawing-active .mapboxgl-marker:hover {
   transform: scale(1.2);
-}
-
-.icon-btn {
-  cursor: pointer;
 }
 
 .hint-toast {

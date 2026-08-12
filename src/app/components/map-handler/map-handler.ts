@@ -8,9 +8,12 @@ import {
   signal,
   effect,
   Inject,
+  ViewContainerRef, TemplateRef,
   ChangeDetectorRef, ViewChildren, QueryList, computed, HostListener, untracked, viewChildren, viewChild, Injector
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
+import {Overlay, OverlayRef} from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { PLATFORM_ID, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { LucideAngularModule, Search } from 'lucide-angular';
 import { AuthService } from '../../services/auth';
@@ -28,7 +31,7 @@ import {MapLayerManager} from './utils/layer-factory';
 import {IconLoader} from './utils/icon-loader';
 import {MapInteractionManager} from './utils/interaction-handler';
 
-import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICONS} from './config/map-styles.config';
+import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICON_MAP, ROUTE_COLORS} from './config/map-styles.config';
 import { MapSearch } from '../map-search/map-search';
 import {RoutePopup} from '../route-popup/route-popup';
 import {NotificationService} from '../../services/notification';
@@ -82,18 +85,12 @@ export class MapHandler implements OnInit, OnDestroy {
   private markers: Map<string, Marker> = new Map();
   private markerElementsById: Map<string, HTMLElement> = new Map();
 
-  // TODO move to config.
-  private readonly routeIconMap: Record<string, string> = {
-    'flying': 'plane',
-    'bus': 'bus',
-    'train': 'train-front',
-    'driving': 'car',
-    'boat': 'ship',
-  };
-  readonly availableTypes: RouteType[] = ['flying', 'bus', 'train', 'driving', 'boat'];
+  readonly availableTypes: RouteType[] = Object.keys(ROUTE_ICON_MAP) as RouteType[];
 
-  // hoveredPlace = signal<Place | null>(null);
-  // hoveredRoute = signal<Route | null>(null);
+  private overlay = inject(Overlay);
+  private vcr = inject(ViewContainerRef);
+  private routeSelectorTpl = viewChild<TemplateRef<unknown>>('routeSelectorTpl');
+  private routeSelectorOverlayRef?: OverlayRef;
 
   constructor() {
     effect(() => this.syncUI());
@@ -102,6 +99,40 @@ export class MapHandler implements OnInit, OnDestroy {
     effect(() => this.syncRoutes());
     effect(() => this.syncSelectedVisit());
     effect(() => this.syncDrawer());
+    effect(() => {
+    const visible = this.selectorVisible();
+      const pos = this.selectorPos();
+      if (visible) {
+        this.openRouteSelector(pos);
+      } else {
+        this.routeSelectorOverlayRef?.dispose();
+        this.routeSelectorOverlayRef = undefined;
+      }
+    });
+  }
+
+  private openRouteSelector(point: { x: number; y: number }) {
+    this.routeSelectorOverlayRef?.dispose();
+
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo(point)
+      .withPositions([
+        { originX: 'center', originY: 'top', overlayX: 'center', overlayY: 'bottom', offsetY: -8 },
+        { originX: 'center', originY: 'bottom', overlayX: 'center', overlayY: 'top', offsetY: 8 },
+      ])
+      .withViewportMargin(4)
+      .withPush(true);
+
+    this.routeSelectorOverlayRef = this.overlay.create({
+      positionStrategy,
+      hasBackdrop: true,
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+    });
+
+    this.routeSelectorOverlayRef.backdropClick().subscribe(() => this.interactionManager.cancelDrawing());
+
+    const tpl = this.routeSelectorTpl();
+    if (tpl) this.routeSelectorOverlayRef.attach(new TemplatePortal(tpl, this.vcr));
   }
 
   @HostListener('window:visibilitychange', ['$event'])
@@ -375,8 +406,14 @@ export class MapHandler implements OnInit, OnDestroy {
 
   getRouteIcon(type: string | undefined | null): string {
     if (!type) return 'milestone';
-    return this.routeIconMap[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
   }
+
+  getRouteColor(type: string | undefined | null): string {
+      if (!type) return ROUTE_COLORS.undefined;
+      // @ts-ignore
+      return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+    }
 
   ngOnDestroy() {
     this.interactionManager?.destroy();

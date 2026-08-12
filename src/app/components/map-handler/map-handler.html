@@ -59,15 +59,14 @@
   }
 </div>
 
-
-@if (selectorVisible()) {
-  <div class="route-type-selector"
-       [style.left.px]="selectorPos().x"
-       [style.top.px]="selectorPos().y">
+<ng-template #routeSelectorTpl>
+  <div class="route-type-selector">
     @for (type of availableTypes; track type) {
-      <button class="icon-btn" (click)="$event.stopPropagation(); handleTypeSelection(type)">
-        <lucide-icon [name]="getRouteIcon(type)" [size]="18"></lucide-icon>
+      <button class="transport-icon"
+        [style.background-color]="getRouteColor(type)"
+        (click)="handleTypeSelection(type)">
+        <lucide-icon [name]="getRouteIcon(type)" [size]="16"></lucide-icon>
       </button>
     }
   </div>
-}
+</ng-template>

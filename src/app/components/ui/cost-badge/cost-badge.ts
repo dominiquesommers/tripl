@@ -16,7 +16,7 @@ export class CostBadge extends EditableBadge {
   // ─── Inputs ───────────────────────────────────────────────
   estimatedCost = input.required<number>();
   isPaid        = input.required<boolean>();
-  isOverpaid = input<boolean>(false);
+  isOverpaid    = input<boolean>(false);
   actualCost    = input<number | null>(null);
   hasExpenses   = input<boolean>(false);  // drives the info icon visibility
   actualReadonly = input<boolean>(false);
