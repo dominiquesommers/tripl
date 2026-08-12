@@ -131,20 +131,23 @@ export class Traverse {
     const baseEst = r.estimated_cost() ?? 0;
     const allBookings = this.allOverlappingBookings();
     const directBookings = allBookings.filter(b => b.route_id === this.route_id);
-    if (directBookings.length > 0) {
-      console.log('Multiple bookings found for a single tour/route-segment, not sure how to handle this yet.');
+    if (directBookings.length > 1) {
+      console.warn('Multiple bookings found for a single tour/route-segment, not sure how to handle this yet.');
       // TODO think about blocking this in the UI altogether.
     }
     const actualPrice = (directBookings.length === 1) ? directBookings[0].final_price()! : 0;
+    const projPrice = (directBookings.length === 1) ? directBookings[0].final_price()! : r.estimated_cost() ?? 0;
 
     let est = CostBreakdown.empty();
     let act = CostBreakdown.empty();
+    let proj = CostBreakdown.empty();
 
     // ── 1. Accumulate costs from ALL active rentals ──
     for (const rentalSource of activeRentals) {
       const dailyRate = rentalSource.route.estimated_cost() ?? 0;
       const coveredVisitNights = (rentalSource.id === this.id) ? 1 : (this.source.nights() || 0);
       const total = dailyRate * (coveredVisitNights + nights);
+      let projTotal = total;
 
       const rentalBookings = allBookings.filter(b => b.route_id === rentalSource.route_id);
       let actualTotal = 0;
@@ -154,9 +157,10 @@ export class Traverse {
           const numberOfDays = Math.max(0, Math.floor((new Date(b.arrival_at()!).getTime() - new Date(b.departure_at()!).getTime()) / (1000 * 60 * 60 * 24))) + 1;
           const actualDailyRate = b.final_price()! / numberOfDays;
           actualTotal = actualDailyRate * (coveredVisitNights + nights);
+          projTotal = actualTotal;
         }
-      } else {
-        console.log('Multiple bookings found for a single tour, not sure how to handle this yet.');
+      } else if (rentalBookings.length > 1) {
+        console.warn('Multiple bookings found for a single tour, not sure how to handle this yet.');
         // TODO think about blocking this in the UI altogether.
       }
 
@@ -165,9 +169,12 @@ export class Traverse {
         est.accommodation += total * 0.5;
         act.transport += actualTotal * 0.5;
         act.accommodation += actualTotal * 0.5;
+        proj.transport += projTotal * 0.5;
+        proj.accommodation += projTotal * 0.5;
       } else {
         est.transport += total;
         act.transport += actualTotal;
+        proj.transport += projTotal;
       }
     }
 
@@ -188,9 +195,15 @@ export class Traverse {
       act.food += actualPrice * dist.food;
       act.activities += actualPrice * dist.activities;
       act.miscellaneous += actualPrice * dist.miscellaneous;
+
+      proj.transport += projPrice * dist.transport;
+      proj.accommodation += projPrice * dist.accommodation;
+      proj.food += projPrice * dist.food;
+      proj.activities += projPrice * dist.activities;
+      proj.miscellaneous += projPrice * dist.miscellaneous;
     }
 
-    return new CostComparison(est, act, (directBookings.length === 1 || activeRentals.length > 0) ? act : est);
+    return new CostComparison(est, act, proj);
   });
 
   // Bookings specifically relevant to this leg's active route type (for status, unbooked badges, paid/pending checks)
