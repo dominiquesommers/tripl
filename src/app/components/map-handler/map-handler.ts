@@ -72,6 +72,13 @@ export class MapHandler implements OnInit, OnDestroy {
   isMapVisible = signal(false);
   layersReady = signal(false);
 
+  private static readonly PROGRESS_ALWAYS_GLOBE = 0.2;
+  private static readonly PROGRESS_ALWAYS_MERCATOR = 0.5;
+  private static readonly ZOOM_THRESHOLD_AT_HALF = 1;
+  private static readonly ZOOM_HYSTERESIS = 0.1; // prevents flicker right at the boundary
+  private currentProjection: 'globe' | 'mercator' = 'globe';
+  private projectionFadeTimer?: ReturnType<typeof setTimeout>;
+
   private markers: Map<string, Marker> = new Map();
   private markerElementsById: Map<string, HTMLElement> = new Map();
 
@@ -190,12 +197,59 @@ export class MapHandler implements OnInit, OnDestroy {
     if (!map) return;
 
     if (isMobile) {
-      const bottomPadding = this.uiService.currentSheetHeight();
-      map.jumpTo({ padding: { bottom: bottomPadding } });
+      const zoom = this.zoom();
+      const progress = this.uiService.currentSheetProgress();
+      if (progress <= 0.5) {
+        const bottomPadding = progress < 0.1 ? 0 : this.uiService.currentSheetHeight();
+        map.easeTo({ padding: { bottom: bottomPadding } });
+        this.syncProjection(progress);
+      }
     } else {
       const leftPadding = this.uiService.sidePanelWidth();
       map.easeTo({ padding: { left: leftPadding }, duration: 500 });
     }
+  }
+
+  private syncProjection(progress: number) {
+    const map = this.map();
+    if (!map) return;
+    const zoom = this.zoom();
+    const threshold = this.zoomThresholdForProgress(progress);
+
+    // hysteresis: require crossing threshold by a buffer before flipping,
+    // so we don't rapidly toggle while zoom/progress sit right at the line
+    const buffer = MapHandler.ZOOM_HYSTERESIS;
+    const wantsMercator = this.currentProjection === 'mercator'
+      ? zoom > threshold - buffer
+      : zoom > threshold + buffer;
+
+    const target: 'globe' | 'mercator' = wantsMercator ? 'mercator' : 'globe';
+    console.log('target', target, this.currentProjection);
+    if (target === this.currentProjection) return;
+
+    this.currentProjection = target;
+    this.fadeSwitchProjection(map, target);
+  }
+
+  private zoomThresholdForProgress(progress: number): number {
+    const { PROGRESS_ALWAYS_GLOBE, PROGRESS_ALWAYS_MERCATOR, ZOOM_THRESHOLD_AT_HALF } = MapHandler;
+    if (progress <= PROGRESS_ALWAYS_GLOBE) return Infinity;   // never switch below this
+    if (progress > PROGRESS_ALWAYS_MERCATOR) return -Infinity; // always switch above this
+    return ZOOM_THRESHOLD_AT_HALF;
+  }
+
+  private fadeSwitchProjection(map: mapboxgl.Map, target: 'globe' | 'mercator'): void {
+    const container = map.getContainer();
+    container.style.transition = 'opacity 150ms ease';
+    container.style.opacity = '0';
+
+    clearTimeout(this.projectionFadeTimer);
+    this.projectionFadeTimer = setTimeout(() => {
+      map.setProjection(target);
+      requestAnimationFrame(() => {
+        container.style.opacity = '1';
+      });
+    }, 150);
   }
 
   private syncTheme() {
