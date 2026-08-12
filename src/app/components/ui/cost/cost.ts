@@ -55,7 +55,7 @@ export class Cost {
 
   isOverpaid = computed(() => {
     const total = this.actualTotal();
-    return total != null && this.paidAmount() > total;
+    return total != null && this.paidAmount() > (total + Number.EPSILON);
   });
 
   hasExpenses = computed(() => this.expenses().length > 0);
