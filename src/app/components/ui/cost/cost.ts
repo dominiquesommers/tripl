@@ -55,7 +55,12 @@ export class Cost {
 
   isOverpaid = computed(() => {
     const total = this.actualTotal();
-    return total != null && this.paidAmount() > (total + Number.EPSILON);
+    if (total == null) return false;
+
+    // Round both to 2 decimal places to eliminate floating-point drift
+    const paid = Math.round(this.paidAmount() * 100) / 100;
+    const roundedTotal = Math.round(total * 100) / 100;
+    return paid > roundedTotal;
   });
 
   hasExpenses = computed(() => this.expenses().length > 0);
