@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
 import {OverlayModule, ConnectedPosition} from '@angular/cdk/overlay';
 import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -21,10 +21,18 @@ import {AuthService} from '../../services/auth';
   templateUrl: './visit-popup.html',
   styleUrl: './visit-popup.css',
 })
-export class VisitPopup {
+export class VisitPopup implements AfterViewInit {
   readonly tripService = inject(TripService);
   readonly uiService = inject(UiService);
   authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+
+  ngAfterViewInit() {
+    // Force a tiny layout tick so mobile browsers don't stall on initial paint
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 50);
+  }
 
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);
@@ -136,6 +144,7 @@ export class VisitPopup {
     if (!previousTraverse) {
       const nextWouldBeTraverse = this.visit().ingoingTraverses()[0];
       if (!nextWouldBeTraverse) return null;
+      if (this.visit().inItinerary() && nextWouldBeTraverse.id !== nextWouldBeTraverse.source.nextTraverse()?.id) return null;
       return {traverse: nextWouldBeTraverse, planned: false};
     }
     return {traverse: previousTraverse, planned: true};
