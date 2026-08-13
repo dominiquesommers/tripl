@@ -95,6 +95,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => this.syncUI());
+    effect(() => this.syncProjection());
     effect(() => this.syncTheme());
     effect(() => this.syncMarkers());
     effect(() => this.syncRoutes());
@@ -229,12 +230,10 @@ export class MapHandler implements OnInit, OnDestroy {
     if (!map) return;
 
     if (isMobile) {
-      const zoom = this.zoom();
       const progress = this.uiService.currentSheetProgress();
       if (progress <= 0.5) {
         const bottomPadding = progress < 0.1 ? 0 : this.uiService.currentSheetHeight();
         map.jumpTo({ padding: { bottom: bottomPadding } });
-        // this.syncProjection(progress);
       }
     } else {
       const leftPadding = this.uiService.sidePanelWidth();
@@ -242,10 +241,12 @@ export class MapHandler implements OnInit, OnDestroy {
     }
   }
 
-  private syncProjection(progress: number) {
+  private syncProjection() {
+    const isMobile = this.uiService.isMobile();
     const map = this.map();
-    if (!map) return;
+    if (!map || !isMobile) return;
     const zoom = this.zoom();
+    const progress = this.uiService.currentSheetProgress();
     const threshold = this.zoomThresholdForProgress(progress);
 
     // hysteresis: require crossing threshold by a buffer before flipping,
