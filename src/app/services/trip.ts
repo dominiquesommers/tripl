@@ -457,7 +457,7 @@ export class TripService {
     if (!source || !target) return of(null);
 
     const existingRoute = Array.from(currentTrip.routes().values())
-      .find(r => r.sourceId === sourceId && r.targetId === targetId);
+      .find(r => r.sourceId === sourceId && r.targetId === targetId && r.type() === type);
     if (existingRoute) return of(existingRoute);
 
     const routeString = `[[${source.lat},${source.lng}],[${target.lat},${target.lng}]]`;
