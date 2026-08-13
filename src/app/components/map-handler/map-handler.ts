@@ -234,7 +234,7 @@ export class MapHandler implements OnInit, OnDestroy {
       if (progress <= 0.5) {
         const bottomPadding = progress < 0.1 ? 0 : this.uiService.currentSheetHeight();
         map.jumpTo({ padding: { bottom: bottomPadding } });
-        this.syncProjection(progress);
+        // this.syncProjection(progress);
       }
     } else {
       const leftPadding = this.uiService.sidePanelWidth();
