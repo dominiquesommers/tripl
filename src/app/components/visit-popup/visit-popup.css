@@ -16,7 +16,6 @@
   /* overflow: hidden; */
   position: relative;
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
-  contain: layout paint;
 }
 
 /*.visit-card.managing {*/
@@ -66,18 +65,16 @@
 .spine-line.middle-third { top: 33%; height: 34%; }
 .spine-line.bottom-third { bottom: 0; height: 33%; }
 .spine-line.dashed {
-  /* This creates the "holes" in the line */
-  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 50%);
-  mask-image: linear-gradient(to bottom, black 50%, transparent 50%);
-
-  /* This controls the size of the dash (8px total: 4px dash, 4px gap) */
-  -webkit-mask-size: 100% 8px;
-  mask-size: 100% 8px;
-
-  /* Ensures the dashes don't stretch */
-  mask-repeat: repeat-y;
-  -webkit-mask-repeat: repeat-y;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--dash-color, currentColor) 0px,
+    var(--dash-color, currentColor) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  background-color: transparent !important; /* let the gradient carry the color */
 }
+
 .spine-line.active {
   /* background color is set dynamically via style binding */
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);

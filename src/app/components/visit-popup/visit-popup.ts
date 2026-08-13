@@ -1,8 +1,8 @@
-import {AfterViewInit, ChangeDetectorRef, Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
 import {OverlayModule, ConnectedPosition} from '@angular/cdk/overlay';
 import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Visit } from '../../models/visit';
+import {Visit} from '../../models/visit';
 import {TripService} from '../../services/trip';
 import {Traverse} from '../../models/traverse';
 import {CommonModule} from '@angular/common';
@@ -11,7 +11,6 @@ import {CdkTextareaAutosize} from '@angular/cdk/text-field';
 import {ROUTE_COLORS, ROUTE_ICON_MAP} from '../map-handler/config/map-styles.config';
 import {UiService} from '../../services/ui';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
-import {Place} from '../../models/place';
 import {AuthService} from '../../services/auth';
 
 @Component({
@@ -21,18 +20,10 @@ import {AuthService} from '../../services/auth';
   templateUrl: './visit-popup.html',
   styleUrl: './visit-popup.css',
 })
-export class VisitPopup implements AfterViewInit {
+export class VisitPopup {
   readonly tripService = inject(TripService);
   readonly uiService = inject(UiService);
   authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef);
-
-  ngAfterViewInit() {
-    // Force a tiny layout tick so mobile browsers don't stall on initial paint
-    setTimeout(() => {
-      this.cdr.detectChanges();
-    }, 50);
-  }
 
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);

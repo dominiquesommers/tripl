@@ -16,11 +16,11 @@
               @if (activeRentalStart && activeRentalStart !== leg.traverse.source) {
                 @if (topTraverse) {
                   <div class="spine-line top-third dashed"
-                     [style.background-color]="getRouteColor(topTraverse.route.type())"
+                    [style.--dash-color]="getRouteColor(topTraverse.route.type())"
                      [class.active]="!!leg"></div>
                 }
                 <div class="spine-line middle-third dashed"
-                     [style.background-color]="getRouteColor(activeRental!.route.type())"
+                     [style.--dash-color]="getRouteColor(activeRental!.route.type())"
                      [class.active]="!!leg"></div>
                 <div class="spine-line bottom-third"
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
@@ -28,7 +28,7 @@
               } @else {
                 @if (topTraverse) {
                   <div class="spine-line top-third dashed"
-                     [style.background-color]="getRouteColor(topTraverse.route.type())"
+                     [style.--dash-color]="getRouteColor(topTraverse.route.type())"
                      [class.active]="!!leg"></div>
                 }
                 <div class="spine-line bottom-half"
@@ -60,7 +60,7 @@
               <button class="overnight-toggle"
                       [style.top]="activeRentalStart ? '112%' : '100%'"
                       [class.active]="leg.traverse.is_overnight()"
-                      click)="toggleOvernight($event, leg.traverse)"
+                      (click)="toggleOvernight($event, leg.traverse)"
                       title="Overnight travel">
                 <lucide-icon name="moon" [size]="14"></lucide-icon>
               </button>
@@ -293,22 +293,20 @@
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
                      [class.active]="!!leg"></div>
                 <div class="spine-line middle-third dashed"
-                     [style.background-color]="getRouteColor(activeRental!.route.type())"
+                     [style.--dash-color]="getRouteColor(activeRental!.route.type())"
                      [class.active]="!!leg"></div>
-                <!-- TODO hide this one if the bottom one the itinerary final destination and set the route color correctly if not hidden -->
                 @if (bottomTraverse) {
                   <div class="spine-line bottom-third dashed"
-                     [style.background-color]="getRouteColor(bottomTraverse.route.type())"
+                     [style.--dash-color]="getRouteColor(bottomTraverse.route.type())"
                      [class.active]="!!leg"></div>
                 }
               } @else {
                 <div class="spine-line top-half"
                      [style.background-color]="getRouteColor(leg.traverse.route.type())"
                      [class.active]="!!leg"></div>
-                <!-- TODO hide this one if the bottom one the itinerary final destination and set the route color correctly if not hidden -->
                 @if (bottomTraverse) {
                   <div class="spine-line bottom-half dashed"
-                     [style.background-color]="getRouteColor(bottomTraverse.route.type())"
+                     [style.--dash-color]="getRouteColor(bottomTraverse.route.type())"
                      [class.active]="!!leg"></div>
                 }
               }
