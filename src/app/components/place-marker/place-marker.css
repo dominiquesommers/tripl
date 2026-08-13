@@ -37,7 +37,7 @@
   white-space: nowrap;
   cursor: pointer;
   width: max-content;
-  transition: transform 0.2s, background 0.2s;
+  transition: transform 0.2s, background 0.2s, opacity 120 ease;
   will-change: transform;
   /*transition: all 0.2s ease-in-out;*/
 }
