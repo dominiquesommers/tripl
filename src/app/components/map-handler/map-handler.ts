@@ -78,7 +78,7 @@ export class MapHandler implements OnInit, OnDestroy {
 
   private static readonly PROGRESS_ALWAYS_GLOBE = 0.2;
   private static readonly PROGRESS_ALWAYS_MERCATOR = 0.5;
-  private static readonly ZOOM_THRESHOLD_AT_HALF = 1;
+  private static readonly ZOOM_THRESHOLD_AT_HALF = 1.4;
   private static readonly ZOOM_HYSTERESIS = 0.1; // prevents flicker right at the boundary
   private currentProjection: 'globe' | 'mercator' = 'globe';
   private projectionFadeTimer?: ReturnType<typeof setTimeout>;
@@ -258,7 +258,6 @@ export class MapHandler implements OnInit, OnDestroy {
 
     const target: 'globe' | 'mercator' = wantsMercator ? 'mercator' : 'globe';
     if (target === this.currentProjection) return;
-
     this.currentProjection = target;
     this.fadeSwitchProjection(map, target);
   }
