@@ -62,14 +62,14 @@ export class Visit {
   readonly entryDate = computed(() => {
     const plan = this.tripService.plan();
     if (!plan) return null;
-    const startDate = new Date(plan.start_date()!.split('T')[0] + 'T00:00:00Z');
+    const startDate = new Date(plan.start_date()!.split(/[T ]/)[0] + 'T00:00:00Z');
     if (!startDate) return null;
     const itinerary = plan.itinerary();
     let totalNights = 0;
     for (const v of itinerary) {
       if (v.id === this.id) {
         const entry = new Date(startDate);
-        entry.setDate(entry.getDate() + totalNights);
+        entry.setUTCDate(entry.getUTCDate() + totalNights);
         return entry;
       }
       totalNights += v.nights();
@@ -93,7 +93,7 @@ export class Visit {
     const start = this.entryDate();
     if (!start) return null;
     const end = new Date(start);
-    end.setDate(end.getDate() + this.nights());
+    end.setUTCDate(end.getUTCDate() + this.nights());
     return end;
   });
 
@@ -122,9 +122,9 @@ export class Visit {
     let current = new Date(start);
     const stopDate = new Date(end);
     while (current < stopDate) {
-      const monthIndex = current.getMonth();
+      const monthIndex = current.getUTCMonth();
       results[monthKeys[monthIndex]]++;
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
     return results;
   });
@@ -288,7 +288,7 @@ export class Visit {
 
     const housingRentals = activeRentals.filter(rental => rental.includes_accommodation());
     if (housingRentals.length > 0) {
-      const statuses = housingRentals.map(r => r.bookingStatus());
+      const statuses = housingRentals.map(t => t.bookingStatus());
       if (statuses.includes('paid')) return 'paid';
       if (statuses.includes('pending')) return 'pending';
       return 'unbooked';
@@ -303,7 +303,7 @@ export class Visit {
     const exit  = this.exitDate();
     if (!entry || !exit) return 0;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     if (today <= entry) return 0;               // visit hasn't started
     if (today >= exit)  return this.nights();   // visit fully passed
     return this.daysBetween(entry, today);      // partially elapsed
@@ -340,10 +340,10 @@ export class Visit {
   }
 
   private formatDate(date: Date): string {
-    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-    const dd  = String(date.getDate()).padStart(2, '0');
-    const mm  = String(date.getMonth() + 1).padStart(2, '0');
-    const yy  = String(date.getFullYear()).slice(2);
+    const day = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+    const dd  = String(date.getUTCDate()).padStart(2, '0');
+    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getUTCFullYear()).slice(2);
     return `${day} ${dd}-${mm}-'${yy}`;
   }
 

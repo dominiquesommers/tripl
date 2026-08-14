@@ -80,7 +80,7 @@ export class RouteBookings {
 
   private toISODateTimeAtMidnight(d: Date): string {
     const midnight = new Date(d);
-    midnight.setHours(0, 0, 0, 0);
+    midnight.setUTCHours(0, 0, 0, 0);
     return midnight.toISOString();
   }
 
@@ -236,24 +236,19 @@ export class RouteBookings {
   }
 
   toISODate(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
 
   toISODatetime(date: Date): string {
-    const y  = date.getFullYear();
-    const mo = String(date.getMonth() + 1).padStart(2, '0');
-    const d  = String(date.getDate()).padStart(2, '0');
-    const h  = String(date.getHours()).padStart(2, '0');
-    const mi = String(date.getMinutes()).padStart(2, '0');
-    return `${y}-${mo}-${d}T${h}:${mi}`;
+    return date.toISOString();
   }
 
   formatDate(iso: string | null): string {
     if (!iso) return '';
     const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   }
 }

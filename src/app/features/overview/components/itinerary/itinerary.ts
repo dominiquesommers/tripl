@@ -41,7 +41,8 @@ export class Itinerary implements AfterViewInit {
   private scrollToCurrentVisit() {
     const itinerary = this.tripService.plan()?.itinerary() ?? [];
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
+    console.log('today', today);
 
     // Find index of current or next upcoming visit
     let targetIndex = itinerary.findIndex(v => {
@@ -120,9 +121,9 @@ export class Itinerary implements AfterViewInit {
   }
 
   toISODate(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
 

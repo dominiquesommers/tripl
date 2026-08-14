@@ -61,13 +61,6 @@
               </app-editable-badge>
             }
 
-            <app-editable-badge
-              [value]="route().nights()"
-              [readonly]="authService.isPublicMode()"
-              iconName="moon"
-              iconColor="#f1c40f"
-              (save)="updateRoute(route(), {nights: $event})">
-            </app-editable-badge>
           </div>
 
           <div class="spine-cell">

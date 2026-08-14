@@ -108,7 +108,6 @@ export class UiService {
       const queryParams: any = { tab: this.activeTab() };
       if (this.selectedVisitId()) queryParams.visitId = this.selectedVisitId();
       if (this.selectedRouteId()) queryParams.routeId = this.selectedRouteId();
-      console.log('navigate to', queryParams)
 
       // untracked(() => {
       //   this.router.navigate([], {
@@ -129,27 +128,23 @@ export class UiService {
   }
 
   selectRoute(id: string | null, coords?: LngLatLike) {
-    console.log('select route', id)
     if (!id) return this.clearSelection();
     this.selectedVisitId.set(null);
     this.selectedRouteId.set(id);
     const selectedRoute = this.selectedRoute();
     if (selectedRoute) {
-      console.log('fast enoguh')
       selectedRoute.popupCoords = coords ?? selectedRoute.middlePoint();
     } else {
-      console.log('not fast enoguh')
+      console.warn('not fast enough')
     }
     this.activeTab.set(this.authService.isPublicMode() ? 'notes' : 'bookings');
   }
 
   clearSelection(event?: Event) {
     if (event) event.stopPropagation();
-    console.log('clear selection');
     this.selectedVisitId.set(null);
     this.selectedRouteId.set(null);
     this.activeTab.set('itinerary');
-    console.log(this.selectedVisitId());
   }
 
   triggerFlyTo(data: FlyToRequest) {
@@ -159,9 +154,7 @@ export class UiService {
   toggleSidebar() {
     const newState = !this.isSidebarOpen();
     this.isSidebarOpen.set(newState);
-    console.log('toggleSidebar');
     if (newState && this.isMobile()) {
-      console.log('this.isSearchExpanded.set(false);');
       this.isSearchExpanded.set(false);
     }
   }

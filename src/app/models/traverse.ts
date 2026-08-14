@@ -99,7 +99,6 @@ export class Traverse {
     const date = this.entryDate();
     if (!date) return '';
     return this.formatDate(date);
-    // return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
   readonly exitDate = computed((): Date | null => {
@@ -111,14 +110,13 @@ export class Traverse {
     const date = this.exitDate();
     if (!date) return '';
     return this.formatDate(date);
-    // return date ? date.toLocaleDateString('nl-NL') : '';
   });
 
   private formatDate(date: Date): string {
-    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-    const dd  = String(date.getDate()).padStart(2, '0');
-    const mm  = String(date.getMonth() + 1).padStart(2, '0');
-    const yy  = String(date.getFullYear()).slice(2);
+    const day = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+    const dd  = String(date.getUTCDate()).padStart(2, '0');
+    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getUTCFullYear()).slice(2);
     return `${day} ${dd}-${mm}-'${yy}`;
   }
 
@@ -219,9 +217,9 @@ export class Traverse {
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
           if (b.route_id !== targetRouteId || !b.departure_at() || !b.arrival_at()) return false;
-          const dep_date = new Date(b.departure_at()!.split(' ')[0] + 'T00:00:00Z');
-          const arr_date = new Date(b.arrival_at()!.split(' ')[0] + 'T00:00:00Z');
-          return dep_date <= exit && arr_date >= entry;
+          const dep_date = new Date(b.departure_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
+          const arr_date = new Date(b.arrival_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
+          return b.final_price() != null && dep_date <= exit && arr_date >= entry;
         });
   });
 
@@ -241,8 +239,8 @@ export class Traverse {
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
           if (!relevantRouteIds.has(b.route_id) || !b.departure_at() || !b.arrival_at()) return false;
-          const dep_date = new Date(b.departure_at()!.split(' ')[0] + 'T00:00:00Z');
-          const arr_date = new Date(b.arrival_at()!.split(' ')[0] + 'T00:00:00Z');
+          const dep_date = new Date(b.departure_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
+          const arr_date = new Date(b.arrival_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
           return dep_date <= exit && arr_date >= entry;
         });
   });

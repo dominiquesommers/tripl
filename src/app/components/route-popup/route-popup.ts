@@ -7,6 +7,8 @@ import {TripService} from '../../services/trip';
 import {AuthService} from '../../services/auth';
 import {UiService} from '../../services/ui';
 import {Place} from '../../models/place';
+import { ROUTE_ICON_MAP } from '../map-handler/config/map-styles.config';
+
 
 @Component({
   selector: 'app-route-popup',
@@ -21,15 +23,6 @@ export class RoutePopup {
   authService = inject(AuthService);
 
   route = input.required<Route>();
-
-  // TODO move to config.
-  private readonly routeIconMap: Record<string, string> = {
-    'flying': 'plane',
-    'bus': 'bus',
-    'train': 'train-front',
-    'driving': 'car',
-    'boat': 'ship',
-  };
 
   distance = computed(() => {
     return Math.ceil(this.route().distance());
@@ -56,7 +49,6 @@ export class RoutePopup {
       return entry === exit ? entry : `${entry}-${exit}`;
     });
     const s = parts.length > 0 ? `(${parts.join(', ')})` : '';
-    console.log(s);
     return s;
   });
 
@@ -104,7 +96,7 @@ export class RoutePopup {
 
   getRouteIcon(type: string | undefined | null): string {
     if (!type) return 'milestone';
-    return this.routeIconMap[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
   }
 
   getRouteColor(type: string | undefined | null): string {

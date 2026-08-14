@@ -1,7 +1,6 @@
 <div class="date-picker-wrapper" #triggerEl [class.disabled]="disabled()">
 
   <div class="date-btn" (click)="open()" [class.disabled]="disabled()">
-<!--    <lucide-icon name="calendar" [size]="13" class="cal-icon"></lucide-icon>-->
     @if (!hasValue()) {
       <lucide-icon name="calendar" [size]="13" class="cal-icon"></lucide-icon>
     }
@@ -16,20 +15,20 @@
           <span class="date-text">{{ formatDate(departure()!) }}</span>
 
           <div class="time-editor" (click)="$event.stopPropagation()">
-            <input type="text" maxlength="2" [value]="formatPart(departure()?.getHours())"
+            <input type="text" maxlength="2" [value]="formatPart(departure()?.getUTCHours())"
                    (blur)="updateTimePart($event, 'h', $any($event.target).value, 'departure')">
             <span>:</span>
-            <input type="text" maxlength="2" [value]="formatPart(departure()?.getMinutes())"
+            <input type="text" maxlength="2" [value]="formatPart(departure()?.getUTCMinutes())"
                    (blur)="updateTimePart($event, 'm', $any($event.target).value, 'departure')">
           </div>
 
           <span class="arrow">-</span>
 
           <div class="time-editor" (click)="$event.stopPropagation()">
-            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getHours())"
+            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getUTCHours())"
                    (blur)="updateTimePart($event, 'h', $any($event.target).value, 'arrival')">
             <span>:</span>
-            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getMinutes())"
+            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getUTCMinutes())"
                    (blur)="updateTimePart($event, 'm', $any($event.target).value, 'arrival')">
           </div>
         }
@@ -38,10 +37,10 @@
           <span class="date-text">{{ formatDate(departure()!) }}</span>
 
           <div class="time-editor" (click)="$event.stopPropagation()">
-            <input type="text" maxlength="2" [value]="formatPart(departure()?.getHours())"
+            <input type="text" maxlength="2" [value]="formatPart(departure()?.getUTCHours())"
                    (blur)="updateTimePart($event, 'h', $any($event.target).value, 'departure')">
             <span>:</span>
-            <input type="text" maxlength="2" [value]="formatPart(departure()?.getMinutes())"
+            <input type="text" maxlength="2" [value]="formatPart(departure()?.getUTCMinutes())"
                    (blur)="updateTimePart($event, 'm', $any($event.target).value, 'departure')">
           </div>
 
@@ -50,10 +49,10 @@
           <span class="date-text">{{ formatDate(arrival()!) }}</span>
 
           <div class="time-editor" (click)="$event.stopPropagation()">
-            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getHours())"
+            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getUTCHours())"
                    (blur)="updateTimePart($event, 'h', $any($event.target).value, 'arrival')">
             <span>:</span>
-            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getMinutes())"
+            <input type="text" maxlength="2" [value]="formatPart(arrival()?.getUTCMinutes())"
                    (blur)="updateTimePart($event, 'm', $any($event.target).value, 'arrival')">
           </div>
         }
@@ -62,10 +61,10 @@
   </div>
 
   <div class="hidden-inputs-container" aria-hidden="true">
-    <input [matDatepicker]="singlePicker" [value]="value()" (dateChange)="onSingleChange($event.value)" class="hidden-input-bridge" />
+    <input [matDatepicker]="singlePicker" [value]="displayValue()" (dateChange)="onSingleChange($event.value)" class="hidden-input-bridge" />
     <mat-date-range-input [rangePicker]="rangePicker" class="hidden-input-bridge">
-      <input matStartDate [value]="mode() === 'date-range' ? start() : departure()" (dateChange)="onRangeStartChange($event.value)" />
-      <input matEndDate [value]="mode() === 'date-range' ? end() : arrival()" (dateChange)="onRangeEndChange($event.value)" />
+      <input matStartDate [value]="displayStart()" (dateChange)="onRangeStartChange($event.value)" />
+      <input matEndDate [value]="displayEnd()" (dateChange)="onRangeEndChange($event.value)" />
     </mat-date-range-input>
   </div>
 

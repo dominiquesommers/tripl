@@ -100,10 +100,10 @@ export class Expenses {
   // Format: Mon 03-04-'26
   formatDate(isoDate: string): string {
     const d = new Date(isoDate + 'T00:00:00Z');
-    const day  = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const dd   = String(d.getDate()).padStart(2, '0');
-    const mm   = String(d.getMonth() + 1).padStart(2, '0');
-    const yy   = String(d.getFullYear()).slice(2);
+    const day  = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+    const dd   = String(d.getUTCDate()).padStart(2, '0');
+    const mm   = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const yy   = String(d.getUTCFullYear()).slice(2);
     return `${day} ${dd}-${mm}-'${yy}`;
   }
 
@@ -112,9 +112,9 @@ export class Expenses {
   }
 
   toISODate(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
 }

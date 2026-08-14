@@ -127,10 +127,10 @@ export class Country {
   }
 
   formatVisitDate(date: Date): string {
-    const day = date.toLocaleDateString('nl-NL', { weekday: 'short' });
-    const dd  = String(date.getDate()).padStart(2, '0');
-    const mm  = String(date.getMonth() + 1).padStart(2, '0');
-    const yy  = String(date.getFullYear()).slice(2);
+    const day = date.toLocaleDateString('nl-NL', { weekday: 'short', timeZone: 'UTC' });
+    const dd  = String(date.getUTCDate()).padStart(2, '0');
+    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getUTCFullYear()).slice(2);
 
     // Example output: "ma 13-04-'26"
     return `${day} ${dd}-${mm}-'${yy}`;

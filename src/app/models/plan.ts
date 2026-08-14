@@ -52,7 +52,7 @@ export class Plan {
 
   readonly startDateString = computed(() => {
     if (!this.start_date()) return '';
-    return new Date(this.start_date()!.split(' ')[0] + 'T00:00:00Z').toLocaleDateString('nl-NL');
+    return new Date(this.start_date()!.split(/[T ]/)[0] + 'T00:00:00Z').toLocaleDateString('nl-NL', { weekday: 'short', timeZone: 'UTC' });
   });
 
   readonly itinerary = computed(() => {
@@ -179,7 +179,7 @@ export class Plan {
       id: this.id,
       trip_id: this.trip_id,
       name: this.name(),
-      start_date: this.start_date()?.split('T')[0],
+      start_date: this.start_date()?.split(/[T ]/)[0],
       note: this.note(),
       priority: this.priority(),
       source_visit_id: this.source_visit_id(),

@@ -29,7 +29,7 @@ export class WarningsService {
     if (!trip) return [];
 
     const today     = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     const warnings: Warning[] = [];
 
     const placeBookings = Array.from(trip.placeBookings().values());
@@ -198,13 +198,13 @@ export class WarningsService {
 
   private formatDate(iso: string): string {
     const d = new Date(iso + 'T00:00:00Z');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   }
 
   private toISODate(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
 }

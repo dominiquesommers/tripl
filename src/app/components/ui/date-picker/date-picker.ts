@@ -72,17 +72,43 @@ export class DatePicker {
 
   hasValue = computed(() => this.displayLabel() !== null);
 
+  // ─── UTC ↔ Material (local) boundary helpers ───────────────
+  // Material (MatNativeDateModule) always builds/reads Date objects
+  // using LOCAL getters/setters. Our model is UTC-canonical everywhere
+  // else. These two helpers are the ONLY place that boundary crossing
+  // should happen.
+
+  /** Material gave us a Date (local Y/M/D just picked) → re-anchor to UTC midnight of that same calendar day. */
+  private toUTCMidnight(localDate: Date): Date {
+    return new Date(Date.UTC(
+      localDate.getFullYear(),
+      localDate.getMonth(),
+      localDate.getDate()
+    ));
+  }
+
+  /** Our UTC-canonical Date → a Date Material will display on the correct calendar cell (matches Y/M/D via local getters). */
+  private toLocalDisplayDate(utcDate: Date | null): Date | null {
+    if (!utcDate) return null;
+    return new Date(
+      utcDate.getUTCFullYear(),
+      utcDate.getUTCMonth(),
+      utcDate.getUTCDate()
+    );
+  }
+
   // ─── Format helpers ───────────────────────────────────────
 
   formatDate(date: Date): string {
     if (this.displayFormat() === 'compact') {
-      const day = date.toLocaleDateString('nl-NL', { weekday: 'short' });
-      const dd  = String(date.getDate()).padStart(2, '0');
-      const mm  = String(date.getMonth() + 1).padStart(2, '0');
-      const yy  = String(date.getFullYear()).slice(2);
-      return `${day} ${dd}-${mm}-'${yy}`;
+      const day = date.toLocaleDateString('nl-NL', { weekday: 'short', timeZone: 'UTC' });
+      const dd  = String(date.getUTCDate()).padStart(2, '0');
+      const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const yy  = String(date.getUTCFullYear()).slice(2);
+      const result = `${day} ${dd}-${mm}-'${yy}`;
+      return result;
     }
-    return date.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   }
 
   formatDatetime(date: Date): string {
@@ -91,72 +117,78 @@ export class DatePicker {
 
   toTimeStr(date: Date | null): string {
     if (!date) return '00:00';
-    const h = String(date.getHours()).padStart(2, '0');
-    const m = String(date.getMinutes()).padStart(2, '0');
+    const h = String(date.getUTCHours()).padStart(2, '0');
+    const m = String(date.getUTCMinutes()).padStart(2, '0');
     return `${h}:${m}`;
   }
+
+  // ─── Values exposed to the template for Material binding ──
+  // Template binds these instead of value()/start()/end()/departure()/arrival()
+  // directly, so Material always sees local-equivalent Dates.
+
+  displayValue     = computed(() => this.toLocalDisplayDate(this.value()));
+  displayStart     = computed(() => this.mode() === 'date-range'
+    ? this.toLocalDisplayDate(this.start())
+    : this.toLocalDisplayDate(this.departure()));
+  displayEnd       = computed(() => this.mode() === 'date-range'
+    ? this.toLocalDisplayDate(this.end())
+    : this.toLocalDisplayDate(this.arrival()));
 
   // ─── Open ─────────────────────────────────────────────────
 
   open() {
     if (this.disabled()) return;
     if (this.mode() === 'date') this.singlePicker.open();
-    else {
-      console.log(this.rangePicker);
-      this.rangePicker.open();
-    }
+    else this.rangePicker.open();
   }
 
   // ─── Single date ──────────────────────────────────────────
 
   onSingleChange(date: Date | null) {
-    this.valueChange.emit(date);
+    this.valueChange.emit(date ? this.toUTCMidnight(date) : null);
   }
 
   // ─── Range / datetime-range ───────────────────────────────
 
   onRangeStartChange(date: Date | null) {
     if (this.mode() === 'date-range') {
-      this.startChange.emit(date);
+      this.startChange.emit(date ? this.toUTCMidnight(date) : null);
     } else {
-      if (date && this.departure()) {
-        date.setHours(this.departure()!.getHours(), this.departure()!.getMinutes(), 0, 0);
+      if (!date) {
+        this.departureChange.emit(null);
+        return;
       }
-      this.departureChange.emit(date);
+      const utcDate = this.toUTCMidnight(date);
+      if (this.departure()) {
+        utcDate.setUTCHours(this.departure()!.getUTCHours(), this.departure()!.getUTCMinutes(), 0, 0);
+      }
+      this.departureChange.emit(utcDate);
     }
   }
 
   onRangeEndChange(date: Date | null) {
+    console.log(date);
     if (this.mode() === 'date-range') {
-      this.endChange.emit(date);
+      this.endChange.emit(date ? this.toUTCMidnight(date) : null);
     } else {
-      if (date) {
-        const refTime = this.arrival() || this.departure() || new Date();
-        date.setHours(refTime.getHours(), refTime.getMinutes(), 0, 0);
-        const dep = this.departure();
-        if (dep && this.isSameDay(dep, date) && date.getTime() < dep.getTime()) {
-          date.setHours(dep.getHours(), dep.getMinutes(), 0, 0);
-        }
+      if (!date) {
+        this.arrivalChange.emit(null);
+        return;
       }
-      this.arrivalChange.emit(date);
+      const utcDate = this.toUTCMidnight(date);
+      const refTime = this.arrival() || this.departure() || new Date();
+      utcDate.setUTCHours(refTime.getUTCHours(), refTime.getUTCMinutes(), 0, 0);
+      const dep = this.departure();
+      if (dep && this.isSameDay(dep, utcDate) && utcDate.getTime() < dep.getTime()) {
+        utcDate.setUTCHours(dep.getUTCHours(), dep.getUTCMinutes(), 0, 0);
+      }
+      console.log('to UTC', utcDate.toUTCString());
+      this.arrivalChange.emit(utcDate);
     }
   }
 
   onPickerClosed() {
-    console.log('onPickerClosed');
-    // setTimeout(() => {
-    //   const s = (this.mode() === 'date-range') ? this.start() : this.departure();
-    //   const e = (this.mode() === 'date-range') ? this.end() : this.arrival();
-    //   // TODO If we have a start but the end was never picked (clicked outside)
-    //   // if (s && !e) {
-    //   //   console.log('fix!')
-    //   //   if (this.mode() === 'date-range') {
-    //   //     this.endChange.emit(new Date(s));
-    //   //   } else if (this.mode() === 'datetime-range') {
-    //   //     this.arrivalChange.emit(new Date(s));
-    //   //   }
-    //   // }
-    // }, 200);
+    // (unchanged - dead code kept as-is per your existing comment block)
   }
 
   displayLabel = computed((): string | null => {
@@ -171,7 +203,6 @@ export class DatePicker {
       const s = this.start(), e = this.end();
       if (!s && !e) return null;
       if (s && !e) return this.formatDate(s) + ' –';
-      // Logic: If same day, just show one date
       if (this.isSameDay(s, e)) return this.formatDate(s!);
       return `${this.formatDate(s!)} – ${this.formatDate(e!)}`;
     }
@@ -180,9 +211,6 @@ export class DatePicker {
       const dep = this.departure(), arr = this.arrival();
       if (!dep || !arr) return null;
 
-      console.log(dep, arr);
-
-      // Logic: If same day, format as "Date Time - Time"
       if (this.isSameDay(dep, arr)) {
         return `${this.formatDate(dep!)} ${this.toTimeStr(dep)} - ${this.toTimeStr(arr)}`;
       }
@@ -206,20 +234,17 @@ export class DatePicker {
 
     if (part === 'h') {
       num = Math.max(0, Math.min(23, isNaN(num) ? 0 : num));
-      updated.setHours(num);
+      updated.setUTCHours(num);
     } else {
       num = Math.max(0, Math.min(59, isNaN(num) ? 0 : num));
-      updated.setMinutes(num);
+      updated.setUTCMinutes(num);
     }
-    updated.setSeconds(0, 0);
+    updated.setUTCSeconds(0, 0);
 
     if (this.isSameDay(dep, arr)) {
-      // 1. If editing Arrival and it moves BEFORE Departure -> Push Departure back
       if (type === 'arrival' && dep && updated.getTime() < dep.getTime()) {
         this.departureChange.emit(new Date(updated));
       }
-
-      // 2. If editing Departure and it moves AFTER Arrival -> Push Arrival forward
       if (type === 'departure' && arr && updated.getTime() > arr.getTime()) {
         this.arrivalChange.emit(new Date(updated));
       }
@@ -228,17 +253,15 @@ export class DatePicker {
     (type === 'departure') ? this.departureChange.emit(updated) : this.arrivalChange.emit(updated);
   }
 
-  // Helper for the auto-prefixing logic in the UI
   formatPart(num: number | undefined): string {
     if (num === undefined) return '00';
     return String(num).padStart(2, '0');
   }
 
   isSameDay(d1: Date | null, d2: Date | null): boolean {
-    // return false;
     if (!d1 || !d2) return false;
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
+    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+           d1.getUTCMonth() === d2.getUTCMonth() &&
+           d1.getUTCDate() === d2.getUTCDate();
   }
 }

@@ -58,7 +58,7 @@ export class Seasonality {
 
     // Total days in this specific month (handling leap years via the segments)
     const sampleDate = row.segments[0].start;
-    const daysInCalendarMonth = new Date(sampleDate.getFullYear(), monthIndex + 1, 0).getDate();
+    const daysInCalendarMonth = new Date(sampleDate.getUTCFullYear(), monthIndex + 1, 0).getUTCDate();
 
     // If the user spends the whole month there
     if (daysInMonth >= daysInCalendarMonth) return activeColor;
@@ -68,16 +68,16 @@ export class Seasonality {
     let endPercent = 100;
 
     // Find the segment that touches this month
-    const firstSegment = row.segments.find((s: any) => s.start.getMonth() === monthIndex);
-    const lastSegment = [...row.segments].reverse().find((s: any) => s.end.getMonth() === monthIndex);
+    const firstSegment = row.segments.find((s: any) => s.start.getUTCMonth() === monthIndex);
+    const lastSegment = [...row.segments].reverse().find((s: any) => s.end.getUTCMonth() === monthIndex);
 
     if (firstSegment) {
       // e.g., starts on the 10th: (10-1)/31
-      startPercent = ((firstSegment.start.getDate() - 1) / daysInCalendarMonth) * 100;
+      startPercent = ((firstSegment.start.getUTCDate() - 1) / daysInCalendarMonth) * 100;
     }
     if (lastSegment) {
       // e.g., ends on the 20th: 20/31
-      endPercent = (lastSegment.end.getDate() / daysInCalendarMonth) * 100;
+      endPercent = (lastSegment.end.getUTCDate() / daysInCalendarMonth) * 100;
     }
 
     return `linear-gradient(to right, ${baseColor} ${startPercent}%, ${activeColor} ${startPercent}%, ${activeColor} ${endPercent}%, ${baseColor} ${endPercent}%)`;
