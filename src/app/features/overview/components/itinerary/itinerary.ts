@@ -42,7 +42,6 @@ export class Itinerary implements AfterViewInit {
     const itinerary = this.tripService.plan()?.itinerary() ?? [];
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    console.log('today', today);
 
     // Find index of current or next upcoming visit
     let targetIndex = itinerary.findIndex(v => {

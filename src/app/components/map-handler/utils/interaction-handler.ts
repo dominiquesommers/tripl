@@ -373,7 +373,6 @@ export class MapInteractionManager {
       const route = this.tripService.trip()?.routes()?.get(routeId);
       if (!this.uiService.drawingState().active) {
         this.uiService.selectRoute(route?.id ?? null, e.lngLat);
-        console.log(this.uiService.selectedRoute());
       } else if (route) {
         const targetPlace = route?.target;
         if (targetPlace && (this.uiService.drawingState().sourceVisit?.place === route?.source)) {
