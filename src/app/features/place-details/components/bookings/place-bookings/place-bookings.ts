@@ -25,7 +25,6 @@ import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-text
   styleUrls: ['./place-bookings.css'],
 })
 export class PlaceBookings {
-
   tripService = inject(TripService);
   popupSvc    = inject(PopupService);
   place       = input.required<Place>();
@@ -60,7 +59,7 @@ export class PlaceBookings {
   // ── Add booking immediately ───────────────────────────────
   addBooking() {
     const targetVisit = [...this.place().visits()]
-      .filter(v => v.inItinerary())
+      .filter(v => v.inItinerary() && v.nights() > 0)
       .sort((a, b) => a.entryDate()!.getTime() - b.entryDate()!.getTime())
       .find(v => !v.hasBookings());
 

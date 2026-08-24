@@ -29,6 +29,10 @@ export function unwrapCoordinates(points: LngLat[]): LngLat[] {
   return unwrapped;
 }
 
+export function distSq(a: [number, number], b: [number, number]): number {
+  return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+}
+
 export function computeRouteSpline(
   controlPoints: LngLat[],
   sourceCoords: LngLat,
@@ -48,8 +52,16 @@ export function computeRouteSpline(
   // UNWRAP points before performing spline calculations
   points = unwrapCoordinates(points);
 
+  const omitFactor: Record<string, number> = {
+    boat: 1, flying: 1,          // sparse already, or hand-drawn — keep every point
+    bus: 7, train: 10,
+    driving: 5,
+    walking: 8,                  // dense turn-by-turn on foot paths
+    cycling: 6,                  // denser than driving, less than walking
+    taxi: 5,                     // same profile as driving under the hood
+  };
+
   if (points.length > 2) {
-    const omitFactor: Record<string, number> = { 'boat': 1, 'flying': 1, 'bus': 7, 'train': 10, 'driving': 5 };
     const factor = omitFactor[routeType] || 1;
 
     const filtered = [

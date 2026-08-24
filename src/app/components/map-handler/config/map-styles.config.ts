@@ -1,4 +1,5 @@
 import type {ExpressionSpecification, StyleSpecification} from 'mapbox-gl';
+import {RouteType} from '../../../models/route';
 
 export const INITIAL_CENTER: [number, number] = [2.35, 48.85];
 export const INITIAL_ZOOM = 3.2;
@@ -61,6 +62,7 @@ export const ROUTE_COLOR_EXPRESSION: ExpressionSpecification = [
   ROUTE_COLORS.undefined
 ];
 
+export const LAND_MODES: RouteType[] = ['driving', 'train', 'bus', 'walking', 'cycling', 'taxi'];
 
 export const OFFLINE_BASE_STYLE: StyleSpecification = {
   version: 8,

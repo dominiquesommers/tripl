@@ -1,11 +1,12 @@
-import {computed, Signal, signal} from '@angular/core';
+import {computed, Signal, signal, WritableSignal} from '@angular/core';
 import { Place } from './place';
 import { Traverse } from './traverse';
 import {TripService} from '../services/trip';
 import {Country} from './country';
-import { computeRouteSpline, LngLat } from '../utils/geo';
+import { computeRouteSpline, distSq, LngLat } from '../utils/geo';
 import {CostBreakdown, CostComparison} from './cost';
 import {LngLatLike} from 'mapbox-gl';
+import { LAND_MODES } from '../components/map-handler/config/map-styles.config';
 
 export type RouteType = 'flying' | 'driving' | 'bus' | 'train' | 'boat' | 'walking' | 'cycling' | 'taxi' | undefined;
 
@@ -61,12 +62,38 @@ export class Route {
     ];
   });
 
+  readonly path = computed((): LngLat[] => {
+    const source = this.source;
+    const target = this.target;
+    if (!source || !target) return this.lineCoordinates() as LngLat[];
+
+    let points: LngLat[];
+    try {
+      const parsed = JSON.parse(this.route());
+      points = Array.isArray(parsed) && parsed.length >= 2 ? parsed : this.lineCoordinates();
+    } catch {
+      points = this.lineCoordinates() as LngLat[];
+    }
+
+    const first = points[0];
+    const last = points[points.length - 1];
+    const sourcePoint: [number, number] = [source.lng, source.lat];
+    const targetPoint: [number, number] = [target.lng, target.lat];
+
+    // Pragmatic fix: some rows were saved as [lat,lng] instead of [lng,lat].
+    // Pick whichever orientation puts the endpoints closer to the known
+    // source/target coords, and swap the whole path if it's the reversed one.
+    const asIsError = distSq(first, sourcePoint) + distSq(last, targetPoint);
+    const swappedError = distSq([first[1], first[0]], sourcePoint) + distSq([last[1], last[0]], targetPoint);
+
+    return swappedError < asIsError ? points.map(([a, b]): [number, number] => [b, a]) : points;
+  });
+
   readonly routeSpline = computed((): LngLat[][] => {
     const source = this.source;
     const target = this.target;
-    // TODO const points = this.rawPath();
     if (!source || !target) return [[]];
-    return [computeRouteSpline([[source.lng, source.lat], [target.lng, target.lat]],
+    return [computeRouteSpline(this.path(),
       [source.lng, source.lat], [target.lng, target.lat], this.source?.name() ?? '', this.type() ?? ''
     )];
   });

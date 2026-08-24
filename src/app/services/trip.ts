@@ -15,7 +15,7 @@ import {IVisit, NewVisit, UpdateVisit, Visit} from '../models/visit';
 import { AuthService } from './auth';
 import {ITraverse, NewTraverse, Traverse, UpdateTraverse} from '../models/traverse';
 import {IRoute, NewRoute, Route, RouteType, UpdateRoute} from '../models/route';
-import {ROUTE_ICONS} from '../components/map-handler/config/map-styles.config';
+import {ROUTE_ICONS, LAND_MODES} from '../components/map-handler/config/map-styles.config';
 import {environment} from '../../environments/environment';
 import {MockService} from './mock';
 import {RoutingService} from './routing';
@@ -448,6 +448,9 @@ export class TripService {
   }
 
   // ── ROUTES ────────────────────────────────────────────────────────────────
+  private straightLineRoute(source: { lat: number; lng: number }, target: { lat: number; lng: number }): string {
+    return JSON.stringify([[source.lng, source.lat], [target.lng, target.lat]]);
+  }
 
   addRoute(sourceId: string, targetId: string, type: RouteType): Observable<Route | null> {
     const currentTrip = this.trip();
@@ -460,23 +463,36 @@ export class TripService {
       .find(r => r.sourceId === sourceId && r.targetId === targetId && r.type() === type);
     if (existingRoute) return of(existingRoute);
 
-    const routeString = `[[${source.lat},${source.lng}],[${target.lat},${target.lng}]]`;
-    const newRouteData: any = {
-      source: sourceId,
-      destination: targetId,
-      trip_id: currentTrip.id,
-      type,
-      distance: 0, duration: 0, estimated_cost: 0, nights: 0,
-      route: routeString, actual_cost: 0, paid: false
-    };
+    const isLandMode = LAND_MODES.includes(type);
 
-    return this.persist(
-      this.apiService.post<IRoute>('routes', newRouteData),
-      (saved) => currentTrip.addRoute(new Route(saved, this)),
-      { message: `Route from ${source.name()} to ${target.name()} added.` }
-    ).pipe(
-      map(saved => new Route(saved, this)),
-      catchError(() => of(null))
+    const routeData$: Observable<{ route: string; distance: number; duration: number }> = isLandMode
+      ? this.routingService.getDirections([source.lat, source.lng], [target.lat, target.lng], type!).pipe(
+          map(geo => ({ route: JSON.stringify(geo.geometry), distance: geo.distance, duration: geo.duration })),
+          catchError(() => of({ route: this.straightLineRoute(source, target), distance: 0, duration: 0 }))
+        )
+      : of({ route: this.straightLineRoute(source, target), distance: 0, duration: 0 });
+
+    return routeData$.pipe(
+      switchMap(({ route, distance, duration }) => {
+        const newRouteData: any = {
+          source: sourceId,
+          destination: targetId,
+          trip_id: currentTrip.id,
+          type,
+          distance, duration,
+          estimated_cost: 0, nights: 0,
+          route, actual_cost: 0, paid: false
+        };
+
+        return this.persist(
+          this.apiService.post<IRoute>('routes', newRouteData),
+          (saved) => currentTrip.addRoute(new Route(saved, this)),
+          { message: `Route from ${source.name()} to ${target.name()} added.` }
+        ).pipe(
+          map(saved => new Route(saved, this)),
+          catchError(() => of(null))
+        );
+      })
     );
   }
 
@@ -502,8 +518,7 @@ export class TripService {
     console.log(route);
     if (!route) return of(null);
 
-    const landModes: RouteType[] = ['driving', 'train', 'bus', 'walking', 'cycling', 'taxi'];
-    const needsEnrichment = !!(updates.type && landModes.includes(updates.type) && !landModes.includes(route.type()));
+    const needsEnrichment = !!(updates.type && LAND_MODES.includes(updates.type) && !LAND_MODES.includes(route.type()));
     console.log(needsEnrichment);
     const enrichment$: Observable<UpdateRoute> = needsEnrichment
       ? this.enrichRouteUpdates(route, updates)
@@ -540,7 +555,7 @@ export class TripService {
     ).pipe(
       map(geo => ({
         ...updates,
-        route: geo.geometry,
+        route: JSON.stringify(geo.geometry),
         distance: geo.distance,
         duration: geo.duration
       })),
