@@ -165,7 +165,6 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   private async initializeMap() {
-    console.log('Initialize map.')
     this.mapbox = (await import('mapbox-gl')).default;
     this.mapbox.accessToken = environment.mapboxToken;
 
@@ -328,9 +327,6 @@ export class MapHandler implements OnInit, OnDestroy {
 
     if (!map || !trip || !isReady) return;
 
-    // Both signals above are intentionally read outside the deferred callback:
-    // adding a place updates `placesArray`, and Angular then updates the
-    // `viewChildren` query with its rendered marker component.
     setTimeout(() => {
       this.updateMarkers(places, this.markerElements());
     });
@@ -340,7 +336,6 @@ export class MapHandler implements OnInit, OnDestroy {
     const routesData = this.tripService.trip()?.routesGeoJson();
     const isReady = this.layersReady();
     if (isReady && routesData && this.layerManager) {
-      console.log(routesData);
       this.layerManager.updateRouteData(routesData);
     }
   }
@@ -377,7 +372,6 @@ export class MapHandler implements OnInit, OnDestroy {
     this.markers.forEach((marker, id) => {
       if (!places.find(p => p.id === id)) {
         marker.remove();
-        console.log('deleting marker');
         this.markers.delete(id);
         this.markerElementsById.delete(id);
       }
@@ -386,36 +380,6 @@ export class MapHandler implements OnInit, OnDestroy {
 
   handleTypeSelection(type: RouteType) {
     this.interactionManager.handleTypeSelection(type);
-  }
-
-  handlePlaceSave(updatePlace: UpdatePlace) {
-    console.log('place saved from its popup.', updatePlace);
-    // this.tripService.savePlace(place);
-    // Optionally close the popup after save
-    this.uiService.clearSelection();
-  }
-
-  handleVisitDelete(visitId: string) {
-    console.log('visit deleted from its popup.');
-    if (confirm('Are you sure?')) {
-      this.uiService.clearSelection();
-      // this.tripService.deletePlace(place);
-    }
-  }
-
-  handleRouteSave(updateRoute: any) {
-    console.log('route saved from its popup.', updateRoute);
-    // this.tripService.savePlace(place);
-    // Optionally close the popup after save
-    this.interactionManager.closeActiveRoutePopup();
-  }
-
-  handleRouteDelete(routeId: string) {
-    console.log('route deleted from its popup.');
-    if (confirm('Are you sure?')) {
-      // this.tripService.deletePlace(place);
-      this.interactionManager.closeActiveRoutePopup();
-    }
   }
 
   getRouteIcon(type: string | undefined | null): string {

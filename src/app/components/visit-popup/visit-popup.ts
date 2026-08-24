@@ -3,7 +3,6 @@ import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import {Visit} from '../../models/visit';
 import {TripService} from '../../services/trip';
-import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
 import {Traverse} from '../../models/traverse';
 import {CommonModule} from '@angular/common';
 import {Route} from '../../models/route';
@@ -12,6 +11,7 @@ import {ROUTE_COLORS, ROUTE_ICON_MAP} from '../map-handler/config/map-styles.con
 import {UiService} from '../../services/ui';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {AuthService} from '../../services/auth';
+import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
 import {OverlayMenuAction} from '../../models/overlay-menu';
 
 @Component({
@@ -142,7 +142,6 @@ export class VisitPopup {
   }
 
   toggleAccommodation(traverse: Traverse) {
-    console.log('toggleAccommodation', traverse);
     this.tripService.updateTraverse(traverse.id, {includes_accommodation: !traverse.includes_accommodation()}).subscribe();
   }
 
@@ -288,7 +287,6 @@ export class VisitPopup {
   }
 
   moveToTop(traverse?: Traverse | null) {
-    console.log('Move to top', traverse);
     const topPriorityTraverse = this.visit().outgoingTraverses()[0];
     if (!traverse || (topPriorityTraverse.id === traverse.id)) return;
     this.tripService.updateTraverse(traverse.id, { priority: topPriorityTraverse.priority() - 1 })
@@ -310,8 +308,7 @@ export class VisitPopup {
   }
 
   includeNextVisit(event: MouseEvent, visit?: Visit | null) {
-    event.stopPropagation(); // Prevent the 'moveToTop' click
-    console.log('Set included to true for visit', visit);
+    event.stopPropagation();
     if (!visit || visit.included()) return;
     visit.included.set(true);
     this.tripService.updateVisit(visit.id, { included: true })
@@ -325,8 +322,7 @@ export class VisitPopup {
   }
 
   excludeNextVisit(event: MouseEvent, visit?: Visit | null) {
-    event.stopPropagation(); // Prevent the 'moveToTop' click
-    console.log('Set included to true for visit', visit);
+    event.stopPropagation();
     if (!visit || !visit.included()) return;
     visit.included.set(false);
     this.tripService.updateVisit(visit.id, { included: false })
@@ -373,13 +369,11 @@ export class VisitPopup {
 
   getActiveRentalForLeg(traverse: Traverse): Traverse | null {
     const sources = traverse.activeRentalSources();
-    if (this.visit().place.name() === 'Hasselt') console.log(sources);
     if (sources.length === 0) return null;
 
     // 1. Try to find the exact match for this traverse's specific route type first
     const exactMatch = sources.find(r => r.route.type() === traverse.route.type());
     if (exactMatch) {
-      if (this.visit().place.name() === 'Hasselt') console.log('exact match', exactMatch);
       return exactMatch;
     }
 
@@ -387,13 +381,11 @@ export class VisitPopup {
     // (the one whose source visit appears latest in the itinerary)
     const itinerary = this.tripService.plan()?.itinerary() ?? [];
     
-    const closestActive = sources.reduce((latest, current) => {
+    return sources.reduce((latest, current) => {
       const latestIndex = itinerary.findIndex(v => v.id === latest.source_visit_id);
       const currentIndex = itinerary.findIndex(v => v.id === current.source_visit_id);
       return currentIndex > latestIndex ? current : latest;
     }, sources[0]);
-    if (this.visit().place.name() === 'Hasselt') console.log('closestActive', closestActive);
-    return closestActive;
   }
 
   activeRentalStartForLeg(traverse: Traverse): Visit | null {

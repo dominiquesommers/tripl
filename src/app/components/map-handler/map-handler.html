@@ -27,15 +27,11 @@
 </div>
 
 @if (uiService.selectedVisit(); as selectedVisit) {
-  <app-visit-popup [visit]="selectedVisit">
-  </app-visit-popup>
+  <app-visit-popup [visit]="selectedVisit" />
 }
 
 @if (!uiService.selectedVisit() && uiService.selectedRoute(); as selectedRoute) {
-  <app-route-popup [route]="selectedRoute">
-<!--    (onSave)="handleRouteSave($event)"-->
-<!--    (onDelete)="handleRouteDelete($any($event))">-->
-  </app-route-popup>
+  <app-route-popup [route]="selectedRoute" />
 }
 
 @if (!uiService.selectedVisit() && !uiService.selectedRoute() && !uiService.hoveredRoute() && uiService.hoveredPlace()) {

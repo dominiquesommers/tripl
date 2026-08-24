@@ -67,8 +67,6 @@ export class PlaceMarker {
     event.stopPropagation();
     const state = this.uiService.drawingState();
 
-    console.log('clicked visit, drawing state:', visit, state.active);
-
     if (!state.active) {
       // Normal behavior: Open popup
       const marker = this.marker();
@@ -101,7 +99,6 @@ export class PlaceMarker {
       });
       this.interactionManager.cancelDrawing();
     } else {
-      console.log('set target to', visit);
       this.uiService.drawingState.update(s => ({ ...s, targetVisit: visit }));
       await this.interactionManager.showRouteTypeSelector(point);
     }
@@ -109,8 +106,6 @@ export class PlaceMarker {
 
   handleAddClick(event: MouseEvent): void {
     event.stopPropagation();
-    //TODO check for drawing mode.
-    console.log('Add new visit.')
     this.tripService.addVisit(this.place().id).pipe(take(1)).subscribe({
       next: (newVisit) => {
         const marker = this.marker();
