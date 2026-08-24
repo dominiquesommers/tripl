@@ -143,57 +143,7 @@
             <div class="line-2">
               <div></div>
               @if (authService.canEdit()) {
-                <button #trigger="cdkOverlayOrigin" cdkOverlayOrigin
-                  class="icon-btn"
-                  (click)="isVisitOptionsOpen.set(!isVisitOptionsOpen())"
-                  tooltip="Visit options">
-                  <lucide-icon name="ellipsis" [size]="18"></lucide-icon>
-                </button>
-
-                <ng-template
-                  cdkConnectedOverlay
-                  [cdkConnectedOverlayOrigin]="trigger"
-                  [cdkConnectedOverlayOpen]="isVisitOptionsOpen()"
-                  [cdkConnectedOverlayPositions]="overlayPositions"
-                  [cdkConnectedOverlayHasBackdrop]="true"
-                  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-                  (backdropClick)="isVisitOptionsOpen.set(false)"
-                  (detach)="isVisitOptionsOpen.set(false)">
-
-                  <div class="options-dropdown">
-                    <div class="manage-item simple-select"
-                        (click)="toggleIncluded(); isVisitOptionsOpen.set(false)">
-                      <lucide-icon [name]="visit().included() ? 'map-pin-off' : 'map-pin-check'" [size]="16"></lucide-icon>
-                      <span class="destination">{{ visit().included() ? 'Exclude from itinerary' : 'Include in itinerary' }}</span>
-                    </div>
-
-                    @if (nextLeg() && getActiveRentalForLeg(nextLeg()!.traverse) && getActiveRentalForLeg(nextLeg()!.traverse) === nextLeg()!.traverse) {
-                      <div class="manage-item simple-select"
-                          (click)="toggleStartOfTour(); isVisitOptionsOpen.set(false)">
-                        <lucide-icon name="milestone" [size]="16"></lucide-icon>
-                        <span class="destination">{{ 'Unset as tour start' }}</span>
-                      </div>
-                    } @else if (nextLeg() && (!getActiveRentalForLeg(nextLeg()!.traverse) || getActiveRentalForLeg(nextLeg()!.traverse)!.route.type() !== nextLeg()!.traverse.route.type())) {
-                      <div class="manage-item simple-select"
-                          (click)="toggleStartOfTour(); isVisitOptionsOpen.set(false)">
-                        <lucide-icon name="milestone" [size]="16"></lucide-icon>
-                        <span class="destination">{{ 'Set as tour start' }}</span>
-                      </div>
-                    }
-
-                    <div class="manage-item simple-select"
-                        (click)="toggleSource(); isVisitOptionsOpen.set(false)">
-                      <lucide-icon [name]="isSourceVisit() ? 'flag-off' : 'flag'" [size]="16"></lucide-icon>
-                      <span class="destination">{{ isSourceVisit() ? 'Unset as itinerary start' : 'Set as itinerary start' }}</span>
-                    </div>
-
-                    <div class="manage-item simple-select delete-option"
-                        (click)="delete(); isVisitOptionsOpen.set(false)">
-                      <lucide-icon name="trash-2" [size]="16"></lucide-icon>
-                      <span class="destination">Delete visit</span>
-                    </div>
-                  </div>
-                </ng-template>
+                <app-overlay-menu [actions]="visitMenuActions()" triggerTooltip="Visit options" />
               }
             </div>
             <div class="line-1">

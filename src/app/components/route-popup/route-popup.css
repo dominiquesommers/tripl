@@ -91,6 +91,10 @@
   min-width: 0;
 }
 
+.menu-trigger {
+  margin-left: auto;
+}
+
 .location-name {
   font-size: 15px; /* Slightly larger for Route Popup readability */
   font-weight: 500;

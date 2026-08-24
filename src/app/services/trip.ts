@@ -452,7 +452,7 @@ export class TripService {
     return JSON.stringify([[source.lng, source.lat], [target.lng, target.lat]]);
   }
 
-  addRoute(sourceId: string, targetId: string, type: RouteType): Observable<Route | null> {
+  addRoute(sourceId: string, targetId: string, type: RouteType, distance?: number, duration?: number, estimated_cost?: number): Observable<Route | null> {
     const currentTrip = this.trip();
     if (!currentTrip) return of(null);
     const source = currentTrip.places().get(sourceId);
@@ -468,9 +468,9 @@ export class TripService {
     const routeData$: Observable<{ route: string; distance: number; duration: number }> = isLandMode
       ? this.routingService.getDirections([source.lat, source.lng], [target.lat, target.lng], type!).pipe(
           map(geo => ({ route: JSON.stringify(geo.geometry), distance: geo.distance, duration: geo.duration })),
-          catchError(() => of({ route: this.straightLineRoute(source, target), distance: 0, duration: 0 }))
+          catchError(() => of({ route: this.straightLineRoute(source, target), distance: distance ?? 0, duration: duration ?? 0 }))
         )
-      : of({ route: this.straightLineRoute(source, target), distance: 0, duration: 0 });
+      : of({ route: this.straightLineRoute(source, target), distance: distance ?? 0, duration: duration ?? 0 });
 
     return routeData$.pipe(
       switchMap(({ route, distance, duration }) => {
@@ -480,7 +480,7 @@ export class TripService {
           trip_id: currentTrip.id,
           type,
           distance, duration,
-          estimated_cost: 0, nights: 0,
+          estimated_cost: estimated_cost ?? 0, nights: 0,
           route, actual_cost: 0, paid: false
         };
 

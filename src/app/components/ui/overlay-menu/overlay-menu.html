@@ -1,0 +1,27 @@
+<button #trigger="cdkOverlayOrigin" cdkOverlayOrigin
+        class="icon-btn"
+        (click)="toggle()"
+        [title]="triggerTooltip()">
+  <lucide-icon [name]="triggerIcon()" [size]="18"></lucide-icon>
+</button>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="trigger"
+  [cdkConnectedOverlayOpen]="isOpen()"
+  [cdkConnectedOverlayPositions]="overlayPositions()"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  (backdropClick)="close()"
+  (detach)="close()">
+
+  <div class="options-dropdown">
+    @for (item of actions(); track item.label) {
+      <div class="manage-item simple-select" [class]="item.className"
+           (click)="run(item)">
+        <lucide-icon [name]="item.icon" [size]="16"></lucide-icon>
+        <span class="destination">{{ item.label }}</span>
+      </div>
+    }
+  </div>
+</ng-template>

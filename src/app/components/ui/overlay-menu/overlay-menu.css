@@ -1,0 +1,100 @@
+.options-dropdown {
+  min-width: 190px;
+  background: rgba(30, 30, 35, 0.75);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px;
+}
+
+.options-dropdown .manage-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.options-dropdown .manage-item:last-child {
+  margin-bottom: 0;
+}
+
+.options-dropdown .delete-option {
+  color: #ef4444;
+}
+
+.options-dropdown .delete-option:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.manage-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 4px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  color: rgb(237, 237, 237);
+}
+
+.manage-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.manage-item.active {
+  background: rgba(0, 122, 255, 0.15);
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+.manage-item.excluded {
+  opacity: 0.6;
+  background: rgba(21, 21, 21, 0.3);
+}
+
+.manage-item.simple-select {
+  cursor: pointer;
+  /*padding: 10px 12px;*/
+  transition: background 0.15s ease;
+}
+
+.manage-item.simple-select:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.manage-item.simple-select.active {
+  background: rgba(59, 130, 246, 0.1); /* Slight blue tint for selected item */
+}
+
+/* Ensure the text doesn't overflow */
+.manage-item .destination {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+/* Standard button hover state */
+.icon-btn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}

@@ -1,9 +1,9 @@
 import {Component, computed, effect, inject, input, output, Signal, signal} from '@angular/core';
-import {OverlayModule, ConnectedPosition} from '@angular/cdk/overlay';
 import {LucideAngularModule } from 'lucide-angular';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import {Visit} from '../../models/visit';
 import {TripService} from '../../services/trip';
+import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
 import {Traverse} from '../../models/traverse';
 import {CommonModule} from '@angular/common';
 import {Route} from '../../models/route';
@@ -12,11 +12,12 @@ import {ROUTE_COLORS, ROUTE_ICON_MAP} from '../map-handler/config/map-styles.con
 import {UiService} from '../../services/ui';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {AuthService} from '../../services/auth';
+import {OverlayMenuAction} from '../../models/overlay-menu';
 
 @Component({
   selector: 'app-visit-popup',
   standalone: true,
-  imports: [LucideAngularModule, DragDropModule, CommonModule, CdkTextareaAutosize, EditableBadge, OverlayModule],
+  imports: [LucideAngularModule, DragDropModule, CommonModule, CdkTextareaAutosize, EditableBadge, OverlayMenu],
   templateUrl: './visit-popup.html',
   styleUrl: './visit-popup.css',
 })
@@ -28,11 +29,6 @@ export class VisitPopup {
   visit = input.required<Visit>();
   isManagingTraverses = signal(false);
   isManagingRentUntil = signal(false);
-  isVisitOptionsOpen = signal(false);
-  overlayPositions: ConnectedPosition[] = [
-    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
-    { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 },
-  ];
 
   isSourceVisit = computed(() => this.tripService.plan()?.sourceVisit()?.id === this.visit().id);
 
@@ -45,6 +41,42 @@ export class VisitPopup {
       return 'Click to explicitly exclude from itinerary';
     }
     return 'Click to exclude and recalculate itinerary';
+  });
+
+  readonly visitMenuActions = computed((): OverlayMenuAction[] => {
+    const actions: OverlayMenuAction[] = [
+      {
+        icon: this.visit().included() ? 'map-pin-off' : 'map-pin-check',
+        label: this.visit().included() ? 'Exclude from itinerary' : 'Include in itinerary',
+        action: () => this.toggleIncluded(),
+      },
+    ];
+
+    const leg = this.nextLeg();
+    if (leg) {
+      const activeRental = this.getActiveRentalForLeg(leg.traverse);
+      if (activeRental === leg.traverse) {
+        actions.push({ icon: 'milestone', label: 'Unset as tour start', action: () => this.toggleStartOfTour() });
+      } else if (!activeRental || activeRental.route.type() !== leg.traverse.route.type()) {
+        actions.push({ icon: 'milestone', label: 'Set as tour start', action: () => this.toggleStartOfTour() });
+      }
+    }
+
+    actions.push(
+      {
+        icon: this.isSourceVisit() ? 'flag-off' : 'flag',
+        label: this.isSourceVisit() ? 'Unset as itinerary start' : 'Set as itinerary start',
+        action: () => this.toggleSource(),
+      },
+      {
+        icon: 'trash-2',
+        label: 'Delete visit',
+        action: () => this.delete(),
+        className: 'delete-option',
+      },
+    );
+
+    return actions;
   });
 
   isFlagHovered = false;
