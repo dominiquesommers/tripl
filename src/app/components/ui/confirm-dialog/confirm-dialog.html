@@ -1,0 +1,19 @@
+<div class="confirm-card-toast">
+  @if (data.title) {
+    <h2>{{ data.title }}</h2>
+  }
+  
+  <p class="message">{{ data.message }}</p>
+
+  <div class="actions">
+    <button class="btn-cancel" (click)="dialogRef.close(false)">
+      {{ data.cancelLabel || 'Cancel' }}
+    </button>
+    <button 
+      class="btn-confirm" 
+      [class.danger]="data.isDanger" 
+      (click)="dialogRef.close(true)">
+      {{ data.confirmLabel || 'Confirm' }}
+    </button>
+  </div>
+</div>

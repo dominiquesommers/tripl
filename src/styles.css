@@ -40,6 +40,22 @@ body {
   font-size: 0.9rem;
 }
 
+/* Global CSS for dynamic SnackBar height */
+.mat-mdc-snack-bar-container.glass-snackbar {
+  /* height: auto !important; */
+  min-height: 37px !important;
+}
+
+.mat-mdc-snack-bar-container.glass-snackbar .mdc-snackbar__surface {
+  height: auto !important;
+  /* padding: 8px 12px !important; */
+}
+
+.mat-mdc-snack-bar-container.glass-snackbar .mdc-snackbar__label {
+  white-space: normal !important; /* Allow multi-line wrap */
+  word-break: break-word !important;
+}
+
 /* The 'Undo' or 'Close' Button */
 .mat-mdc-snack-bar-action button {
   color: #007AFF !important; /* Apple Blue accent */
@@ -138,25 +154,23 @@ body {
   background: #3b82f6 !important;
 }
 
-/* Global styles.css or MapComponent css */
+/* Ensure overlay container lets top-origin transformation play cleanly */
+.top-toast-panel .mat-mdc-dialog-container {
+  animation: none !important; /* Disable Angular Material default zoom-in */
+}
 
-/* Remove default Mapbox styling to show our glass */
-/*.apple-glass-popup .mapboxgl-popup-content {*/
-/*  background: rgba(30, 30, 35, 0.7) !important;*/
-/*  backdrop-filter: blur(25px) saturate(180%);*/
-/*  -webkit-backdrop-filter: blur(25px) saturate(180%);*/
-/*  border: 0.5px solid rgba(255, 255, 255, 0.2);*/
-/*  border-radius: 18px !important;*/
-/*  padding: 0 !important; !* Let our component handle padding *!*/
-/*  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);*/
-/*}*/
+/* Darken everything behind the dialog */
+.top-toast-backdrop {
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(2px); /* Optional subtle blur over the app */
+  transition: opacity 0.3s ease;
+}
 
-/*!* Hide the default close button if you didn't disable it in JS *!*/
-/*.apple-glass-popup .mapboxgl-popup-close-button {*/
-/*  display: none;*/
-/*}*/
-
-/*!* Match the triangle pointer to the glass color *!*/
-/*.apple-glass-popup .mapboxgl-popup-tip {*/
-/*  border-top-color: rgba(30, 30, 35, 0.7) !important;*/
-/*}*/
+/* Strip out MatDialog default container padding/background */
+.top-toast-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  height: auto !important;
+}

@@ -9,6 +9,7 @@ import {Activity, IActivity, UpdateActivity} from '../../../../models/activity';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
+import {NotificationService} from '../../../../services/notification';
 
 
 @Component({
@@ -22,6 +23,7 @@ export class Activities {
   place = input.required<Place>();
   tripService = inject(TripService);
   authService = inject(AuthService);
+  notificationService = inject(NotificationService);
 
   // Track which activity description has focus for the URL parser
   isAdding = signal(false);
@@ -93,19 +95,26 @@ export class Activities {
   }
 
   removeActual(activity: Activity) {
-    console.log('removeActual', activity.id);
     const expenses = activity.expenses();
     const hasExpenses = expenses.length > 0;
     const total = expenses.reduce((s, e) => s + e.amount(), 0);
 
     const message = hasExpenses
-      ? `This will also remove ${expenses.length} payment(s) totalling €${total}. Are you sure?`
+      ? `This will also remove ${expenses.length} payment${expenses.length === 1 ? '' : 's'} totalling €${total}.\nAre you sure?`
       : `Remove actual cost for this activity?`;
 
-    if (confirm(message)) {
-      this.updateActivity(activity, { actual_cost: null });
-      expenses.forEach(e => this.deleteExpense(e.id));
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove activity cost',
+        message: message,
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.updateActivity(activity, { actual_cost: null });
+        expenses.forEach(e => this.deleteExpense(e.id));
+      }
+    );
   }
 
   addExpense(activity: Activity, expense: NewExpense) {
