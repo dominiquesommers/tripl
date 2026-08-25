@@ -256,7 +256,9 @@ export class VisitPopup {
   toggleSource() {
     const confirmMessage = this.isSourceVisit() ? 'Are you sure you want to deselect this visit as the source?' : 'Are you sure you want to set this visit as the source?';
     const newSourceVisitId = this.isSourceVisit() ? null : this.visit().id;
-    if (!confirm(confirmMessage)) return;
+    if (this.tripService.plan()!.sourceVisit() !== null) {
+      if (!confirm(confirmMessage)) return;
+    }
     this.tripService.updateCurrentPlan({ source_visit_id: newSourceVisitId }).subscribe();
   }
 
