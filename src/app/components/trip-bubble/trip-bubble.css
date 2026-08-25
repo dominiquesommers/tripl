@@ -133,7 +133,7 @@
 }
 
 /* Align inputs with your existing "destination" text style */
-.edit-input-transparent {
+/* .edit-input-transparent {
   flex: 1;
   background: transparent;
   border: none;
@@ -143,7 +143,7 @@
   outline: none;
   padding: 0;
   cursor: text;
-}
+} */
 
 /* Ensure indicators and actions match the visit-card exactly */
 .active-indicator {
@@ -239,6 +239,7 @@
 }
 
 .drag-handle {
+  flex: 0 0 auto;
   cursor: grab;
   color: rgba(255, 255, 255, 0.3);
 }
@@ -266,7 +267,8 @@
 
 /* Ensure the text doesn't overflow */
 .manage-item .destination {
-  flex-grow: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -280,19 +282,6 @@
   display: flex;
   flex-direction: column;
 }
-
-/*.edit-input-transparent {*/
-/*  flex: 1;*/
-/*  background: transparent;*/
-/*  border: none;*/
-/*  color: #ffffff !important; !* Force white text *!*/
-/*  font-size: 14px;*/
-/*  font-weight: 500;*/
-/*  outline: none;*/
-/*  padding: 4px 8px;*/
-/*  cursor: text;*/
-/*  width: 100%; !* Ensure it takes available space *!*/
-/*}*/
 
 /* Make sure the text in the Plan list is also visible */
 .manage-item .destination {
@@ -316,46 +305,33 @@
   border: none;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  padding: 2px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
 }
-.icon-btn:hover { color: white; }
+
+.icon-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .icon-btn.delete:hover { color: #ef4444; }
 
-/*.input-wrapper {*/
-/*  display: flex;*/
-/*  !*flex: 1;*!*/
-/*  flex: 0 1 auto; !* Allows shrinking and growing based on content *!*/
-/*  !*min-width: 50px;*!*/
-/*  min-width: 0;*/
-/*}*/
-
 .spacer {
-  /* This is the magic ingredient */
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .edit-input-transparent {
-  /*width: 100%; !* Fills the wrapper *!*/
-  /*background: transparent;*/
-  /*border: none;*/
-  /*color: white;*/
-  /*font-size: 14px;*/
-  /*outline: none;*/
-  /*padding: 2px 4px;*/
   border-radius: 4px;
-  /*cursor: text;*/
 }
 
-/*.edit-input-transparent:focus {*/
-/*  background: rgba(255, 255, 255, 0.1);*/
-/*}*/
-
-/* 2. Item Actions Layout */
 .item-actions {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
@@ -385,33 +361,39 @@
   display: inline-grid;
   align-items: center;
   position: relative;
-  min-width: 20px;
-  max-width: 180px; /* Limits how wide the input can grow before ellipsis */
+  min-width: 24px;   /* floor so it stays clickable when empty */
+  max-width: 180px;
   overflow: hidden;
+  grid-auto-columns: minmax(0, auto); /* Allows the grid track to shrink properly */
+
+  /* Move your pill styling here so the background shrinks/grows with the grid! */
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 2px 4px;
 }
 
-/* The hidden sizer that forces the width */
 .input-sizer {
-  grid-area: 1/1;
-  padding: 2px 4px; /* Must match input padding exactly */
+  grid-area: 1 / 1;
   font-size: 14px;
   font-weight: 500;
+  font-family: inherit;  /* keep, in case anything upstream sets a page font */
   visibility: hidden;
-  white-space: pre; /* Important to keep spaces from collapsing */
+  white-space: pre;
 }
 
 .edit-input-transparent {
-  grid-area: 1/1;
-  width: 100%;
+  grid-area: 1 / 1;
+  width: 0;
+  min-width: 100%;
   background: transparent;
   border: none;
   color: white;
   font-size: 14px;
   font-weight: 500;
+  font-family: inherit;
   outline: none;
-  padding: 2px 4px;
 
-  /* Standard Ellipsis Trick */
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -419,8 +401,11 @@
 
 .edit-input-transparent:focus {
   background: rgba(255, 255, 255, 0.1);
-  /* Optional: Remove ellipsis on focus so user can see what they type */
   text-overflow: clip;
+}
+
+.edit-input-transparent::placeholder {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .manager-divider {

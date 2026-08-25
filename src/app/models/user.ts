@@ -61,7 +61,7 @@ export class UserTrip {
     this.plans.set(data.plans.map(p => new UserPlan(p)));
   }
 
-  update(data: Partial<IUserTrip>) {
+  update(data: UpdateUserTrip) {
     if ('name' in data) this.name.set(data.name ?? '');
     if ('role' in data) this.role.set(data.role ?? 'viewer');
     if ('priority' in data) this.priority.set(data.priority ?? 0);

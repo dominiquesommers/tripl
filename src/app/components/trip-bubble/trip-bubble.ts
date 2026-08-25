@@ -8,12 +8,15 @@ import {Trip} from '../../models/trip';
 import {IUserPlan, IUserTrip, UserPlan, UserTrip} from '../../models/user';
 import {LucideAngularModule } from 'lucide-angular';
 import {AuthService} from '../../services/auth';
+import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
+import {OverlayMenuAction} from '../../models/overlay-menu';
+import { NotificationService } from '../../services/notification';
 
 
 @Component({
   selector: 'app-trip-bubble',
   standalone: true,
-  imports: [CommonModule, DragDropModule, LucideAngularModule], // DragDropModule is required here
+  imports: [CommonModule, DragDropModule, LucideAngularModule, OverlayMenu],
   templateUrl: './trip-bubble.html',
   styleUrls: ['./trip-bubble.css']
 })
@@ -21,6 +24,7 @@ export class TripBubble {
   private eRef = inject(ElementRef);
   tripService = inject(TripService);
   authService = inject(AuthService);
+  notifierService = inject(NotificationService);
   router = inject(Router);
 
   showPlanMenu = false;
@@ -29,6 +33,21 @@ export class TripBubble {
   activeMenuId = signal<string | null>(null);
 
   canEdit = computed(() => this.authService.canEdit());
+
+  getTripMenuActions(t: UserTrip): OverlayMenuAction[] {
+    return [{ icon: 'trash-2', label: 'Remove Trip', action: () => this.deleteTrip(t), className: 'delete-option' }];
+  }
+
+  getMemberMenuActions(member: any): OverlayMenuAction[] {
+    return [{ icon: 'trash-2', label: 'Remove Member', action: () => this.deleteTripMember(member), className: 'delete-option' }];
+  }
+
+  getPlanMenuActions(p: UserPlan): OverlayMenuAction[] {
+    return [
+      { icon: 'copy', label: 'Duplicate Plan', action: () => this.copyPlan(p) },
+      { icon: 'trash-2', label: 'Delete Plan', action: () => this.deletePlan(p), className: 'delete-option' },
+    ];
+  }
 
   selectedTripName = computed(() => {
     const trip = this.tripService.trip();
@@ -87,8 +106,10 @@ export class TripBubble {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    const clickedInside = this.eRef.nativeElement.contains(event.target);
-    if (!clickedInside) {
+    const target = event.target as HTMLElement;
+    const clickedInside = this.eRef.nativeElement.contains(target);
+    const clickedInOverlay = !!target.closest('.cdk-overlay-container');
+    if (!clickedInside && !clickedInOverlay) {
       this.showPlanMenu = false;
       this.showTripMenu = false;
       this.showMemberMenu = false;
@@ -258,59 +279,103 @@ export class TripBubble {
     }
   }
 
-  deleteTripMember(member: any, event: Event) {
-    event.stopPropagation();
+  deleteTripMember(member: any) {
     const tripId = this.tripService.trip()?.id;
     if (tripId) {
-      this.tripService.deleteTripMember(`${tripId}|${member.id}`).subscribe();
+      this.tripService.removeTripMember(`${tripId}|${member.id}`).subscribe();
     }
+  }
+
+  addUser() {
+    // 1. Get the current URL and strip out plan info (or keep just the base/trip level)
+    const currentUrl = window.location.href;
+
+    // Example: If your URL has a plan ID segment you want to strip,
+    // or if you want to construct a clean shareable base URL:
+    const urlWithoutPlan = window.location.origin + this.router.createUrlTree(['trip', this.tripService.trip()?.id]).toString();
+
+    // 2. Copy to clipboard
+    navigator.clipboard.writeText(urlWithoutPlan).then(() => {
+      // 3. Show notification using your notifierService
+      this.notifierService.notify('Trip link copied to clipboard!');
+    }).catch(err => {
+      console.error('Failed to copy URL: ', err);
+      this.notifierService.notify('Failed to copy link.', true);
+    });
   }
 
   addTrip() {
     console.log('add trip');
-    // const currentTrip = this.tripService.trip();
-    // if (currentTrip) {
-      // Call your service to create a new plan
-      // After the API returns, the signals will auto-update the list
-      // this.tripService.addNewPlan(currentTrip.id);
-    // }
+
+    // TODO add current lat, lng, zoom to the api call.
+    this.tripService.addTrip().subscribe({
+      next: (new_trip_data) => {
+        if (!new_trip_data) {
+          console.error('Failed to add trip: received null response.');
+          return;
+        }
+        this.router.navigate(['trip', new_trip_data.trip_id, new_trip_data.plan_id]);
+      },
+      error: (err) => console.error('Failed to add trip:', err)
+    });
   }
 
-  deleteTrip(event: PointerEvent, trip: UserTrip) {
+  deleteTrip(trip: UserTrip) {
     console.log('delete trip');
-    event.stopPropagation();
-    // const currentTrip = this.tripService.trip();
-    // if (currentTrip) {
-      // Call your service to create a new plan
-      // After the API returns, the signals will auto-update the list
-      // this.tripService.addNewPlan(currentTrip.id);
-    // }
+    this.notifierService.confirmModal(
+      {
+        title: `Remove trip ${trip.name()}`,
+        message: 'Are you sure you want to remove this trip?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeTrip(trip.id).subscribe({
+          error: (err) => console.error('Failed to remove trip:', err)
+        });
+      }
+    );
   }
 
   addPlan() {
-    console.log('add plan')
-    const currentTrip = this.tripService.trip();
-    if (currentTrip) {
-      // Call your service to create a new plan
-      // After the API returns, the signals will auto-update the list
-      // this.tripService.addNewPlan(currentTrip.id);
-    }
+    console.log('add plan');
+    const tripId = this.tripService.trip()?.id;
+    if (!tripId) return;
+
+    // TODO add current lat, lng, zoom to the api call.
+    this.tripService.addPlan(tripId).subscribe({
+      next: (new_plan_data) => {
+        if (!new_plan_data) {
+          console.error('Failed to add plan: received null response.');
+          return;
+        }
+        console.log(new_plan_data);
+        console.log('navigate to trip', tripId, new_plan_data.plan_id);
+        this.router.navigate(['trip', tripId, new_plan_data.plan_id]);
+      },
+      error: (err) => console.error('Failed to add plan:', err)
+    });
   }
 
-  deletePlan(event: PointerEvent, plan: UserPlan) {
-    console.log('delete plan')
-    event.stopPropagation();
-    // const currentTrip = this.tripService.trip();
-    // if (currentTrip) {
-      // Call your service to create a new plan
-      // After the API returns, the signals will auto-update the list
-      // this.tripService.addNewPlan(currentTrip.id);
-    // }
+  deletePlan(plan: UserPlan) {
+    console.log('delete plan');
+    this.notifierService.confirmModal(
+      {
+        title: `Remove plan ${plan.name()}`,
+        message: 'Are you sure you want to remove this plan?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removePlan(plan.id).subscribe({
+          error: (err) => console.error('Failed to remove plan:', err)
+        });
+      }
+    );
   }
 
-  copyPlan(plan: UserPlan, event: Event) {
+  copyPlan(plan: UserPlan) {
     console.log('copy plan', plan.id)
-    event.stopPropagation(); // Don't trigger the 'selectPlan' navigation
     // this.tripService.duplicatePlan(plan.id);
   }
 }

@@ -66,7 +66,6 @@ export class TripService {
     ]).pipe(
       switchMap(([user, tripId, _refreshCount]) => {
         if (!user?.uid && !tripId) return of([]);
-        // if (!user?.uid) return of([]);
         return this.loadTrips().pipe(
           map((rawTrips: IUserTrip[]) => {
             const trips = rawTrips.map(t => new UserTrip(t));
@@ -242,7 +241,42 @@ export class TripService {
 
   // ── TRIPS ─────────────────────────────────────────────────────────────────
 
-  updateTrip(id: string, updates: UpdatePlan): Observable<ITrip | null> {
+  addTrip(): Observable<{trip_id: string, plan_id: string, name: string} | null> {
+    return this.persist(
+      this.apiService.post<any>('trips', {}),
+      (saved) => {
+        // Refresh the trips list so the new trip appears in the summary/sidebar
+        this.refreshTrips();
+      },
+      { message: `New trip created.` }
+    ).pipe(
+      map(saved => ({ trip_id: saved.trip_id, plan_id: saved.plan_id, name: saved.name })),
+      catchError(() => of(null))
+    );
+  }
+
+  removeTrip(trip_id: string): Observable<void> {
+    if (trip_id === '352a0f7a-7dfd-469b-ae25-32242ab48741') {
+      return of(); // Safety.
+    }
+
+    return this.persist(
+      this.apiService.delete<void>(`trips/${trip_id}`),
+      () => {
+        // 1. If the currently active trip is the one being deleted, clear navigation state
+        if (trip_id === this.trip()?.id) {
+          this.navigationService.setTripId(null);
+          this.navigationService.setPlanId(null);
+        }
+
+        // 2. Trigger a refresh so the trips signal updates and removes the trip from the list
+        this.refreshTrips();
+      },
+      { message: 'Trip successfully removed.' }
+    );
+  }
+
+  updateTrip(id: string, updates: UpdateTrip): Observable<ITrip | null> {
     const trip = this.trips().find(t => t.id === id);
     if (!trip) return of(null);
 
@@ -281,7 +315,7 @@ export class TripService {
     );
   }
 
-  deleteTripMember(id: string): Observable<void> {
+  removeTripMember(id: string): Observable<void> {
     const parts = id.split('|');
     const tripId = parts[0];
     const userId = parts[1];
@@ -295,6 +329,60 @@ export class TripService {
   }
 
   // ── PLANS ─────────────────────────────────────────────────────────────────
+
+  addPlan(tripId: string): Observable<{plan_id: string, name: string} | null> {
+    return this.persist(
+      this.apiService.post<any>('plans', { trip_id: tripId }),
+      (saved) => {
+        // Refresh the trips list so the new plan appears in the summary/sidebar
+        this.refreshTrips();
+      },
+      { message: `New plan created.` }
+    ).pipe(
+      map(saved => ({ plan_id: saved.id, name: saved.name })),
+      catchError(() => of(null))
+    );
+  }
+
+  removePlan(plan_id: string): Observable<void> {
+    if (plan_id === '6d129252-2b5f-486f-a25d-bbae2abfbd9d') {
+      return of(); // Safety.
+    }
+
+    console.log(this.trips());
+
+    const currentTrip = this.trip();
+    const currentPlan = this.plan();
+
+    return this.persist(
+      this.apiService.delete<void>(`plans/${plan_id}`),
+      () => {
+        // 1. If the currently active plan is the one being deleted, clear navigation state
+        if (currentTrip && currentPlan?.id === plan_id) {
+          // Find remaining plans for this trip excluding the deleted one
+          const userTrip = this.trips().find(t => t.id === currentTrip.id);
+          const remainingPlans = userTrip ? userTrip.plans().filter(p => p.id !== plan_id) : [];
+
+          if (remainingPlans.length > 0) {
+            // Find the plan with the lowest priority value
+            const lowestPriorityPlan = remainingPlans.reduce((prev, curr) =>
+              curr.priority() < prev.priority() ? curr : prev
+            );
+
+            // Navigate to the next lowest-priority plan
+            this.router.navigate(['trip', currentTrip.id, lowestPriorityPlan.id]);
+          } else {
+            // No plans left in this trip, clear plan ID (keep tripId or clear both per your preference)
+            this.navigationService.setPlanId(null);
+          }
+        }
+
+        // 2. Trigger a refresh so the trips signal updates and removes the trip from the list
+        this.refreshTrips();
+      },
+      { message: 'Plan successfully removed.' }
+    );
+  }
 
   updatePlanSilently(id: string, updates: PersistentUpdatePlan) {
     if (this.authService.isPublicMode()) {

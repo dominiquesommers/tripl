@@ -53,8 +53,11 @@
                 @if (isOwner(t)) {
                   <div class="input-wrapper" (click)="$event.stopPropagation()">
                     <span class="input-sizer">{{ t.name() }}</span>
-                    <input type="text" #tripInput class="edit-input-transparent" [value]="t.name()"
-                           (change)="renameTrip(t, tripInput.value)" (keydown.enter)="tripInput.blur()"/>
+                    <input type="text" #tripInput class="edit-input-transparent"
+                           [value]="t.name()"
+                           placeholder="Untitled trip"
+                           (change)="renameTrip(t, tripInput.value)"
+                           (keydown.enter)="tripInput.blur()"/>
                   </div>
                 } @else {
                   <span class="destination">{{ displayTripName(t) }}</span>
@@ -63,13 +66,8 @@
                 <div class="spacer"></div>
 
                 <div class="item-actions">
-                  @if (t.id === tripService.trip()?.id) {
-                    <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
-                  }
                   @if (isOwner(t)) {
-                    <button class="icon-btn delete-item" (click)="deleteTrip($event, t)" title="Remove Trip">
-                      <lucide-icon name="trash2" [size]="16"></lucide-icon>
-                    </button>
+                    <app-overlay-menu [actions]="getTripMenuActions(t)" triggerTooltip="Trip options" (click)="$event.stopPropagation()" />
                   }
                 </div>
               </div>
@@ -93,9 +91,9 @@
                   <div class="spacer"></div>
 
                   <div class="item-actions">
-                    @if (t.id === tripService.trip()?.id) {
+                    <!-- @if (t.id === tripService.trip()?.id) {
                       <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
-                    }
+                    } -->
                   </div>
                 </div>
               }
@@ -144,18 +142,13 @@
               <div class="spacer"></div>
 
               <div class="item-actions">
-                @if (p.id === tripService.plan()?.id) {
+                <!-- @if (p.id === tripService.plan()?.id) {
                   <lucide-icon name="check" [size]="16" class="active-indicator"></lucide-icon>
                 } @else {
                   <div style="width: 16px;"></div>
-                }
+                } -->
                 @if (canEdit()) {
-                  <button class="icon-btn copy-item" (click)="copyPlan(p, $event)" title="Copy Plan">
-                    <lucide-icon name="copy" [size]="16"></lucide-icon>
-                  </button>
-                  <button class="icon-btn delete-item" (click)="deletePlan($event, p)" title="Delete Plan">
-                    <lucide-icon name="trash2" [size]="16"></lucide-icon>
-                  </button>
+                  <app-overlay-menu [actions]="getPlanMenuActions(p)" triggerTooltip="Plan options" (click)="$event.stopPropagation()" />
                 }
               </div>
             </div>
@@ -171,7 +164,7 @@
             <div class="header-side"></div>
             <span class="header-title">Members</span>
             <div class="header-side">
-              <button class="icon-btn">
+              <button class="icon-btn" (click)="addUser()">
                 <lucide-icon name="user-plus" [size]="18"></lucide-icon>
               </button>
             </div>
@@ -194,9 +187,7 @@
                     <option value="member">MEMBER</option>
                     <option value="viewer">VIEWER</option>
                   </select>
-                  <button class="icon-btn delete-item" (click)="deleteTripMember(member, $event)" title="Remove Member">
-                    <lucide-icon name="trash2" [size]="16"></lucide-icon>
-                  </button>
+                  <app-overlay-menu [actions]="getMemberMenuActions(member)" triggerTooltip="Member options" (click)="$event.stopPropagation()" />
                 } @else {
                   <span class="role-label">{{ member.role() }}</span>
                   <div style="width: 35px;"></div>
@@ -223,9 +214,7 @@
                       <option value="member">Member</option>
                       <option value="viewer">Viewer</option>
                     </select>
-                    <button class="icon-btn delete-item" (click)="deleteTripMember(member, $event)" title="Remove Member">
-                      <lucide-icon name="trash2" [size]="16"></lucide-icon>
-                    </button>
+                    <app-overlay-menu [actions]="getMemberMenuActions(member)" triggerTooltip="Member options" (click)="$event.stopPropagation()" />
                   } @else {
                     <span class="role-label">{{ member.role() }}</span>
                   }
