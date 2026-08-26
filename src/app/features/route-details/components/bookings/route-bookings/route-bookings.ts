@@ -15,6 +15,7 @@ import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
 import {PopupService} from '../../../../../services/popup';
 import {CostPopup} from '../../../../../components/ui/cost-popup/cost-popup';
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
+import { NotificationService } from '../../../../../services/notification';
 
 
 @Component({
@@ -28,6 +29,7 @@ export class RouteBookings {
 
   tripService = inject(TripService);
   popupSvc    = inject(PopupService);
+  notificationService = inject(NotificationService);
   route       = input.required<Route>();
 
   // ── Bookings sorted by check-in ───────────────────────────
@@ -93,9 +95,17 @@ export class RouteBookings {
   }
 
   deleteBooking(booking: RouteBooking) {
-    if (confirm('Remove this booking? Any linked payments will also be removed.')) {
-      this.tripService.removeRouteBooking(booking).subscribe();
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove booking',
+        message: 'Remove this booking? Any linked payments will also be removed.',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeRouteBooking(booking).subscribe();
+      }
+    );
   }
 
   // ── Category inclusions ────────────────────────────────────────

@@ -9,6 +9,7 @@ import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
 import {Cost} from '../../../../components/ui/cost/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
+import { NotificationService } from '../../../../services/notification';
 
 
 @Component({
@@ -22,6 +23,7 @@ export class Country {
   country = input.required<CountryModel>();
   tripService = inject(TripService);
   authService = inject(AuthService);
+  notificationService = inject(NotificationService);
 
   // Track which note description has focus for the URL parser
   isAdding = signal(false);
@@ -60,10 +62,8 @@ export class Country {
   }
 
   updateNote(note: CountryNote, changes: UpdateCountryNote) {
-    console.log('Updating note', note, changes);
-    // const updated = { ...note, ...changes };
     this.tripService.updateCountryNote(note.id, changes).subscribe({
-      next: () => console.log('Updated country note successfully in the server'),
+      next: () => console.log('Updated country note successfully.'),
       error: (err) => console.error('Failed to update note...', err)
     });
   }
@@ -84,16 +84,23 @@ export class Country {
   }
 
   deleteNote(note: CountryNote) {
-    if (confirm('Are you sure you want to delete this note?')) {
-      this.tripService.removeCountryNote(note).subscribe({
-        next: () => console.log('Removed country note successfully in the server'),
-        error: (err) => console.error('Failed to remove note...', err)
-      });
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove note',
+        message: 'Are you sure you want to delete this note?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeCountryNote(note).subscribe({
+          next: () => console.log('Removed country note successfully.'),
+          error: (err) => console.error('Failed to remove note...', err)
+        });
+      }
+    );
   }
 
   removeActual(note: CountryNote) {
-    console.log('removeActual', note.id);
     const expenses = note.expenses();
     const hasExpenses = expenses.length > 0;
     const total = expenses.reduce((s, e) => s + e.amount(), 0);
@@ -102,10 +109,18 @@ export class Country {
       ? `This will also remove ${expenses.length} payment(s) totalling €${total}. Are you sure?`
       : `Remove actual cost for this country note?`;
 
-    if (confirm(message)) {
-      this.updateNote(note, { actual_cost: null });
-      expenses.forEach(e => this.deleteExpense(e.id));
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove actual cost',
+        message: message,
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.updateNote(note, { actual_cost: null });
+        expenses.forEach(e => this.deleteExpense(e.id));
+      }
+    );
   }
 
   addExpense(note: CountryNote, expense: NewExpense) {

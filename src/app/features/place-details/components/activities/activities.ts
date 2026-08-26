@@ -65,7 +65,7 @@ export class Activities {
     console.log('Updating activity', activity, changes);
     // const updated = { ...activity, ...changes };
     this.tripService.updateActivity(activity.id, changes).subscribe({
-      next: () => console.log('Updated activity successfully in the server'),
+      next: () => console.log('Updated activity successfully.'),
       error: (err) => console.error('Failed to update activity...', err)
     });
   }
@@ -86,12 +86,20 @@ export class Activities {
   }
 
   deleteActivity(activity: Activity) {
-    if (confirm('Are you sure you want to delete this activity?')) {
-      this.tripService.removeActivity(activity).subscribe({
-        next: () => console.log('Removed activity successfully in the server'),
-        error: (err) => console.error('Failed to remove activity...', err)
-      });
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove activity',
+        message: 'Are you sure you want to remove this activity?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeActivity(activity).subscribe({
+          next: () => console.log('Removed activity successfully'),
+          error: (err) => console.error('Failed to remove activity...', err)
+        });
+      }
+    );
   }
 
   removeActual(activity: Activity) {

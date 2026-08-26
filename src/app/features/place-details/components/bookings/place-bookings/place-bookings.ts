@@ -15,6 +15,7 @@ import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
 import {PopupService} from '../../../../../services/popup';
 import {CostPopup} from '../../../../../components/ui/cost-popup/cost-popup';
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
+import { NotificationService } from '../../../../../services/notification';
 
 
 @Component({
@@ -27,6 +28,7 @@ import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-text
 export class PlaceBookings {
   tripService = inject(TripService);
   popupSvc    = inject(PopupService);
+  notificationService = inject(NotificationService);
   place       = input.required<Place>();
 
   // ── Bookings sorted by check-in ───────────────────────────
@@ -86,9 +88,17 @@ export class PlaceBookings {
   }
 
   deleteBooking(booking: PlaceBooking) {
-    if (confirm('Remove this booking? Any linked payments will also be removed.')) {
-      this.tripService.removePlaceBooking(booking).subscribe();
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove booking',
+        message: 'Remove this booking? Any linked payments will also be removed.',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removePlaceBooking(booking).subscribe();
+      }
+    );
   }
 
   // ── Food inclusion ────────────────────────────────────────

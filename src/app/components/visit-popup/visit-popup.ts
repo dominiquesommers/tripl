@@ -13,6 +13,7 @@ import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {AuthService} from '../../services/auth';
 import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
 import {OverlayMenuAction} from '../../models/overlay-menu';
+import { NotificationService } from '../../services/notification';
 
 @Component({
   selector: 'app-visit-popup',
@@ -24,6 +25,7 @@ import {OverlayMenuAction} from '../../models/overlay-menu';
 export class VisitPopup {
   readonly tripService = inject(TripService);
   readonly uiService = inject(UiService);
+  readonly notificationService = inject(NotificationService);
   authService = inject(AuthService);
 
   visit = input.required<Visit>();
@@ -235,7 +237,7 @@ export class VisitPopup {
       }
       this.tripService.updateTraverse(movedTraverse.id, { priority: newPriority })
       .subscribe({
-        next: () => console.log('Updated traverse successfully in the server'),
+        next: () => console.log('Updated connection successfully.'),
         error: (err) => console.error('Failed to update traverse...', err)
       });
     }
@@ -251,38 +253,64 @@ export class VisitPopup {
   }
 
   toggleSource() {
-    const confirmMessage = this.isSourceVisit() ? 'Are you sure you want to deselect this visit as the source?' : 'Are you sure you want to set this visit as the source?';
     const newSourceVisitId = this.isSourceVisit() ? null : this.visit().id;
     if (this.tripService.plan()!.sourceVisit() !== null) {
-      if (!confirm(confirmMessage)) return;
+      const confirmMessage = this.isSourceVisit() ? 'Are you sure you want to deselect this visit as the source?' : 'Are you sure you want to set this visit as the source?';
+      this.notificationService.confirmModal(
+        {
+          title: this.isSourceVisit() ? 'Deselect as source' : 'Select as source',
+          message: confirmMessage,
+          confirmLabel: 'Confirm'
+        },
+        () => {
+          this.tripService.updateCurrentPlan({ source_visit_id: newSourceVisitId }).subscribe();
+        }
+      );
+    } else {
+      this.tripService.updateCurrentPlan({ source_visit_id: newSourceVisitId }).subscribe();
     }
-    this.tripService.updateCurrentPlan({ source_visit_id: newSourceVisitId }).subscribe();
   }
 
   delete() {
     const visit = this.visit();
-    if (!confirm('Are you sure you want to remove this visit?')) return;
-
-    this.tripService.removeVisit(visit).subscribe({
-      next: () => {
-        this.uiService.clearSelection();
-        const placeId = visit.place_id;
-        const remainingVisits = Array.from(this.tripService.plan()?.visits().values() ?? [])
-          .filter(v => v.place_id === placeId);
-        if (remainingVisits.length === 0) this.promptRemovePlace(placeId);
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove visit',
+        message: 'Are you sure you want to remove this visit?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeVisit(visit).subscribe({
+          next: () => {
+            this.uiService.clearSelection();
+            const placeId = visit.place_id;
+            const remainingVisits = Array.from(this.tripService.plan()?.visits().values() ?? [])
+              .filter(v => v.place_id === placeId);
+            if (remainingVisits.length === 0) this.promptRemovePlace(placeId);
+          }
+        });
       }
-    });
+    );
   }
 
   private promptRemovePlace(placeId: string) {
     const place = this.tripService.trip()?.places().get(placeId);
     if (!place) return;
-    if (!confirm(`No more visits for ${place.name()}. Would you like to remove the place from your map too?`)) return;
-    this.tripService.removePlace(place)
-    .subscribe({
-      next: () => console.log('Removed place successfully in the server'),
-      error: (err) => console.error('Failed to remove place...', err)
-    });
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove place',
+        message: `No more visits for ${place.name()}. Would you like to remove the place from your map too?`,
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removePlace(place).subscribe({
+          next: () => console.log('Removed place successfully.'),
+          error: (err) => console.error('Failed to remove place...', err)
+        });
+      }
+    );
   }
 
   moveToTop(traverse?: Traverse | null) {
@@ -290,20 +318,29 @@ export class VisitPopup {
     if (!traverse || (topPriorityTraverse.id === traverse.id)) return;
     this.tripService.updateTraverse(traverse.id, { priority: topPriorityTraverse.priority() - 1 })
     .subscribe({
-      next: () => console.log('Updated traverse successfully in the server'),
+      next: () => console.log('Updated traverse successfully.'),
       error: (err) => console.error('Failed to update traverse...', err)
     });
   }
 
   onDeleteTraverse(event: MouseEvent, traverse?: Traverse | null) {
-    event.stopPropagation(); // Prevent the 'moveToTop' click
+    event.stopPropagation();
     if (!traverse) return;
-    if (!confirm('Are you sure you want to remove this route connection?')) return;
-    this.tripService.removeTraverse(traverse)
-    .subscribe({
-      next: () => console.log('Removed traverse successfully in the server'),
-      error: (err) => console.error('Failed to remove traverse...', err)
-    });
+
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove connection',
+        message: 'Are you sure you want to remove this route connection?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeTraverse(traverse).subscribe({
+          next: () => console.log('Removed connection successfully.'),
+          error: (err) => console.error('Failed to remove connection...', err)
+        });
+      }
+    );
   }
 
   includeNextVisit(event: MouseEvent, visit?: Visit | null) {

@@ -7,6 +7,7 @@ import {Route} from '../../../../models/route';
 import {RouteNote, IRouteNote, UpdateRouteNote} from '../../../../models/route-note';
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
+import { NotificationService } from '../../../../services/notification';
 
 
 @Component({
@@ -20,6 +21,7 @@ export class Notes {
   route = input.required<Route>();
   tripService = inject(TripService);
   authService = inject(AuthService);
+  notificationService = inject(NotificationService);
 
   // Track which note description has focus for the URL parser
   // focusedNoteId = signal<string | null>(null);
@@ -110,17 +112,25 @@ export class Notes {
     console.log('Updating note', note, changes);
     // const updated = { ...note, ...changes };
     this.tripService.updateRouteNote(note.id, changes).subscribe({
-      next: () => console.log('Updated route note successfully in the server'),
+      next: () => console.log('Updated route note successfully.'),
       error: (err) => console.error('Failed to update note...', err)
     });
   }
 
   deleteNote(note: RouteNote) {
-    if (confirm('Are you sure you want to delete this note?')) {
-      this.tripService.removeRouteNote(note).subscribe({
-        next: () => console.log('Removed route note successfully in the server'),
-        error: (err) => console.error('Failed to remove note...', err)
-      });
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove note',
+        message: 'Are you sure you want to delete this note?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeRouteNote(note).subscribe({
+          next: () => console.log('Removed route note successfully.'),
+          error: (err) => console.error('Failed to remove note...', err)
+        });
+      }
+    );
   }
 }

@@ -9,6 +9,7 @@ import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
 import {Cost} from '../../../../components/ui/cost/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
+import { NotificationService } from '../../../../services/notification';
 
 
 @Component({
@@ -22,6 +23,7 @@ export class Notes {
   place = input.required<Place>();
   tripService = inject(TripService);
   authService = inject(AuthService);
+  notificationService = inject(NotificationService);
 
   // Track which note description has focus for the URL parser
   isAdding = signal(false);
@@ -62,7 +64,7 @@ export class Notes {
   updateNote(note: PlaceNote, changes: UpdatePlaceNote) {
     console.log('Updating note', note, changes);
     this.tripService.updatePlaceNote(note.id, changes).subscribe({
-      next: () => console.log('Updated place note successfully in the server'),
+      next: () => console.log('Updated place note successfully.'),
       error: (err) => console.error('Failed to update note...', err)
     });
   }
@@ -83,16 +85,23 @@ export class Notes {
   }
 
   deleteNote(note: PlaceNote) {
-    if (confirm('Are you sure you want to delete this note?')) {
-      this.tripService.removePlaceNote(note).subscribe({
-        next: () => console.log('Removed place note successfully in the server'),
-        error: (err) => console.error('Failed to remove note...', err)
-      });
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove note',
+        message: 'Are you sure you want to delete this note?',
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removePlaceNote(note).subscribe({
+          next: () => console.log('Removed place note successfully.'),
+          error: (err) => console.error('Failed to remove note...', err)
+        });
+      }
+    );
   }
 
   removeActual(note: PlaceNote) {
-    console.log('removeActual', note.id);
     const expenses = note.expenses();
     const hasExpenses = expenses.length > 0;
     const total = expenses.reduce((s, e) => s + e.amount(), 0);
@@ -101,10 +110,18 @@ export class Notes {
       ? `This will also remove ${expenses.length} payment(s) totalling €${total}. Are you sure?`
       : `Remove actual cost for this place note?`;
 
-    if (confirm(message)) {
-      this.updateNote(note, { actual_cost: null });
-      expenses.forEach(e => this.deleteExpense(e.id));
-    }
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove actual cost',
+        message: message,
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.updateNote(note, { actual_cost: null });
+        expenses.forEach(e => this.deleteExpense(e.id));
+      }
+    );
   }
 
   addExpense(note: PlaceNote, expense: NewExpense) {

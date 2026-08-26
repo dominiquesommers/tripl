@@ -10,6 +10,7 @@ import {Place} from '../../models/place';
 import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
 import {OverlayMenuAction} from '../../models/overlay-menu';
 import { ROUTE_ICONS } from '../map-handler/config/map-styles.config';
+import { NotificationService } from '../../services/notification';
 
 
 @Component({
@@ -22,6 +23,7 @@ import { ROUTE_ICONS } from '../map-handler/config/map-styles.config';
 export class RoutePopup {
   readonly tripService = inject(TripService);
   readonly uiService = inject(UiService);
+  readonly notificationService = inject(NotificationService);
   authService = inject(AuthService);
 
   route = input.required<Route>();
@@ -97,12 +99,20 @@ export class RoutePopup {
     const traverseLabel = traverseCount === 1 ? 'traverse' : 'traverses';
     // TODO this should also check for traverses from other plans in this trip.
     const message = `Are you sure you want to remove this route? This will also delete ${traverseCount} associated ${traverseLabel}.`;
-    if (!confirm(message)) return;
-
-    this.tripService.removeRoute(route).subscribe({
-      next: () => this.uiService.clearSelection(),
-      error: err => console.error('Failed to remove route', err),
-    });
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove route',
+        message: message,
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeRoute(route).subscribe({
+          next: () => this.uiService.clearSelection(),
+          error: err => console.error('Failed to remove route', err),
+        });
+      }
+    );
   }
 
   readonly reverseRoute = computed(() => {

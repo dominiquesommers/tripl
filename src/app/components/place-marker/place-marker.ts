@@ -89,7 +89,7 @@ export class PlaceMarker {
       const priority = (existingOutgoingTraverses && existingOutgoingTraverses.length) ? existingOutgoingTraverses[0].priority() : 0;
       this.tripService.addTraverse(sourceId, visit.id, state.preselectedRoute.id, priority).pipe(take(1)).subscribe({
         next: (newTraverse) => {
-          console.log('Added traverse successfully in the server');
+          console.log('Added traverse successfully.');
         },
         error: (err) => {
           // Note: If your 'persist' method already shows a toast/alert,

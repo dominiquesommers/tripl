@@ -217,7 +217,7 @@ export class TripBubble {
       this.tripService.updatePlan(movedPlan.id, { priority: newPriority })
       .subscribe({
         next: () => {
-          console.log('Updated plan successfully in the server');
+          console.log('Updated plan successfully.');
         },
         error: (err) => console.error('Failed to update plan...', err)
       });
@@ -232,7 +232,7 @@ export class TripBubble {
       const movedTrip = trips[event.previousIndex];
       const newPriority = this.computeNewPriority(trips, event.previousIndex, event.currentIndex);
       this.tripService.updateTripMember(`${movedTrip.id}|${this.authService.user()?.uid}`, { priority: newPriority }).subscribe({
-        next: () => console.log('Updated trip priority successfully in the server'),
+        next: () => console.log('Updated trip priority successfully.'),
         error: (err) => console.error('Failed to update trip priority...', err)
       });
     }
@@ -246,7 +246,7 @@ export class TripBubble {
       const movedTrip = trips[event.previousIndex];
       const newPriority = this.computeNewPriority(trips, event.previousIndex, event.currentIndex);
       this.tripService.updateTripMember(`${movedTrip.id}|${this.authService.user()?.uid}`, { priority: newPriority }).subscribe({
-        next: () => console.log('Updated trip priority successfully in the server'),
+        next: () => console.log('Updated trip priority successfully.'),
         error: (err) => console.error('Failed to update trip priority...', err)
       });
     }
