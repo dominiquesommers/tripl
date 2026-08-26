@@ -256,10 +256,6 @@ export class TripService {
   }
 
   removeTrip(trip_id: string): Observable<void> {
-    if (trip_id === '352a0f7a-7dfd-469b-ae25-32242ab48741') {
-      return of(); // Safety.
-    }
-
     return this.persist(
       this.apiService.delete<void>(`trips/${trip_id}`),
       () => {
@@ -345,12 +341,6 @@ export class TripService {
   }
 
   removePlan(plan_id: string): Observable<void> {
-    if (plan_id === '6d129252-2b5f-486f-a25d-bbae2abfbd9d') {
-      return of(); // Safety.
-    }
-
-    console.log(this.trips());
-
     const currentTrip = this.trip();
     const currentPlan = this.plan();
 
@@ -381,6 +371,26 @@ export class TripService {
         this.refreshTrips();
       },
       { message: 'Plan successfully removed.' }
+    );
+  }
+
+  duplicatePlan(id: string): Observable<{plan_id: string, name: string} | null> {
+    const currentTrip = this.trip();
+    if (!currentTrip) return of(null);
+    const userTrip = this.trips().find(t => t.id === currentTrip.id);
+    const plan = userTrip?.plans().find(p => p.id === id);
+    if (!plan) return of(null);
+
+    return this.persist(
+      this.apiService.post<any>(`plans/${id}/duplicate`, {}),
+      (saved) => {
+        // Refresh the trips list so the new plan appears in the summary/sidebar
+        this.refreshTrips();
+      },
+      { message: `Plan ${plan.name()} duplicated.` }
+    ).pipe(
+      map(saved => ({ plan_id: saved.id, name: saved.name })),
+      catchError(() => of(null))
     );
   }
 

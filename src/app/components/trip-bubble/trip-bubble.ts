@@ -297,7 +297,7 @@ export class TripBubble {
     // 2. Copy to clipboard
     navigator.clipboard.writeText(urlWithoutPlan).then(() => {
       // 3. Show notification using your notifierService
-      this.notifierService.notify('Trip link copied to clipboard!');
+      this.notifierService.notify('Trip link copied to clipboard! Share this with your friend so they can join.');
     }).catch(err => {
       console.error('Failed to copy URL: ', err);
       this.notifierService.notify('Failed to copy link.', true);
@@ -305,8 +305,6 @@ export class TripBubble {
   }
 
   addTrip() {
-    console.log('add trip');
-
     // TODO add current lat, lng, zoom to the api call.
     this.tripService.addTrip().subscribe({
       next: (new_trip_data) => {
@@ -321,7 +319,6 @@ export class TripBubble {
   }
 
   deleteTrip(trip: UserTrip) {
-    console.log('delete trip');
     this.notifierService.confirmModal(
       {
         title: `Remove trip ${trip.name()}`,
@@ -338,7 +335,6 @@ export class TripBubble {
   }
 
   addPlan() {
-    console.log('add plan');
     const tripId = this.tripService.trip()?.id;
     if (!tripId) return;
 
@@ -358,7 +354,6 @@ export class TripBubble {
   }
 
   deletePlan(plan: UserPlan) {
-    console.log('delete plan');
     this.notifierService.confirmModal(
       {
         title: `Remove plan ${plan.name()}`,
@@ -375,7 +370,18 @@ export class TripBubble {
   }
 
   copyPlan(plan: UserPlan) {
-    console.log('copy plan', plan.id)
-    // this.tripService.duplicatePlan(plan.id);
+    const tripId = this.tripService.trip()?.id;
+    if (!tripId) return;
+
+    this.tripService.duplicatePlan(plan.id).subscribe({
+      next: (new_plan_data) => {
+        if (!new_plan_data) {
+          console.error('Failed to duplicate plan: received null response.');
+          return;
+        }
+        this.router.navigate(['trip', tripId, new_plan_data.plan_id]);
+      },
+      error: (err) => console.error('Failed to duplicate plan:', err)
+    });
   }
 }
