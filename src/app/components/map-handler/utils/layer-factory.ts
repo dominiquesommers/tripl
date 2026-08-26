@@ -137,11 +137,14 @@ export class MapLayerManager {
           'symbol-spacing': 150,
           'icon-image': [
             'match', ['get', 'type'],
-            'driving', ROUTE_ICONS.driving,
-            'boat', ROUTE_ICONS.boat,
-            'bus', ROUTE_ICONS.bus,
-            'train', ROUTE_ICONS.train,
-            ROUTE_ICONS.undefined
+            'driving', ROUTE_ICONS['driving'],
+            'boat', ROUTE_ICONS['boat'],
+            'bus', ROUTE_ICONS['bus'],
+            'train', ROUTE_ICONS['train'],
+            'twowheeler', ROUTE_ICONS['twowheeler'],
+            'taxi', ROUTE_ICONS['taxi'],
+            'other', ROUTE_ICONS['other'],
+            ROUTE_ICONS['undefined']
           ],
           'icon-size': 0.5,
           'icon-allow-overlap': true,
@@ -173,7 +176,12 @@ export class MapLayerManager {
           layout: {
             'symbol-placement': 'line',
             'symbol-spacing': 150,
-            'icon-image': ROUTE_ICONS.flying,
+            'icon-image': [
+              'match', ['get', 'type'],
+              'flying', ROUTE_ICONS['flying'],
+              'walking', ROUTE_ICONS['walking'],
+              ROUTE_ICONS['undefined']
+            ],
             'icon-size': 0.5,
             'icon-allow-overlap': true,
             'icon-rotation-alignment': 'map',

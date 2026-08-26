@@ -8,7 +8,7 @@ import {CostBreakdown, CostComparison} from './cost';
 import {LngLatLike} from 'mapbox-gl';
 import { LAND_MODES } from '../components/map-handler/config/map-styles.config';
 
-export type RouteType = 'flying' | 'driving' | 'bus' | 'train' | 'boat' | 'walking' | 'cycling' | 'taxi' | undefined;
+export type RouteType = 'flying' | 'driving' | 'bus' | 'train' | 'boat' | 'walking' | 'twowheeler' | 'taxi' | 'other' | undefined;
 
 export interface IRoute {
   id: string;

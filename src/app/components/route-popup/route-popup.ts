@@ -9,7 +9,7 @@ import {UiService} from '../../services/ui';
 import {Place} from '../../models/place';
 import {OverlayMenu} from '../ui/overlay-menu/overlay-menu';
 import {OverlayMenuAction} from '../../models/overlay-menu';
-import { ROUTE_ICON_MAP } from '../map-handler/config/map-styles.config';
+import { ROUTE_ICONS } from '../map-handler/config/map-styles.config';
 
 
 @Component({
@@ -155,13 +155,10 @@ export class RoutePopup {
   }
 
   getRouteIcon(type: string | undefined | null): string {
-    if (!type) return 'milestone';
-    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICONS[type as keyof typeof ROUTE_ICONS];
   }
 
   getRouteColor(type: string | undefined | null): string {
-    if (!type) return ROUTE_COLORS.undefined;
-    // @ts-ignore
-    return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+    return ROUTE_COLORS[type as keyof typeof ROUTE_COLORS];
   }
 }

@@ -7,7 +7,7 @@ import {Traverse} from '../../models/traverse';
 import {CommonModule} from '@angular/common';
 import {Route} from '../../models/route';
 import {CdkTextareaAutosize} from '@angular/cdk/text-field';
-import {ROUTE_COLORS, ROUTE_ICON_MAP} from '../map-handler/config/map-styles.config';
+import {ROUTE_COLORS, ROUTE_ICONS} from '../map-handler/config/map-styles.config';
 import {UiService} from '../../services/ui';
 import {EditableBadge} from '../ui/editable-badge/editable-badge';
 import {AuthService} from '../../services/auth';
@@ -151,14 +151,11 @@ export class VisitPopup {
   }
 
   getRouteIcon(type: string | undefined | null): string {
-    if (!type) return 'milestone';
-    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICONS[type as keyof typeof ROUTE_ICONS];
   }
 
   getRouteColor(type: string | undefined | null): string {
-    if (!type) return ROUTE_COLORS.undefined;
-    // @ts-ignore
-    return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+    return ROUTE_COLORS[type as keyof typeof ROUTE_COLORS];
   }
 
   previousLeg = computed(() => {

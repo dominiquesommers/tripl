@@ -11,58 +11,51 @@ export const MAP_STYLES = {
   OFFLINE: 'OFFLINE_STYLE'
 };
 
-
 export const ROUTE_COLORS = {
+  taxi: '#8e44ad',
+  flying: '#f1c40f',
   driving: '#3887be',
+  bus: '#d64550',
+  train: '#7a4a2f',
   boat: '#ff8c42',
-  flying: '#fcba03',
-  bus: '#e55e5e',
-  train: '#ae8a41',
-  undefined: '#707070'
+  walking: '#64748b',
+  twowheeler: '#0f8b8d',
+  other: '#95a5a6',
+  undefined: '#707070',
 } as const;
 
-
-export const ROUTE_ICON_MAP: Record<string, string> = {
-  'flying': 'plane',
-  'bus': 'bus',
-  'train': 'train-front',
-  'driving': 'car',
-  'boat': 'ship',
-};
-
-
-export const ROUTE_ICONS = {
-  driving: 'car-front',
+export const ROUTE_ICONS: Record<string, string> = {
   flying: 'plane',
-  boat: 'ship',
-  bus: 'bus-front',
-  train: 'train-front',
-  undefined: 'icon_marker',
-  icon_marker: 'icon_marker',
-  map_pin: 'map-pin',
-} as const;
-
-export const ROUTE_LUCIDE_ICONS = {
-  flying: 'plane',
+  driving: 'car',
   bus: 'bus',
   train: 'train-front',
-  driving: 'car',
-  boat: 'ship'
+  boat: 'ship',
+  walking: 'footprints',
+  twowheeler: 'bike',
+  taxi: 'car-taxi-front',
+  other: 'mouse-pointer-2',
+  undefined: 'mouse-pointer-2',
+  icon_marker: 'icon_marker',
+  map_pin: 'map-pin',
 } as const;
 
 // 2. Mapbox Style Expressions
 // Moving these here prevents your LayerManager from having "magic strings"
 export const ROUTE_COLOR_EXPRESSION: ExpressionSpecification = [
   'match', ['get', 'type'],
-  'driving', ROUTE_COLORS.driving,
   'flying', ROUTE_COLORS.flying,
-  'boat', ROUTE_COLORS.boat,
+  'driving', ROUTE_COLORS.driving,
   'bus', ROUTE_COLORS.bus,
   'train', ROUTE_COLORS.train,
+  'boat', ROUTE_COLORS.boat,
+  'walking', ROUTE_COLORS.walking,
+  'twowheeler', ROUTE_COLORS.twowheeler,
+  'taxi', ROUTE_COLORS.taxi,
+  'other', ROUTE_COLORS.other,
   ROUTE_COLORS.undefined
 ];
 
-export const LAND_MODES: RouteType[] = ['driving', 'train', 'bus', 'walking', 'cycling', 'taxi'];
+export const LAND_MODES: RouteType[] = ['driving', 'train', 'bus', 'walking', 'twowheeler', 'taxi', 'other'];
 
 export const OFFLINE_BASE_STYLE: StyleSpecification = {
   version: 8,

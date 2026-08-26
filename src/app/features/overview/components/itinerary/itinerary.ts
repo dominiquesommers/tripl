@@ -4,11 +4,7 @@ import { TripService } from '../../../../services/trip';
 import { UiService } from '../../../../services/ui';
 import { LucideAngularModule } from 'lucide-angular';
 import {DatePicker} from '../../../../components/ui/date-picker/date-picker';
-import {
-  ROUTE_COLORS,
-  ROUTE_ICON_MAP,
-  ROUTE_LUCIDE_ICONS
-} from '../../../../components/map-handler/config/map-styles.config';
+import {ROUTE_COLORS, ROUTE_ICONS} from '../../../../components/map-handler/config/map-styles.config';
 import {AuthService} from '../../../../services/auth';
 import {take} from 'rxjs';
 
@@ -23,8 +19,6 @@ export class Itinerary implements AfterViewInit {
   public tripService = inject(TripService);
   public uiService = inject(UiService);
   public authService = inject(AuthService);
-
-  private readonly iconConfig = ROUTE_LUCIDE_ICONS;
 
   @ViewChildren('visitRow') visitRows!: QueryList<ElementRef>;
 
@@ -73,14 +67,11 @@ export class Itinerary implements AfterViewInit {
   }
 
   getRouteIcon(type: string | undefined | null): string {
-    if (!type) return 'milestone';
-    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICONS[type as keyof typeof ROUTE_ICONS];
   }
 
   getRouteColor(type: string | undefined | null): string {
-    if (!type) return ROUTE_COLORS.undefined;
-    // @ts-ignore
-    return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+    return ROUTE_COLORS[type as keyof typeof ROUTE_COLORS];
   }
 
   getBookingStatus(obj: any): string {
@@ -108,9 +99,7 @@ export class Itinerary implements AfterViewInit {
    * Add or modify these based on your data structure.
    */
   getTransportIcon(type: string | undefined): string {
-    if (!type) return 'move-right';
-    const key = type.toLowerCase() as keyof typeof ROUTE_LUCIDE_ICONS;
-    return this.iconConfig[key] || 'move-right';
+    return ROUTE_ICONS[type as keyof typeof ROUTE_ICONS];
   }
 
   // Helper to convert Signal/string/null value to Date object for app-date-picker

@@ -60,8 +60,12 @@
     @for (type of availableTypes; track type) {
       <button class="transport-icon"
         [style.background-color]="getRouteColor(type)"
-        (click)="handleTypeSelection(type)">
+        (click)="handleTypeSelection(type)"
+        [title]="type | titlecase">
         <lucide-icon [name]="getRouteIcon(type)" [size]="16"></lucide-icon>
+        @if (isTypeAlreadyUsed(type)) {
+          <span class="already-used-dot" aria-hidden="true"></span>
+        }
       </button>
     }
   </div>

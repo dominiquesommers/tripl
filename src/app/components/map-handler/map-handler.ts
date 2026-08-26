@@ -11,7 +11,7 @@ import {
   ViewContainerRef, TemplateRef,
   ChangeDetectorRef, ViewChildren, QueryList, computed, HostListener, untracked, viewChildren, viewChild, Injector
 } from '@angular/core';
-import { isPlatformBrowser, CommonModule } from '@angular/common';
+import { isPlatformBrowser, CommonModule, TitleCasePipe } from '@angular/common';
 import {Overlay, OverlayRef} from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { PLATFORM_ID, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -31,7 +31,7 @@ import {MapLayerManager} from './utils/layer-factory';
 import {IconLoader} from './utils/icon-loader';
 import {MapInteractionManager} from './utils/interaction-handler';
 
-import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICON_MAP, ROUTE_COLORS} from './config/map-styles.config';
+import {MAP_STYLES, INITIAL_CENTER, INITIAL_ZOOM, ROUTE_ICONS, ROUTE_COLORS} from './config/map-styles.config';
 import { MapSearch } from '../map-search/map-search';
 import {RoutePopup} from '../route-popup/route-popup';
 import {NotificationService} from '../../services/notification';
@@ -42,7 +42,7 @@ import { NavigationService } from '../../services/navigation';
   selector: 'app-map',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
+  imports: [CommonModule, TitleCasePipe, PlaceMarker, VisitPopup, RoutePopup, PlaceTooltip, RouteTooltip, LucideAngularModule, MapSearch],
   templateUrl: './map-handler.html',
   styleUrls: ['./map-handler.css']
 })
@@ -86,7 +86,12 @@ export class MapHandler implements OnInit, OnDestroy {
   private markers: Map<string, Marker> = new Map();
   private markerElementsById: Map<string, HTMLElement> = new Map();
 
-  readonly availableTypes: RouteType[] = Object.keys(ROUTE_ICON_MAP) as RouteType[];
+  // readonly availableTypes: RouteType[] = Object.keys(ROUTE_ICONS) as RouteType[];
+  readonly availableTypes: RouteType[] = [
+    'taxi', 'bus', 'train',
+    'driving', 'twowheeler', 'walking',
+    'flying', 'boat', 'other'
+  ];
 
   private overlay = inject(Overlay);
   private vcr = inject(ViewContainerRef);
@@ -203,6 +208,26 @@ export class MapHandler implements OnInit, OnDestroy {
     });
 
     this.map.set(map);
+  }
+
+  private readonly usedTypesForCurrentPair = computed<Set<RouteType>>(() => {
+    const source = this.uiService.drawingState().sourceVisit?.place.id;
+    const target = this.uiService.drawingState().targetVisit?.place.id;
+    if (!source || !target) return new Set();
+
+    return new Set(
+      this.tripService.trip()?.routesArray()
+        ?.filter(r =>
+          (r.sourceId === source && r.targetId === target)
+        )
+        .map(r => r.type()) ?? []
+    );
+  });
+
+  isTypeAlreadyUsed(type: RouteType): boolean {
+    const s = this.usedTypesForCurrentPair().has(type);
+    console.log(type, s);
+    return s;
   }
 
   private syncDrawer() {
@@ -383,14 +408,11 @@ export class MapHandler implements OnInit, OnDestroy {
   }
 
   getRouteIcon(type: string | undefined | null): string {
-    if (!type) return 'milestone';
-    return ROUTE_ICON_MAP[type.toLowerCase()] || 'milestone';
+    return ROUTE_ICONS[type as keyof typeof ROUTE_ICONS];
   }
 
   getRouteColor(type: string | undefined | null): string {
-      if (!type) return ROUTE_COLORS.undefined;
-      // @ts-ignore
-      return ROUTE_COLORS[type.toLowerCase()] || ROUTE_COLORS.undefined;
+      return ROUTE_COLORS[type as keyof typeof ROUTE_COLORS];
     }
 
   ngOnDestroy() {
