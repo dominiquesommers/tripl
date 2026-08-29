@@ -45,18 +45,16 @@ export class Bookings {
   }
 
   // ── Estimated costs (editable for daily, read-only for one-time) ──────
-
-  getEstimatedCost(id: string): number {
+  estimatedCostMap = computed<Record<string, number>>(() => {
     const p = this.place();
-    switch (id) {
-      case 'accommodation': return p.accommodation_cost() ?? 0;
-      case 'food':          return p.food_cost() ?? 0;
-      case 'miscellaneous': return p.miscellaneous_cost() ?? 0;
-      case 'activities':    return p.oneTimeCost().estimated.activities;
-      case 'notes':         return p.oneTimeCost().estimated.miscellaneous;
-      default:              return 0;
+    return {
+      accommodation: p.accommodation_cost() ?? 0,
+      food: p.food_cost() ?? 0,
+      miscellaneous: p.miscellaneous_cost() ?? 0,
+      activities: p.oneTimeCost().estimated.activities,
+      notes: p.oneTimeCost().estimated.miscellaneous
     }
-  }
+  });
 
   updateEstimatedCost(id: string, newValue: number) {
     if (['accommodation', 'food', 'miscellaneous'].includes(id)) {
@@ -112,14 +110,11 @@ export class Bookings {
     return total > 0 ? total : null;
   });
 
-  getActualCost(id: string): number | null {
-    switch (id) {
-      case 'accommodation': return this.actualAccommodation();
-      case 'food':          return this.actualFood();
-      case 'miscellaneous': return this.actualMiscellaneous();
-      case 'activities':    return this.actualActivities();
-      case 'notes':         return this.actualNotes();
-      default:              return null;
-    }
-  }
+  actualCostMap = computed<Record<string, number | null>>(() => ({
+    accommodation: this.actualAccommodation(),
+    food: this.actualFood(),
+    miscellaneous: this.actualMiscellaneous(),
+    activities: this.actualActivities(),
+    notes: this.actualNotes()
+  }));
 }

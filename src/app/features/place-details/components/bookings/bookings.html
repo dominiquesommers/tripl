@@ -8,11 +8,11 @@
         <div class="cost-item">
           <span class="cost-label">{{ cat.label }}</span>
           <app-cost-badge
-            [estimatedCost]="getEstimatedCost(cat.id)"
-            [actualCost]="getActualCost(cat.id)"
+            [estimatedCost]="estimatedCostMap()[cat.id]"
+            [actualCost]="actualCostMap()[cat.id]"
             [isPaid]="false"
             [actualReadonly]="true"
-            [hasExpenses]="getActualCost(cat.id) !== null"
+            [hasExpenses]="actualCostMap()[cat.id] !== null"
             [iconName]="cat.icon"
             [iconColor]="getCategoryColor(cat.id)"
             [step]="cat.step"
@@ -32,11 +32,11 @@
         <div class="cost-item">
           <span class="cost-label">{{ cat.label }}</span>
           <app-cost-badge
-            [estimatedCost]="getEstimatedCost(cat.id)"
-            [actualCost]="getActualCost(cat.id)"
+            [estimatedCost]="estimatedCostMap()[cat.id]"
+            [actualCost]="actualCostMap()[cat.id]"
             [isPaid]="false"
             [readonly]="true"
-            [hasExpenses]="getActualCost(cat.id) !== null"
+            [hasExpenses]="actualCostMap()[cat.id] !== null"
             [iconName]="cat.icon"
             [iconColor]="getCategoryColor(cat.id)"
             [step]="cat.step"
