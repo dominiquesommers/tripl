@@ -8,7 +8,7 @@ import { ApiService } from './api';
 import {IUserPlan, IUserTrip, TripMember, TripsDataPackage, UpdateUserTrip, UserPlan, UserTrip} from '../models/user';
 import {ITrip, Trip, TripDataPackage, UpdateTrip} from '../models/trip';
 import {IPlan, PersistentUpdatePlan, Plan, PlanDataPackage, UpdatePlan} from '../models/plan';
-import {Country, ICountry} from '../models/country';
+import {Country, ICountry, UpdateCountry} from '../models/country';
 import {ISeason, Season} from '../models/season';
 import {Place, NewPlace, UpdatePlace, IPlace} from '../models/place';
 import {IVisit, NewVisit, UpdateVisit, Visit} from '../models/visit';
@@ -430,6 +430,20 @@ export class TripService {
     );
   }
 
+  // ── COUNTRIES ─────────────────────────────────────────────────────────────
+
+  updateCountry(id: string, updates: UpdateCountry): Observable<ICountry | null> {
+    const country = this.trip()?.countries().get(id);
+    if (!country) return of(null);
+
+    return this.patchAndPersist<ICountry, UpdateCountry>(
+      `trip_countries/${this.trip()!.id}|${id}`,
+      updates,
+      () => country.update(updates),
+      { message: 'Country updated.' }
+    );
+  }
+
   // ── PLACES ────────────────────────────────────────────────────────────────
 
   addPlace(placeData: { name: string, lat: number, lng: number, countryName: string }): Observable<IPlace | null> {
@@ -447,8 +461,7 @@ export class TripService {
           lat: placeData.lng,
           lng: placeData.lat,
           countryName: placeData.countryName,
-          trip_id: currentTrip.id,
-          accommodation_cost: 0, food_cost: 0, miscellaneous_cost: 0
+          trip_id: currentTrip.id
         };
         if (environment.useMock && country.id) {
           newPlace.country_id = country.id;

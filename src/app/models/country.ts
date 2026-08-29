@@ -1,14 +1,26 @@
-import {computed} from '@angular/core';
+import {computed, signal} from '@angular/core';
 import {TripService} from '../services/trip';
 import {CostBreakdown, CostComparison} from './cost';
 import {COUNTRY_ABBREVIATIONS, COUNTRY_FLAGS} from '../components/map-handler/config/countries.config';
 
-export interface ICountry { id: string; name: string; }
-export class Country implements ICountry {
+export interface ICountry {
+  id: string;
+  name: string;
+  accommodation_cost?: number | null;
+  food_cost?: number | null;
+  miscellaneous_cost?: number | null;
+}
+
+export type UpdateCountry = Partial<Pick<ICountry, 'accommodation_cost' | 'food_cost' | 'miscellaneous_cost'>>;
+
+export class Country {
   id: string;
   name: string;
   abbreviation: string;
   flag: string;
+  readonly accommodation_cost = signal<number | null>(null);
+  readonly food_cost = signal<number | null>(null);
+  readonly miscellaneous_cost = signal<number | null>(null);
 
   readonly notes = computed(() =>
     [...this.tripService.trip()?.countryNotes().values() ?? []].filter(a => a.country_id === this.id) ?? []
@@ -144,5 +156,12 @@ export class Country implements ICountry {
     this.name = data.name;
     this.abbreviation = COUNTRY_ABBREVIATIONS[this.name];
     this.flag = COUNTRY_FLAGS[this.name];
+    this.update(data);
+  }
+
+  update(data: Partial<ICountry>) {
+    if ('accommodation_cost' in data) this.accommodation_cost.set(data.accommodation_cost ?? null);
+    if ('food_cost' in data) this.food_cost.set(data.food_cost ?? null);
+    if ('miscellaneous_cost' in data) this.miscellaneous_cost.set(data.miscellaneous_cost ?? null);
   }
 }

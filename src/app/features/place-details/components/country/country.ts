@@ -8,6 +8,8 @@ import {Country as CountryModel} from '../../../../models/country';
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
 import {Cost} from '../../../../components/ui/cost/cost';
+import { CostBadge } from '../../../../components/ui/cost-badge/cost-badge';
+import { CostBreakdown } from '../../../../models/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import { NotificationService } from '../../../../services/notification';
 
@@ -15,7 +17,7 @@ import { NotificationService } from '../../../../services/notification';
 @Component({
   selector: 'app-country',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost, CostBadge],
   templateUrl: './country.html',
   styleUrl: './country.css'
 })
@@ -27,6 +29,20 @@ export class Country {
 
   // Track which note description has focus for the URL parser
   isAdding = signal(false);
+
+  // ── Category config ───────────────────────────────────────
+
+  dailyCategories = [
+    { id: 'accommodation', label: 'Accommodation', icon: 'hotel',        step: 10 },
+    { id: 'food',          label: 'Food & Drink',  icon: 'utensils',     step: 5  },
+    { id: 'miscellaneous', label: 'Miscellaneous', icon: 'shopping-bag', step: 5  },
+  ];
+
+  oneTimeCategories = [
+    { id: 'activities', label: 'Activities', icon: 'map-pin',         step: 10 },
+    { id: 'notes',      label: 'Notes',      icon: 'notebook-pen',    step: 10 },
+    { id: 'transport',  label: 'Transport',  icon: 'mouse-pointer-2', step: 10 },
+  ];
 
   notes = computed<CountryNote[]>(() => {
     return this.country().notes();
@@ -43,6 +59,105 @@ export class Country {
         });
       }
     });
+  }
+
+  getCategoryColor(id: string): string {
+    switch (id) {
+      case 'accommodation': return '#5dade2';
+      case 'food':          return '#58d68d';
+      case 'miscellaneous': return '#f39c12';
+      case 'activities':    return '#a78bfa';
+      case 'notes':         return '#f87171';
+      default:              return '#8e8e93';
+    }
+  }
+
+  // ── Estimated costs (editable for daily, read-only for one-time) ──────
+  estimatedCostMap = computed<Record<string, number>>(() => {
+    const c = this.country();
+    const ps = c.places();
+    return {
+      accommodation: c.accommodation_cost() ?? 0,
+      food: c.food_cost() ?? 0,
+      miscellaneous: c.miscellaneous_cost() ?? 0,
+      activities: ps.reduce((sum, p) => sum + (p.oneTimeCost()?.estimated?.activities ?? 0), 0),
+      notes: ps.reduce((sum, p) => sum + (p.oneTimeCost()?.estimated?.miscellaneous ?? 0), 0),
+      transport: 1 // TODO compute sum of estimated route costs correctly.
+    }
+  });
+
+  // ── Aggregates from visits ────────────────────────────────
+
+  // Total planned nights across all visits to this country
+  totalNights = computed(() =>
+    this.country().places().reduce(
+      (total, p) => total + p.visits().filter(v => v.inItinerary()).reduce((sum, v) => sum + v.nights(), 0), 
+      0
+    )
+  );
+
+  // Sum of actual costs across all visits (each visit blends
+  // real expenses for elapsed nights + estimates for remaining)
+  visitsCostActual = computed(() =>
+    this.country().places().reduce(
+      (total, p) => total.add(p.visits().reduce(
+        (sum, v) => sum.add(v.inItinerary() ? v.cost().actual : CostBreakdown.empty()),
+        CostBreakdown.empty()
+      )),
+      CostBreakdown.empty()
+    )
+  );
+
+  // ── Daily actual costs (per night average) ────────────────
+
+  actualAccommodation = computed(() => {
+    const total = this.visitsCostActual().accommodation;
+    return total > 0 ? Math.round(total / this.totalNights()) : null;
+  });
+
+  actualFood = computed(() => {
+    const total = this.visitsCostActual().food;
+    return total > 0 ? Math.round(total / this.totalNights()) : null;
+  });
+
+  actualMiscellaneous = computed(() => {
+    const total = this.visitsCostActual().miscellaneous;
+    return total > 0 ? Math.round(total / this.totalNights()) : null;
+  });
+
+  // ── One-time actual costs (totals) ────────────────────────
+
+  actualActivities = computed(() => {
+    const total = this.country().oneTimeCost().actual.activities;
+    return total > 0 ? total : null;
+  });
+
+  actualNotes = computed(() => {
+    const total = this.country().oneTimeCost().actual.miscellaneous;
+    return total > 0 ? total : null;
+  });
+
+  actualTransport = computed(() => {
+    return this.country().routes().reduce((sum, r) => sum + r.cost().actual.transport, 0);
+  });
+
+  actualCostMap = computed<Record<string, number | null>>(() => {
+    return {
+      accommodation: this.actualAccommodation(),
+      food: this.actualFood(),
+      miscellaneous: this.actualMiscellaneous(),
+      activities: this.actualActivities(),
+      notes: this.actualNotes(),
+      transport: this.actualTransport(),
+    }
+  });
+
+  updateEstimatedCost(id: string, newValue: number) {
+    if (['accommodation', 'food', 'miscellaneous'].includes(id)) {
+      this.tripService.updateCountry(this.country().id, {
+        [`${id}_cost`]: newValue
+      }).subscribe();
+    }
   }
 
   onAddNote(text: string) {
