@@ -1,3 +1,54 @@
 <div class="bookings-container">
+  <section class="cost-section">
+    <h3 class="section-title">Costs</h3>
+    <div class="costs-grid daily-grid">
+      <div class="cost-item">
+        <span class="cost-label">Regular</span>
+        <app-cost-badge
+          [estimatedCost]="route().estimated_cost() ?? 0"
+          [actualCost]="actualCost()"
+          [isPaid]="false"
+          [actualReadonly]="true"
+          [hasExpenses]="actualCost() !== null"
+          [iconName]="routeIcon()"
+          [iconColor]="routeColor()"
+          [step]="step()"
+          [min]="0"
+          (saveEstimated)="updateRoute(route(), {estimated_cost: $event})">
+        </app-cost-badge>
+      </div>
+      <div class="cost-item">
+        <span class="cost-label">Daily tour</span>
+        <app-cost-badge
+          [estimatedCost]="route().estimated_cost() ?? 0"
+          [actualCost]="actualCost()"
+          [isPaid]="false"
+          [actualReadonly]="true"
+          [hasExpenses]="actualCost() !== null"
+          [iconName]="routeIcon()"
+          [iconColor]="routeColor()"
+          [step]="step()"
+          [min]="0"
+          (saveEstimated)="updateRoute(route(), {estimated_cost: $event})">
+        </app-cost-badge>
+      </div>
+      <div class="cost-item">
+        <span class="cost-label">Total tour</span>
+        <app-cost-badge
+          [estimatedCost]="route().estimated_cost() ?? 0"
+          [actualCost]="actualCost()"
+          [isPaid]="false"
+          [actualReadonly]="true"
+          [hasExpenses]="actualCost() !== null"
+          [iconName]="routeIcon()"
+          [iconColor]="routeColor()"
+          [step]="step()"
+          [min]="0"
+          (saveEstimated)="updateRoute(route(), {estimated_cost: $event})">
+        </app-cost-badge>
+      </div>
+    </div>
+  </section>
+
   <app-route-bookings [route]="route()"></app-route-bookings>
 </div>

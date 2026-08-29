@@ -34,8 +34,6 @@
               [readonly]="authService.isPublicMode()"
               postfix="h"
               (save)="updateRoute(route(), {duration: $event})">
-<!--              iconName="clock"-->
-<!--              iconColor="#60a5fa"-->
             </app-editable-badge>
 
             <app-editable-badge
@@ -44,22 +42,7 @@
               postfix="km"
               [step]="10"
               (save)="updateRoute(route(), {distance: $event})">
-<!--              [isLargeValue]="true"-->
-<!--              iconName="map"-->
-<!--              iconColor="#a855f7"-->
             </app-editable-badge>
-
-            @if (authService.canEdit()) {
-              <app-editable-badge
-                [value]="route().estimated_cost()"
-                prefix="€"
-                [step]="10"
-                [decimalPlaces]="2"
-                (save)="updateRoute(route(), {estimated_cost: $event})">
-  <!--            iconName="euro"-->
-  <!--            iconColor="#4ade80"-->
-              </app-editable-badge>
-            }
 
             @if (authService.canEdit()) {
               <app-overlay-menu class="menu-trigger" [actions]="routeMenuActions()" triggerTooltip="Route options" />

@@ -3,19 +3,56 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TripService } from '../../../../services/trip';
 import { LucideAngularModule } from 'lucide-angular';
-import { Route } from '../../../../models/route';
+import { CostBadge } from '../../../../components/ui/cost-badge/cost-badge';
+import { CostBreakdown } from '../../../../models/cost';
+import { Route, UpdateRoute } from '../../../../models/route';
 import { RouteBookings } from './route-bookings/route-bookings'
+import { ROUTE_COLORS, ROUTE_ICONS } from '../../../../components/map-handler/config/map-styles.config';
 
 @Component({
   selector: 'app-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RouteBookings],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RouteBookings, CostBadge],
   templateUrl: './bookings.html',
   styleUrl: './bookings.css'
 })
 export class Bookings {
   public tripService = inject(TripService);
   route = input.required<Route>();
+
+  updateRoute(route: Route, patch: UpdateRoute) {
+    this.tripService.updateRoute(route.id, patch).subscribe();
+  }
+
+  actualCost = computed(() => {
+    const traverses = this.route().traverses().filter(t => t.inItinerary());
+    const sum = traverses.reduce(
+      (total, t) => total.add(t.cost_().actual),
+      CostBreakdown.empty()
+    );
+    return sum.transport > 0 ? Math.round(sum.transport / traverses.length) : null;
+  });
+
+  routeIcon = computed(() => ROUTE_ICONS[this.route().type() as keyof typeof ROUTE_ICONS]);
+
+  routeColor = computed(() => {
+    return '#FFFFFF';
+    // ROUTE_COLORS[this.route().type() as keyof typeof ROUTE_COLORS])
+  });
+
+  step = computed(() => {
+    return {
+      taxi: 10,
+      flying: 50,
+      driving: 20,
+      bus: 10,
+      train: 10,
+      boat: 10,
+      walking: 10,
+      twowheeler: 5,
+      other: 10,
+    }[this.route().type() as string] ?? 10;
+  });
 
   // ── Aggregates from traverses ────────────────────────────────
   // TODO
