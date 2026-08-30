@@ -12,6 +12,8 @@ export interface Warning {
   icon:     string;
   title:    string;
   detail:   string;
+  placeId?: string;
+  routeId?: string;
 }
 
 // ── Thresholds ────────────────────────────────────────────
@@ -50,6 +52,7 @@ export class WarningsService {
           icon:     'shield',
           title:    `Cancellation deadline in ${daysUntil}d`,
           detail:   `${place?.name() ?? 'Booking'} — free cancellation until ${this.formatDate(b.cancel_before()!)}`,
+          placeId: place?.id
         });
       }
     }
@@ -77,6 +80,7 @@ export class WarningsService {
         icon:     'credit-card',
         title:    `Payment due in ${daysUntil}d`,
         detail:   `${place?.name() ?? 'Booking'} — €${outstanding.toFixed(0)} outstanding by ${this.formatDate(b.pay_by()!)}`,
+        placeId: place?.id
       });
     }
 
@@ -101,6 +105,7 @@ export class WarningsService {
         icon:     'banknote',
         title:    'Booking not paid',
         detail:   `${place?.name() ?? 'Booking'} — €${b.final_price()} due, no payments recorded`,
+        placeId: place?.id
       });
     }
 
@@ -119,6 +124,7 @@ export class WarningsService {
             icon:     'triangle-alert',
             title:    'Double booking detected',
             detail:   `${placeA?.name() ?? 'Booking'} and ${placeB?.name() ?? 'Booking'} have overlapping dates`,
+            placeId: placeA?.id
           });
         }
       }
@@ -137,6 +143,7 @@ export class WarningsService {
         icon:     'help-circle',
         title:    `Tentative booking: cancel by ${this.formatDate(b.cancel_before()!)}`,
         detail:   `${place?.name() ?? 'Booking'} — decide in ${daysUntil}d or lose free cancellation`,
+        placeId: place?.id
       });
     }
 
@@ -170,10 +177,51 @@ export class WarningsService {
             icon:     'calendar-x',
             title:    'Booking dates don\'t match itinerary',
             detail:   `${place.name()} — booking ${this.formatDate(b.check_in()!)}–${this.formatDate(b.check_out()!)} vs itinerary ${this.formatDate(this.toISODate(firstEntry))}–${this.formatDate(this.toISODate(lastExit))}`,
+            placeId: place.id
           });
         }
       }
     }
+
+    // Iterate through all places in the trip
+    trip.placesArray().forEach(place => {
+      const visits = place.visits();
+      
+      // If the place is in the itinerary, check its expenses
+      if (place.inItinerary() && visits.length > 0) {
+        // Gather all expenses for this place (food + misc, or general expenses)
+        const allExpenses = [
+          ...place.foodExpenses(),
+          ...place.miscExpenses()
+        ];
+
+        allExpenses.forEach(expense => {
+          if (!expense.date) return;
+          const expenseDate = new Date(expense.date());
+
+          // Check if the expense date falls within ANY of the place's visit date intervals
+          const isWithinAVisit = visits.some(visit => {
+            const entry = visit.entryDate();
+            const exit = visit.exitDate();
+            if (!entry || !exit) return false;
+
+            // Assuming a visit range is inclusive of entry and exit dates
+            return expenseDate >= entry && expenseDate <= exit;
+          });
+
+          if (!isWithinAVisit) {
+            warnings.push({
+              id: `expense-mismatch-${expense.id}`,
+              title: `Expense Outside Visit Dates`,
+              detail: `Expense at "${place.name()}" on ${expense.date()} does not overlap with any of its planned visits.`,
+              severity: 'warn',
+              icon: 'calendar-x',
+              placeId: place.id
+            });
+          }
+        });
+      }
+    });
 
     // ── Sort: errors first, then warns, then info ──────────
     const order: Record<WarningSeverity, number> = { error: 0, warn: 1, info: 2 };

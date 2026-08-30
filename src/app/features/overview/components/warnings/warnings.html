@@ -8,7 +8,11 @@
 
     <div class="warnings-list">
       @for (w of warningsService.warnings(); track w.id) {
-        <div class="warning-row" [class]="'severity-' + w.severity">
+        <div
+          class="warning-row"
+          [class.clickable]="w.placeId || w.routeId"
+          [class]="'severity-' + w.severity"
+          (click)="onWarningClick(w)">
           <lucide-icon
             [name]="w.icon"
             [size]="14"

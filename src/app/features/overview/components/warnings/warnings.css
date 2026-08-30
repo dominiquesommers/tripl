@@ -40,6 +40,13 @@
   border: 1px solid transparent;
   transition: background 0.15s ease;
 }
+.warning-row.clickable { 
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.warning-row.clickable:hover {
+  background-color: rgba(0,0,0,0.03);
+}
 
 .warning-row.severity-error {
   background: rgba(239, 68, 68, 0.08);
