@@ -75,14 +75,16 @@ export class Country {
   // ── Estimated costs (editable for daily, read-only for one-time) ──────
   estimatedCostMap = computed<Record<string, number>>(() => {
     const c = this.country();
-    const ps = c.places();
+    const ps = c.places().filter(p => p.inItinerary);
+    const cost = c.cost();
+    const notes = ps.reduce((sum, p) => sum + p.oneTimeCost().estimated.miscellaneous, 0) + c.oneTimeCost().estimated.miscellaneous;
     return {
       accommodation: c.accommodation_cost() ?? 0,
       food: c.food_cost() ?? 0,
       miscellaneous: c.miscellaneous_cost() ?? 0,
-      activities: ps.reduce((sum, p) => sum + (p.oneTimeCost()?.estimated?.activities ?? 0), 0),
-      notes: ps.reduce((sum, p) => sum + (p.oneTimeCost()?.estimated?.miscellaneous ?? 0), 0),
-      transport: 1 // TODO compute sum of estimated route costs correctly.
+      activities: this.country().cost().estimated.activities,
+      notes: notes,
+      transport: cost.estimated.transport
     }
   });
 
@@ -108,47 +110,20 @@ export class Country {
     )
   );
 
-  // ── Daily actual costs (per night average) ────────────────
-
-  actualAccommodation = computed(() => {
-    const total = this.visitsCostActual().accommodation;
-    return total > 0 ? Math.round(total / this.totalNights()) : null;
-  });
-
-  actualFood = computed(() => {
-    const total = this.visitsCostActual().food;
-    return total > 0 ? Math.round(total / this.totalNights()) : null;
-  });
-
-  actualMiscellaneous = computed(() => {
-    const total = this.visitsCostActual().miscellaneous;
-    return total > 0 ? Math.round(total / this.totalNights()) : null;
-  });
-
-  // ── One-time actual costs (totals) ────────────────────────
-
-  actualActivities = computed(() => {
-    const total = this.country().oneTimeCost().actual.activities;
-    return total > 0 ? total : null;
-  });
-
-  actualNotes = computed(() => {
-    const total = this.country().oneTimeCost().actual.miscellaneous;
-    return total > 0 ? total : null;
-  });
-
-  actualTransport = computed(() => {
-    return this.country().routes().reduce((sum, r) => sum + r.cost().actual.transport, 0);
-  });
-
   actualCostMap = computed<Record<string, number | null>>(() => {
+    const c = this.country();
+    const ps = c.places().filter(p => p.inItinerary);
+    const cost = c.cost();
+    const nights = this.totalNights();
+    const miscelaneous = this.visitsCostActual().miscellaneous;
+    const notes = ps.reduce((sum, p) => sum + p.oneTimeCost().actual.miscellaneous, 0) + c.oneTimeCost().actual.miscellaneous;
     return {
-      accommodation: this.actualAccommodation(),
-      food: this.actualFood(),
-      miscellaneous: this.actualMiscellaneous(),
-      activities: this.actualActivities(),
-      notes: this.actualNotes(),
-      transport: this.actualTransport(),
+      accommodation: (cost.actual.accommodation > 0 && nights > 0) ? cost.actual.accommodation / nights : null,
+      food: (cost.actual.food > 0 && nights > 0) ? cost.actual.food / nights : null,
+      miscellaneous: (miscelaneous > 0 && nights > 0) ? miscelaneous / nights : null,
+      activities: cost.actual.activities > 0 ? cost.actual.activities : null,
+      notes: notes > 0 ? notes : null,
+      transport: cost.actual.transport > 0 ? cost.actual.transport : null
     }
   });
 
