@@ -32,7 +32,7 @@ export class PlacePanel {
       {
         id: 'activities',
         label: 'Activities',
-        icon: 'map-pin',
+        icon: 'heart',
         getValue: () => this.visit().place.activities().length
       },
       {
