@@ -78,12 +78,12 @@
     }
     @if (!readonly()) {
       <div class="stepper-controls">
-        <button class="step-btn" (click)="cost === null ? adjustEstimate(1) : adjustActual(1)" type="button">
+        <button class="step-btn" (click)="(cost === null || actualReadonly()) ? adjustEstimate(1) : adjustActual(1)" type="button">
           <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
         </button>
         <button class="step-btn"
                 [style.visibility]="(cost ?? estimatedCost()) > min() ? 'visible' : 'hidden'"
-                (click)="cost === null ? adjustEstimate(-1) : adjustActual(-1)" type="button">
+                (click)="(cost === null || actualReadonly()) ? adjustEstimate(-1) : adjustActual(-1)" type="button">
           <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
         </button>
       </div>
