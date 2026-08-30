@@ -44,6 +44,8 @@ export class Route {
   actual_cost = signal<number | null>(null);
   paid = signal<boolean>(false);
 
+  readonly name = computed(() => `${this.source.name()} → ${this.target.name()}`);
+
   readonly traverses = computed(() =>
     this.tripService.plan()?.traversesArray().filter(t => t.route_id === this.id) ?? []
   );

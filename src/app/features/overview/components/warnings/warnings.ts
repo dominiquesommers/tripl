@@ -19,21 +19,20 @@ export class Warnings {
   warningsService = inject(WarningsService);
 
   onWarningClick(warning: Warning): void {
-    if (!warning.placeId) return;
-
-    // Find the place/route using the placeId/routeId attached to the warning
     const trip = this.tripService.trip();
-    const place = trip?.placesArray().find(p => p.id === warning.placeId);
-    const route = trip?.routesArray().find(r => r.id === warning.routeId);
-
-    if (place && place.visits().length > 0) {
-      this.uiService.triggerFlyTo({center: [place.lng, place.lat]});
-      this.uiService.selectVisit(place.visits()[0].id);
-    } else if (route) {
-      const places = [route?.source, route?.target];
-      if (!places[0] || !places[1]) return;
-      this.uiService.triggerFlyTo({center: route.middlePoint()});
-      this.uiService.selectRoute(route.id);
+    if (!trip) return;
+    if (warning.placeId) {
+      const place = trip?.places().get(warning.placeId);
+      if (place && place.visits().length > 0) {
+        this.uiService.triggerFlyTo({center: [place.lng, place.lat]});
+        this.uiService.selectVisit(place.visits()[0].id);
+      }
+    } else if (warning.routeId) {
+      const route = trip?.routes().get(warning.routeId);
+      if (route) {
+        this.uiService.triggerFlyTo({center: route.middlePoint()});
+        this.uiService.selectRoute(route.id);
+      }
     }
   }
 
