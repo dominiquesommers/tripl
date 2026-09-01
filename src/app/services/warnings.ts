@@ -161,13 +161,13 @@ export class WarningsService {
         const a = confirmedRouteBookings[i];
         const b = confirmedRouteBookings[j];
         if (this.routeBookingsOverlap(a, b)) {
-          const routeA = places.get(a.route_id);
-          const routeB = places.get(b.route_id);
+          const routeA = routes.get(a.route_id);
+          const routeB = routes.get(b.route_id);
           warnings.push({
             id:       `overlap-${a.id}-${b.id}`,
             severity: 'error',
             icon:     'triangle-alert',
-            title:    'Double booking detected',
+            title:    'Double route booking detected',
             detail:   `${routeA?.name() ?? 'Booking'} and ${routeB?.name() ?? 'Booking'} have overlapping dates`,
             routeId: routeA?.id
           });
