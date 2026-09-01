@@ -88,7 +88,27 @@ export class Route {
     const asIsError = distSq(first, sourcePoint) + distSq(last, targetPoint);
     const swappedError = distSq([first[1], first[0]], sourcePoint) + distSq([last[1], last[0]], targetPoint);
 
-    return swappedError < asIsError ? points.map(([a, b]): [number, number] => [b, a]) : points;
+    if (swappedError < asIsError) {
+      points = points.map(([a, b]): [number, number] => [b, a]);
+    }
+
+    // Re-evaluate first and last points after potential swap
+    const normalizedFirst = points[0];
+    const normalizedLast = points[points.length - 1];
+
+    // Small threshold to check if it already starts/ends close to source/target
+    // (prevents adding duplicate points if they are already practically identical)
+    const threshold = 0.0001;
+
+    if (distSq(normalizedFirst, sourcePoint) > threshold) {
+      points.unshift(sourcePoint);
+    }
+
+    if (distSq(normalizedLast, targetPoint) > threshold) {
+      points.push(targetPoint);
+    }
+
+    return points;
   });
 
   readonly routeSpline = computed((): LngLat[][] => {
