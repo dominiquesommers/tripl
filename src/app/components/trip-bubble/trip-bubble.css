@@ -365,12 +365,6 @@
   max-width: 180px;
   overflow: hidden;
   grid-auto-columns: minmax(0, auto); /* Allows the grid track to shrink properly */
-
-  /* Move your pill styling here so the background shrinks/grows with the grid! */
-  background: rgba(255, 255, 255, 0.1);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  padding: 2px 4px;
 }
 
 .input-sizer {
@@ -380,6 +374,7 @@
   font-family: inherit;  /* keep, in case anything upstream sets a page font */
   visibility: hidden;
   white-space: pre;
+  padding: 2px 4px;
 }
 
 .edit-input-transparent {
@@ -393,6 +388,7 @@
   font-weight: 500;
   font-family: inherit;
   outline: none;
+  padding: 2px 4px;
 
   text-overflow: ellipsis;
   white-space: nowrap;

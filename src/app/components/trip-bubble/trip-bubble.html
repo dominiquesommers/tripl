@@ -52,12 +52,14 @@
 
                 @if (isOwner(t)) {
                   <div class="input-wrapper" (click)="$event.stopPropagation()">
-                    <span class="input-sizer">{{ t.name() }}</span>
+                    <span class="input-sizer" #tripSizer>{{ t.name() }}</span>
                     <input type="text" #tripInput class="edit-input-transparent"
                            [value]="t.name()"
                            placeholder="Untitled trip"
-                           (change)="renameTrip(t, tripInput.value)"
-                           (keydown.enter)="tripInput.blur()"/>
+                           [readonly]="authService.isPublicMode()"
+                           (input)="tripSizer.textContent = tripInput.value || tripInput.placeholder"
+                           (change)="canEdit() && renameTrip(t, tripInput.value)"
+                           (keydown.enter)="canEdit() && tripInput.blur()"/>
                   </div>
                 } @else {
                   <span class="destination">{{ displayTripName(t) }}</span>
@@ -129,12 +131,13 @@
               }
 
               <div class="input-wrapper" (click)="$event.stopPropagation()">
-                <span class="input-sizer">{{ p.name() }}</span>
-
+                <span class="input-sizer" #planSizer>{{ p.name() }}</span>
                 <input type="text" #planInput
                        class="edit-input-transparent"
                        [value]="p.name()"
+                       placeholder="Untitled plan"
                        [readonly]="authService.isPublicMode()"
+                       (input)="planSizer.textContent = planInput.value || planInput.placeholder"
                        (change)="canEdit() && renamePlan(p, planInput.value)"
                        (keydown.enter)="canEdit() && planInput.blur()"/>
               </div>
