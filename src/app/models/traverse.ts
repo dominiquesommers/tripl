@@ -129,12 +129,8 @@ export class Traverse {
     const baseEst = r.estimated_cost() ?? 0;
     const allBookings = this.allOverlappingBookings();
     const directBookings = allBookings.filter(b => b.route_id === this.route_id);
-    if (directBookings.length > 1) {
-      console.warn('Multiple bookings found for a single tour/route-segment, not sure how to handle this yet.');
-      // TODO think about blocking this in the UI altogether.
-    }
-    const actualPrice = (directBookings.length === 1) ? directBookings[0].final_price()! : 0;
-    const projPrice = (directBookings.length === 1) ? directBookings[0].final_price()! : r.estimated_cost() ?? 0;
+    const actualPrice = directBookings.reduce((sum, b) => sum + (b.final_price() ?? 0), 0);
+    const projPrice = directBookings.length > 0 ? actualPrice : (r.estimated_cost() ?? 0);
 
     let est = CostBreakdown.empty();
     let act = CostBreakdown.empty();
@@ -145,22 +141,19 @@ export class Traverse {
       const dailyRate = rentalSource.route.estimated_cost() ?? 0;
       const coveredVisitNights = (rentalSource.id === this.id) ? 1 : (this.source.nights() || 0);
       const total = dailyRate * (coveredVisitNights + nights);
-      let projTotal = total;
 
       const rentalBookings = allBookings.filter(b => b.route_id === rentalSource.route_id);
       let actualTotal = 0;
-      if (rentalBookings.length === 1) {
-        const b = rentalBookings[0];
+      for (const b of rentalBookings) {
         if (b.departure_at() && b.arrival_at() && b.final_price() != null) {
-          const numberOfDays = Math.max(0, Math.floor((new Date(b.arrival_at()!).getTime() - new Date(b.departure_at()!).getTime()) / (1000 * 60 * 60 * 24))) + 1;
+          const depDate = Traverse.toUTCDateOnly(b.departure_at()!);
+          const arrDate = Traverse.toUTCDateOnly(b.arrival_at()!);
+          const numberOfDays = Math.max(0, Math.floor((arrDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))) + 1;
           const actualDailyRate = b.final_price()! / numberOfDays;
-          actualTotal = actualDailyRate * (coveredVisitNights + nights);
-          projTotal = actualTotal;
+          actualTotal += actualDailyRate * (coveredVisitNights + nights);
         }
-      } else if (rentalBookings.length > 1) {
-        console.warn('Multiple bookings found for a single tour, not sure how to handle this yet.');
-        // TODO think about blocking this in the UI altogether.
       }
+      const projTotal = rentalBookings.length > 0 ? actualTotal : total;
 
       if (rentalSource.includes_accommodation()) {
         est.transport += total * 0.5;
@@ -204,6 +197,10 @@ export class Traverse {
     return new CostComparison(est, act, proj);
   });
 
+  private static toUTCDateOnly(dateStr: string): Date {
+    return new Date(dateStr.split(/[T ]/)[0] + 'T00:00:00Z');
+  }
+
   // Bookings specifically relevant to this leg's active route type (for status, unbooked badges, paid/pending checks)
   readonly overlappingBookings = computed(() => {
     const entry = this.entryDate();
@@ -217,8 +214,8 @@ export class Traverse {
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
           if (b.route_id !== targetRouteId || !b.departure_at() || !b.arrival_at()) return false;
-          const dep_date = new Date(b.departure_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
-          const arr_date = new Date(b.arrival_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
+          const dep_date = Traverse.toUTCDateOnly(b.departure_at()!);
+          const arr_date = Traverse.toUTCDateOnly(b.arrival_at()!);
           return b.final_price() != null && dep_date <= exit && arr_date >= entry;
         });
   });
@@ -239,8 +236,8 @@ export class Traverse {
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
           if (!relevantRouteIds.has(b.route_id) || !b.departure_at() || !b.arrival_at()) return false;
-          const dep_date = new Date(b.departure_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
-          const arr_date = new Date(b.arrival_at()!.split(/[T ]/)[0] + 'T00:00:00Z');
+          const dep_date = Traverse.toUTCDateOnly(b.departure_at()!);
+          const arr_date = Traverse.toUTCDateOnly(b.arrival_at()!);
           return dep_date <= exit && arr_date >= entry;
         });
   });
