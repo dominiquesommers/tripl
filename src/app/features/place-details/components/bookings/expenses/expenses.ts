@@ -8,6 +8,7 @@ import { Expense, NewExpense, UpdateExpense } from '../../../../../models/expens
 import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
 import {EditableBadge} from '../../../../../components/ui/editable-badge/editable-badge';
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
+import { formatDate } from '../../../../../utils/dates';
 
 
 type ExpenseCategory = 'food' | 'miscellaneous';
@@ -95,16 +96,6 @@ export class Expenses {
 
   categoryColor(cat: string | null): string {
     return cat === 'food' ? '#58d68d' : '#f39c12';
-  }
-
-  // Format: Mon 03-04-'26
-  formatDate(isoDate: string): string {
-    const d = new Date(isoDate + 'T00:00:00Z');
-    const day  = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-    const dd   = String(d.getUTCDate()).padStart(2, '0');
-    const mm   = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const yy   = String(d.getUTCFullYear()).slice(2);
-    return `${day} ${dd}-${mm}-'${yy}`;
   }
 
   toDate(iso: string): Date {

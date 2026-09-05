@@ -3,6 +3,7 @@ import { Visit } from './visit';
 import { Route } from './route';
 import { TripService } from '../services/trip';
 import {CostBreakdown, CostComparison} from './cost';
+import { parseUTCDate, parseUTCDateTime, daysBetween, formatDate } from '../utils/dates';
 
 
 export interface ITraverse {
@@ -98,7 +99,7 @@ export class Traverse {
   readonly entryDateString = computed(() => {
     const date = this.entryDate();
     if (!date) return '';
-    return this.formatDate(date);
+    return formatDate(date);
   });
 
   readonly exitDate = computed((): Date | null => {
@@ -109,16 +110,8 @@ export class Traverse {
   readonly exitDateString = computed(() => {
     const date = this.exitDate();
     if (!date) return '';
-    return this.formatDate(date);
+    return formatDate(date);
   });
-
-  private formatDate(date: Date): string {
-    const day = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-    const dd  = String(date.getUTCDate()).padStart(2, '0');
-    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const yy  = String(date.getUTCFullYear()).slice(2);
-    return `${day} ${dd}-${mm}-'${yy}`;
-  }
 
   readonly cost_ = computed<CostComparison>(() => {
     if (!this.inItinerary()) return CostComparison.empty();
@@ -146,9 +139,7 @@ export class Traverse {
       let actualTotal = 0;
       for (const b of rentalBookings) {
         if (b.departure_at() && b.arrival_at() && b.final_price() != null) {
-          const depDate = Traverse.toUTCDateOnly(b.departure_at()!);
-          const arrDate = Traverse.toUTCDateOnly(b.arrival_at()!);
-          const numberOfDays = Math.max(0, Math.floor((arrDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))) + 1;
+          const numberOfDays = daysBetween(parseUTCDateTime(b.departure_at()!), parseUTCDateTime(b.arrival_at()!)) + 1;
           const actualDailyRate = b.final_price()! / numberOfDays;
           actualTotal += actualDailyRate * (coveredVisitNights + nights);
         }
@@ -197,10 +188,6 @@ export class Traverse {
     return new CostComparison(est, act, proj);
   });
 
-  private static toUTCDateOnly(dateStr: string): Date {
-    return new Date(dateStr.split(/[T ]/)[0] + 'T00:00:00Z');
-  }
-
   // Bookings specifically relevant to this leg's active route type (for status, unbooked badges, paid/pending checks)
   readonly overlappingBookings = computed(() => {
     const entry = this.entryDate();
@@ -214,8 +201,8 @@ export class Traverse {
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
           if (b.route_id !== targetRouteId || !b.departure_at() || !b.arrival_at()) return false;
-          const dep_date = Traverse.toUTCDateOnly(b.departure_at()!);
-          const arr_date = Traverse.toUTCDateOnly(b.arrival_at()!);
+          const dep_date = parseUTCDate(b.departure_at()!);
+          const arr_date = parseUTCDate(b.arrival_at()!);
           return b.final_price() != null && dep_date <= exit && arr_date >= entry;
         });
   });
@@ -236,8 +223,8 @@ export class Traverse {
     return Array.from(this.tripService.trip()?.routeBookings().values() ?? [])
         .filter(b => {
           if (!relevantRouteIds.has(b.route_id) || !b.departure_at() || !b.arrival_at()) return false;
-          const dep_date = Traverse.toUTCDateOnly(b.departure_at()!);
-          const arr_date = Traverse.toUTCDateOnly(b.arrival_at()!);
+          const dep_date = parseUTCDate(b.departure_at()!);
+          const arr_date = parseUTCDate(b.arrival_at()!);
           return dep_date <= exit && arr_date >= entry;
         });
   });

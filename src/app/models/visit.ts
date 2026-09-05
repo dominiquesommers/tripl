@@ -3,6 +3,8 @@ import {computed, signal, untracked} from '@angular/core';
 import {TripService} from '../services/trip';
 import {Traverse} from './traverse';
 import {CostBreakdown, CostComparison} from './cost';
+import { parseUTCDate, daysBetween, clampDate, formatDate } from '../utils/dates';
+
 
 export interface IVisit {
   id: string;
@@ -62,7 +64,7 @@ export class Visit {
   readonly entryDate = computed(() => {
     const plan = this.tripService.plan();
     if (!plan) return null;
-    const startDate = new Date(plan.start_date()!.split(/[T ]/)[0] + 'T00:00:00Z');
+    const startDate = parseUTCDate(plan.start_date()!);
     if (!startDate) return null;
     const itinerary = plan.itinerary();
     let totalNights = 0;
@@ -82,7 +84,7 @@ export class Visit {
   readonly entryDateString = computed(() => {
     const date = this.entryDate();
     if (!date) return '';
-    return this.formatDate(date);
+    return formatDate(date);
   });
 
   readonly inItinerary = computed((): boolean => {
@@ -100,14 +102,14 @@ export class Visit {
   readonly exitDateString = computed(() => {
     const date = this.exitDate();
     if (!date) return '';
-    return this.formatDate(date);
+    return formatDate(date);
   });
 
   readonly totalDays = computed(() => {
     const start = this.entryDate();
     const end = this.exitDate();
     if (!start || !end) return 0;
-    return this.daysBetween(start, end);
+    return daysBetween(start, end);
   });
 
   readonly monthDays = computed(() => {
@@ -198,10 +200,10 @@ export class Visit {
       impEstAccommodation = est.accommodation;
     } else {
       actualAccommodation = this.overlappingBookings().reduce((sum, b) => {
-        const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
-        const bOut = new Date(b.check_out()! + 'T00:00:00Z');
-        const overlapNights = this.daysBetween(this.clampDate(bIn, entry, exit), this.clampDate(bOut, entry, exit));
-        const bookingNights = this.daysBetween(bIn, bOut);
+        const bIn  = parseUTCDate(b.check_in()!);
+        const bOut = parseUTCDate(b.check_out()!);
+        const overlapNights = daysBetween(clampDate(bIn, entry, exit), clampDate(bOut, entry, exit));
+        const bookingNights = daysBetween(bIn, bOut);
         if (!bookingNights) return sum;
         const nightlyRate = (b.final_price()! * ((100 - b.food_pct()) / 100)) / bookingNights;
         return sum + overlapNights * nightlyRate;
@@ -214,10 +216,10 @@ export class Visit {
     const foodFromBookings = this.overlappingBookings()
       .filter(b => b.food_pct() > 0)
       .reduce((sum, b) => {
-        const bIn  = new Date(b.check_in()!  + 'T00:00:00Z');
-        const bOut = new Date(b.check_out()! + 'T00:00:00Z');
-        const overlapNights = this.daysBetween(this.clampDate(bIn, entry, exit), this.clampDate(bOut, entry, exit));
-        const bookingNights = this.daysBetween(bIn, bOut);
+        const bIn  = parseUTCDate(b.check_in()!);
+        const bOut = parseUTCDate(b.check_out()!);
+        const overlapNights = daysBetween(clampDate(bIn, entry, exit), clampDate(bOut, entry, exit));
+        const bookingNights = daysBetween(bIn, bOut);
         if (!bookingNights) return sum;
         return sum + overlapNights * (b.final_price()! * (b.food_pct() / 100)) / bookingNights;
       }, 0);
@@ -242,7 +244,7 @@ export class Visit {
     return Array.from(this.tripService.trip()?.expenses().values() ?? [])
       .filter(e => {
         if (e.place_id !== this.place_id || e.category() !== 'food') return false;
-        const d = new Date(e.date() + 'T00:00:00Z');
+        const d = parseUTCDate(e.date());
         return d >= entry && d <= exit;
       });
   });
@@ -254,7 +256,7 @@ export class Visit {
     return Array.from(this.tripService.trip()?.expenses().values() ?? [])
       .filter(e => {
         if (e.place_id !== this.place_id || e.category() !== 'miscellaneous') return false;
-        const d = new Date(e.date() + 'T00:00:00Z');
+        const d = parseUTCDate(e.date());
         return d >= entry && d <= exit;
       });
   });
@@ -304,9 +306,9 @@ export class Visit {
     if (!entry || !exit) return 0;
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    if (today <= entry) return 0;               // visit hasn't started
-    if (today >= exit)  return this.nights();   // visit fully passed
-    return this.daysBetween(entry, today);      // partially elapsed
+    if (today <= entry) return 0;             // visit hasn't started
+    if (today >= exit)  return this.nights(); // visit fully passed
+    return daysBetween(entry, today);         // partially elapsed
   });
 
   constructor(
@@ -323,28 +325,6 @@ export class Visit {
     const place = this.tripService.trip()?.places().get(this.place_id);
     if (!place) throw new Error(`Invariant Violation: Visit ${this.id} references non-existent Place ${this.place_id}`);
     return place;
-  }
-
-  private daysBetween(start: Date, end: Date): number {
-    return Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-  }
-
-  private clampDate(date: Date, min: Date, max: Date): Date {
-    if (date < min) return min;
-    if (date > max) return max;
-    return date;
-  }
-
-  private expenseDateToDate(dateStr: string): Date {
-    return new Date(dateStr + 'T00:00:00Z');
-  }
-
-  private formatDate(date: Date): string {
-    const day = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-    const dd  = String(date.getUTCDate()).padStart(2, '0');
-    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const yy  = String(date.getUTCFullYear()).slice(2);
-    return `${day} ${dd}-${mm}-'${yy}`;
   }
 
   update(data: Partial<IVisit>) {
