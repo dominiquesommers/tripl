@@ -17,10 +17,11 @@ export interface IPlace {
   accommodation_cost?: number | null;
   food_cost?: number | null;
   miscellaneous_cost?: number | null;
+  in_plans: string[];
 }
 
 
-export type NewPlace = Omit<IPlace, 'id' | 'season_id'>;
+export type NewPlace = Omit<IPlace, 'id' | 'season_id' | 'in_plans'>;
 export type UpdatePlace = Partial<Pick<IPlace, 'name' | 'accommodation_cost' | 'food_cost' | 'miscellaneous_cost' | 'season_id'>>;
 
 
@@ -35,6 +36,7 @@ export class Place {
   readonly accommodation_cost = signal<number | null>(null);
   readonly food_cost = signal<number | null>(null);
   readonly miscellaneous_cost = signal<number | null>(null);
+  readonly in_plans = signal<string[]>([]);
 
   readonly coordinates: LngLatLike = [this.lng, this.lat];
   readonly visits = computed(() =>
@@ -127,6 +129,7 @@ export class Place {
     if ('accommodation_cost' in data) this.accommodation_cost.set(data.accommodation_cost ?? null);
     if ('food_cost' in data) this.food_cost.set(data.food_cost ?? null);
     if ('miscellaneous_cost' in data) this.miscellaneous_cost.set(data.miscellaneous_cost ?? null);
+    if ('in_plans' in data) this.in_plans.set(data.in_plans ?? []);
   }
 
   // get totalDailyCost(): number {

@@ -95,10 +95,32 @@ export class RoutePopup {
 
   delete() {
     const route = this.route();
+    const currentTripId = this.tripService.trip()?.id;
+    const currentPlanId = this.tripService.plan()?.id;
+
+    const otherPlanIds = route.in_plans().filter(id => id !== currentPlanId);
+
+    if (otherPlanIds.length > 0) {
+      const trip = this.tripService.trips().find(t => t.id === currentTripId);
+      const planNames = (trip?.plans() ?? []).filter(p => otherPlanIds.includes(p.id)).map(p => p.name());
+      const namesLabel = planNames.length > 0
+        ? planNames.join(', ')
+        : `${otherPlanIds.length} other plan${otherPlanIds.length > 1 ? 's' : ''}`;
+
+      this.notificationService.notify(
+        `This route is still used in ${namesLabel}, so it can't be removed.`,
+        true
+      );
+      return;
+    }
+
+    let message = `Are you sure you want to remove this route?`;
     const traverseCount = route.traverses().length;
-    const traverseLabel = traverseCount === 1 ? 'traverse' : 'traverses';
-    // TODO this should also check for traverses from other plans in this trip.
-    const message = `Are you sure you want to remove this route? This will also delete ${traverseCount} associated ${traverseLabel}.`;
+    if (traverseCount >= 0) {
+      const traverseLabel = traverseCount === 1 ? 'traverse' : 'traverses';
+      message += ` This will also delete ${traverseCount} associated ${traverseLabel}.`;
+    }
+
     this.notificationService.confirmModal(
       {
         title: 'Remove route',

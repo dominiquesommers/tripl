@@ -23,10 +23,12 @@ export interface IRoute {
   actual_cost?: number | null;
   paid?: boolean;
   trip_id: string;
+  in_plans: string[];
+
 }
 
 
-export type NewRoute = Omit<IRoute, 'id'>;
+export type NewRoute = Omit<IRoute, 'id' | 'in_plans'>;
 export type UpdateRoute = Partial<Pick<IRoute, 'type' | 'distance' | 'duration' | 'estimated_cost' | 'nights' | 'route' | 'actual_cost' | 'paid'>>;
 
 
@@ -43,6 +45,7 @@ export class Route {
   route = signal<string>('');
   actual_cost = signal<number | null>(null);
   paid = signal<boolean>(false);
+  readonly in_plans = signal<string[]>([]);
 
   readonly name = computed(() => `${this.source.name()} → ${this.target.name()}`);
 
@@ -182,6 +185,7 @@ export class Route {
     if ('route' in data) this.route.set(data.route ?? '');
     if ('actual_cost' in data) this.actual_cost.set(data.actual_cost ?? null);
     if ('paid' in data) this.paid.set(data.paid ?? false);
+    if ('in_plans' in data) this.in_plans.set(data.in_plans ?? []);
   }
 
   toJSON(): IRoute {

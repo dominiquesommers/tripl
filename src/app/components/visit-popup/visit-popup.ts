@@ -285,9 +285,32 @@ export class VisitPopup {
           next: () => {
             this.uiService.clearSelection();
             const placeId = visit.place_id;
-            const remainingVisits = Array.from(this.tripService.plan()?.visits().values() ?? [])
-              .filter(v => v.place_id === placeId);
-            if (remainingVisits.length === 0) this.promptRemovePlace(placeId);
+            const currentTrip = this.tripService.trip();
+            const currentPlan = this.tripService.plan();
+            if (!currentTrip || !currentPlan) return;
+            const place = currentTrip.places().get(placeId);
+
+            const remainingVisitsInCurrentPlan = Array.from(
+              currentPlan.visits().values() ?? []
+            ).filter(v => v.place_id === placeId);
+
+            if (remainingVisitsInCurrentPlan.length > 0 || !place || !currentPlan.id) {
+              // still used in this plan (or no place/plan context) — nothing more to do
+              return;
+            }
+
+            place.update({in_plans: place.in_plans().filter(id => id !== currentPlan.id)});
+            const otherPlanIds = place.in_plans();
+
+            if (otherPlanIds.length > 0) {
+              const otherPlanNames = this.tripService.trips().find(t => t.id === currentTrip.id)!.plans().filter(p => otherPlanIds.includes(p.id)).map(p => p.name());
+              this.notificationService.notify(
+                `${place.name()} is still used in ${otherPlanIds.length} other plan${otherPlanIds.length > 1 ? 's' : ''} (${otherPlanNames.join(', ')}), so it can not yet be removed.`
+              );
+              return;
+            }
+
+            this.promptRemovePlace(placeId);
           }
         });
       }
@@ -300,7 +323,7 @@ export class VisitPopup {
     this.notificationService.confirmModal(
       {
         title: 'Remove place',
-        message: `No more visits for ${place.name()}. Would you like to remove the place from your map too?`,
+        message: `No more visits for ${place.name()}. Would you like to remove the place from your trip too?`,
         confirmLabel: 'Remove',
         isDanger: true
       },
@@ -336,8 +359,56 @@ export class VisitPopup {
       },
       () => {
         this.tripService.removeTraverse(traverse).subscribe({
-          next: () => console.log('Removed connection successfully.'),
+          next: () => {
+            const routeId = traverse.route_id;
+            const currentTripId = this.tripService.trip()?.id;
+            const currentPlanId = this.tripService.plan()?.id;
+            const route = this.tripService.trip()?.routes().get(routeId);
+
+            const remainingTraversesInCurrentPlan = Array.from(
+              this.tripService.plan()?.traverses().values() ?? []
+            ).filter(t => t.route_id === routeId);
+
+            if (remainingTraversesInCurrentPlan.length > 0 || !route || !currentPlanId || !currentTripId) {
+              return;
+            }
+
+            route.update({in_plans: route.in_plans().filter(id => id !== currentPlanId)});
+
+            const otherPlanIds = route.in_plans();
+            if (otherPlanIds.length > 0) {
+              const trip = this.tripService.trips().find(t => t.id === currentTripId);
+              const otherPlanNames = (trip?.plans() ?? [])
+                .filter(p => otherPlanIds.includes(p.id))
+                .map(p => p.name());
+              this.notificationService.notify(
+                `This route is still used in ${otherPlanIds.length} other plan${otherPlanIds.length > 1 ? 's' : ''} (${otherPlanNames.join(', ')}), so it can not yet be removed.`
+              );
+              return;
+            }
+
+            this.promptRemoveRoute(routeId);
+          },
           error: (err) => console.error('Failed to remove connection...', err)
+        });
+      }
+    );
+  }
+
+  private promptRemoveRoute(routeId: string) {
+    const route = this.tripService.trip()?.routes().get(routeId);
+    if (!route) return;
+    this.notificationService.confirmModal(
+      {
+        title: 'Remove route',
+        message: `No more connections use this route. Would you like to remove it from your trip too?`,
+        confirmLabel: 'Remove',
+        isDanger: true
+      },
+      () => {
+        this.tripService.removeRoute(route).subscribe({
+          next: () => console.log('Removed route successfully.'),
+          error: (err) => console.error('Failed to remove route...', err)
         });
       }
     );
