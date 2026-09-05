@@ -138,12 +138,50 @@ export class TripService {
     return matchedUserTrip ? matchedUserTrip.plans() : [];
   });
 
+  private readonly danglingRentalFixesInFlight = new Set<string>();
+
   constructor() {
     effect(() => {
       const userId = this.authService.user()?.uid;
       if (!userId) {
         untracked(() => this.resetState());
       }
+    });
+
+    effect(() => {
+      const plan = this.plan();
+      if (!plan) return;
+
+      const danglingTraverses = Array.from(plan.traverses().values())
+        .filter(t => t.rentUntilDangling() && !this.danglingRentalFixesInFlight.has(t.id));
+
+      if (danglingTraverses.length === 0) return;
+
+      untracked(() => this.fixDanglingRentals(danglingTraverses));
+    });
+  }
+
+  private fixDanglingRentals(traverses: Traverse[]) {
+    traverses.forEach(t => this.danglingRentalFixesInFlight.add(t.id));
+    forkJoin(
+      traverses.map(t =>
+        this.updateTraverse(t.id, { rent_until: null }).pipe(
+          map(result => ({ traverse: t, result })),
+          catchError(() => of({ traverse: t, result: null as ITraverse | null })),
+          finalize(() => this.danglingRentalFixesInFlight.delete(t.id))
+        )
+      )
+    ).subscribe(outcomes => {
+      const succeeded = outcomes.filter(o => o.result !== null);
+      if (succeeded.length === 0) return;
+
+      const names = succeeded.map(o => o.traverse.source.place.name());
+      const namesMessage = (succeeded.length === 1) ? names[0] : ((succeeded.length === 2) ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`);
+      const message = succeeded.length === 1
+        ? `A tour end was cleared. Please reselect it for ${names[0]}.`
+        : `${succeeded.length} tour ends were cleared. Please reselect them for ${namesMessage}.`;
+
+      this.notifierService.notify(message, true);
     });
   }
 

@@ -53,10 +53,18 @@ export class Traverse {
   includes_accommodation = signal<boolean>(false);
   cost = signal<number | null>(null);
   booked_days = signal<number | null>(null);
+
   readonly rentUntilVisit = computed((): Visit | null => {
     const rentUntil = this.rent_until();
     if (!rentUntil) return null;
     return this.tripService.plan()?.visits().get(rentUntil)!;
+  });
+
+  readonly rentUntilDangling = computed(() => {
+    const rentUntil = this.rent_until();
+    if (!rentUntil || !this.inItinerary()) return false;
+    const plan = this.tripService.plan();
+    return !plan?.itinerary().some(v => v.id === rentUntil);
   });
 
   readonly activeRentalSources = computed<Traverse[]>(() => {
