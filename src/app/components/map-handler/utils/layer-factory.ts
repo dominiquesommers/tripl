@@ -4,7 +4,7 @@ import {
   MAP_STYLES,
   OFFLINE_BASE_STYLE,
   ROUTE_COLOR_EXPRESSION,
-  ROUTE_ICONS
+  ROUTE_MAP_ICONS
 } from '../config/map-styles.config';
 import { AuthService } from '../../../services/auth';
 import { Trip } from '../../../models/trip';
@@ -137,14 +137,14 @@ export class MapLayerManager {
           'symbol-spacing': 150,
           'icon-image': [
             'match', ['get', 'type'],
-            'driving', ROUTE_ICONS['driving'],
-            'boat', ROUTE_ICONS['boat'],
-            'bus', ROUTE_ICONS['bus'],
-            'train', ROUTE_ICONS['train'],
-            'twowheeler', ROUTE_ICONS['twowheeler'],
-            'taxi', ROUTE_ICONS['taxi'],
-            'other', ROUTE_ICONS['other'],
-            ROUTE_ICONS['undefined']
+            'driving', ROUTE_MAP_ICONS['driving'],
+            'boat', ROUTE_MAP_ICONS['boat'],
+            'bus', ROUTE_MAP_ICONS['bus'],
+            'train', ROUTE_MAP_ICONS['train'],
+            'twowheeler', ROUTE_MAP_ICONS['twowheeler'],
+            'taxi', ROUTE_MAP_ICONS['taxi'],
+            'other', ROUTE_MAP_ICONS['other'],
+            ROUTE_MAP_ICONS['undefined']
           ],
           'icon-size': 0.5,
           'icon-allow-overlap': true,
@@ -178,9 +178,9 @@ export class MapLayerManager {
             'symbol-spacing': 150,
             'icon-image': [
               'match', ['get', 'type'],
-              'flying', ROUTE_ICONS['flying'],
-              'walking', ROUTE_ICONS['walking'],
-              ROUTE_ICONS['undefined']
+              'flying', ROUTE_MAP_ICONS['flying'],
+              'walking', ROUTE_MAP_ICONS['walking'],
+              ROUTE_MAP_ICONS['undefined']
             ],
             'icon-size': 0.5,
             'icon-allow-overlap': true,

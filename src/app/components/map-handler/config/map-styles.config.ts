@@ -39,6 +39,21 @@ export const ROUTE_ICONS: Record<string, string> = {
   map_pin: 'map-pin',
 } as const;
 
+export const ROUTE_MAP_ICONS: Record<string, string> = {
+  flying: 'plane',
+  driving: 'car2',
+  bus: 'bus2',
+  train: 'train-front',
+  boat: 'ship',
+  walking: 'footprints',
+  twowheeler: 'bike',
+  taxi: 'car-taxi-front',
+  other: 'mouse-pointer-2',
+  undefined: 'mouse-pointer-2',
+  icon_marker: 'icon_marker',
+  map_pin: 'map-pin',
+} as const;
+
 // 2. Mapbox Style Expressions
 // Moving these here prevents your LayerManager from having "magic strings"
 export const ROUTE_COLOR_EXPRESSION: ExpressionSpecification = [

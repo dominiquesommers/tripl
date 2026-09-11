@@ -1,12 +1,12 @@
 import type { Map as MapboxMap, GeoJSONSource, Marker, Popup } from 'mapbox-gl';
-import { ROUTE_ICONS } from '../config/map-styles.config';
+import { ROUTE_MAP_ICONS } from '../config/map-styles.config';
 
 
 export class IconLoader {
   constructor(private map: MapboxMap) {}
 
   async loadRouteIcons() {
-    const iconEntries = Object.entries(ROUTE_ICONS);
+    const iconEntries = Object.entries(ROUTE_MAP_ICONS);
     for (const [key, name] of iconEntries) {
       if (this.map.hasImage(name)) continue;
       const url = `./icons/${name}.png`; // Loading your new 128x128 PNGs
