@@ -45,11 +45,13 @@ export class VisitPopup {
     return 'Click to exclude and recalculate itinerary';
   });
 
-  readonly visitMenuActions = computed((): OverlayMenuAction[] => {
-    const actions: OverlayMenuAction[] = [
+  readonly visitMenuActions = computed((): OverlayMenuAction<Visit>[] => {
+    const visit = this.visit();
+
+    const actions: OverlayMenuAction<Visit>[] = [
       {
-        icon: this.visit().included() ? 'map-pin-off' : 'map-pin-check',
-        label: this.visit().included() ? 'Exclude from itinerary' : 'Include in itinerary',
+        icon: visit.included() ? 'map-pin-off' : 'map-pin-check',
+        label: visit.included() ? 'Exclude from itinerary' : 'Include in itinerary',
         action: () => this.toggleIncluded(),
       },
     ];
@@ -57,11 +59,16 @@ export class VisitPopup {
     const leg = this.nextLeg();
     if (leg) {
       const activeRental = this.getActiveRentalForLeg(leg.traverse);
-      if (activeRental === leg.traverse) {
-        actions.push({ icon: 'milestone', label: 'Unset as tour start', action: () => this.toggleStartOfTour() });
-      } else if (!activeRental || activeRental.route.type() !== leg.traverse.route.type()) {
-        actions.push({ icon: 'milestone', label: 'Set as tour start', action: () => this.toggleStartOfTour() });
-      }
+      const isTourStart = activeRental === leg.traverse;
+      const isMidTour = !isTourStart && !!activeRental && activeRental.route.type() === leg.traverse.route.type();
+
+      actions.push({
+        icon: 'milestone',
+        label: isTourStart ? 'Unset as tour start' : 'Set as tour start',
+        action: () => this.toggleStartOfTour(),
+        disabled: () =>
+          isMidTour ? 'Remove this visit from its tour before making it a new start' : false,
+      });
     }
 
     actions.push(

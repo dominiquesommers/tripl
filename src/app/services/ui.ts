@@ -60,6 +60,12 @@ export class UiService {
   readonly hoveredRoute = signal<Route | null>(null);
   readonly drawingState = signal<DrawingState>({ active: false, sourceVisit: null });
 
+  readonly isTouchDevice = signal(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(hover: none) and (pointer: coarse)').matches
+      : false,
+  );
+
   readonly isMobile = toSignal(
     this.breakpointObserver
       .observe([Breakpoints.Handset])

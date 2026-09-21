@@ -16,11 +16,15 @@
   (detach)="close()">
 
   <div class="options-dropdown">
-    @for (item of actions(); track item.label) {
-      <div class="manage-item simple-select" [class]="item.className"
-           (click)="run(item)">
-        <lucide-icon [name]="item.icon" [size]="16"></lucide-icon>
-        <span class="destination">{{ item.label }}</span>
+    @for (action of visibleActions(); track action) {
+      <div class="manage-item simple-select"
+           [class]="resolveClassName(action)"
+           [class.disabled]="!!resolveDisabledReason(action)"
+           [attr.aria-disabled]="!!resolveDisabledReason(action)"
+           [title]="resolveTitle(action)"
+           (click)="handleClick(action)">
+        <lucide-icon [name]="resolveIcon(action)" [size]="16"></lucide-icon>
+        <span class="destination">{{ resolveLabel(action) }}</span>
       </div>
     }
   </div>

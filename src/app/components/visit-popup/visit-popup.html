@@ -143,7 +143,11 @@
             <div class="line-2">
               <div></div>
               @if (authService.canEdit()) {
-                <app-overlay-menu [actions]="visitMenuActions()" triggerTooltip="Visit options" />
+                <app-overlay-menu
+                  [actions]="visitMenuActions()"
+                  [context]="visit()"
+                  triggerTooltip="Visit options"
+                />
               }
             </div>
             <div class="line-1">

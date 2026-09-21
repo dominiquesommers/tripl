@@ -28,28 +28,20 @@ export class RoutePopup {
 
   route = input.required<Route>();
 
-  readonly routeMenuActions = computed((): OverlayMenuAction[] => {
-    const actions: OverlayMenuAction[] = [];
-    if (!this.hasReverseRoute()) {
-      actions.push(
-        {
-          icon: 'repeat',
-          label: 'Add reverse route',
-          action: () => this.addReverseRoute(),
-        },
-      );
-    }
-    actions.push(
-      {
-        icon: 'trash-2',
-        label: 'Delete route',
-        action: () => this.delete(),
-        className: 'delete-option',
-      },
-    );
-
-    return actions;
-  });
+  readonly routeMenuActions: OverlayMenuAction[] = [
+    {
+      icon: 'repeat',
+      label: 'Add reverse route',
+      action: () => this.addReverseRoute(),
+      disabled: () => (this.hasReverseRoute() ? 'A reversed route already exists' : false),
+    },
+    {
+      icon: 'trash-2',
+      label: 'Delete route',
+      action: () => this.delete(),
+      className: 'delete-option',
+    },
+  ];
 
   distance = computed(() => {
     return Math.ceil(this.route().distance());

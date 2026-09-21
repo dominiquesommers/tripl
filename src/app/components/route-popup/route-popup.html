@@ -45,7 +45,7 @@
             </app-editable-badge>
 
             @if (authService.canEdit()) {
-              <app-overlay-menu class="menu-trigger" [actions]="routeMenuActions()" triggerTooltip="Route options" />
+              <app-overlay-menu class="menu-trigger" [actions]="routeMenuActions" triggerTooltip="Route options" />
             }
           </div>
 

@@ -1,6 +1,8 @@
-export interface OverlayMenuAction {
-  icon: string;
-  label: string;
-  action: () => void;
-  className?: string; // e.g. 'delete-option', for styling variants
+export interface OverlayMenuAction<T = void> {
+  icon: string | ((context: T) => string);
+  label: string | ((context: T) => string);
+  action: (context: T) => void;
+  hidden?: (context: T) => boolean;
+  disabled?: (context: T) => string | false;
+  className?: string | ((context: T) => string);
 }

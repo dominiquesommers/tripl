@@ -1,11 +1,11 @@
 .options-dropdown {
   min-width: 190px;
-  background: rgba(30, 30, 35, 0.75);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: rgba(30, 30, 35, 0.3) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(30px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
   padding: 4px;
 }
 
@@ -26,6 +26,25 @@
 
 .options-dropdown .delete-option:hover {
   background: rgba(239, 68, 68, 0.12);
+}
+
+.options-dropdown .food lucide-icon {
+  color: #58d68d;
+}
+.options-dropdown .miscellaneous lucide-icon {
+  color: #f39c12;
+}
+.options-dropdown .transport lucide-icon {
+  color: rgb(142, 142, 147);
+}
+.options-dropdown .activities lucide-icon {
+  color: rgb(167, 139, 250);
+}
+.options-dropdown .accommodation lucide-icon {
+  color: #ef4444;
+}
+.options-dropdown .notes lucide-icon {
+  color: #f87171;
 }
 
 .manage-item {
@@ -78,6 +97,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 13px;
+}
+
+.manage-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.manage-item.disabled:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .icon-btn {
