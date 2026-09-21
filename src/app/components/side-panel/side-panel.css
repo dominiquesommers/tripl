@@ -77,6 +77,7 @@
   min-height: 0;
   opacity: 1;
   transition: padding-top 0.3s ease;
+  overflow-y: auto;
 }
 
 .desktop-sidebar .content {

@@ -1,0 +1,46 @@
+<div class="badge-container" [class.has-icon-action]="hasIconAction()" [class.flat]="flat()">
+
+  @if (prefix()) {
+    <span class="prefix">{{ prefix() }}</span>
+  }
+
+  <input #numInput
+         type="text"
+         class="val-input"
+         [style.width.ch]="width()"
+         [readOnly]="readonly()"
+         [min]="min()"
+         [step]="step()"
+         [attr.inputmode]="decimalPlaces() > 0 ? 'decimal' : 'numeric'"
+         [value]="value() === null ? '' : formatValue(value()!)"
+         (focus)="onFocus()"
+         (input)="!readonly() && draft.set($any($event.target).value)"
+         (keydown)="!readonly() && onKeyDown($event)"
+         (paste)="!readonly() && handlePaste($event)"
+         (blur)="!readonly() && onBlur()" />
+
+  <div class="icon-stack">
+    @if (iconName(); as iconName) {
+      <lucide-icon [name]="iconName"
+             [size]="18"
+             [style.color]="iconColor()"
+             class="main-icon"
+             (click)="iconClick.emit(); $event.stopPropagation()">
+      </lucide-icon>
+    } @else if (postfix()) {
+      <span class="postfix main-icon">{{ postfix() }}</span>
+    }
+    @if (!readonly()) {
+      <div class="stepper-controls">
+        <button class="step-btn" (click)="adjust(1)" type="button">
+          <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
+        </button>
+        <button class="step-btn"
+                [style.visibility]="value() ?? 0 > min() ? 'visible' : 'hidden'"
+                (click)="adjust(-1)" type="button">
+          <lucide-icon name="chevron-down" [size]="12"></lucide-icon>
+        </button>
+      </div>
+    }
+  </div>
+</div>

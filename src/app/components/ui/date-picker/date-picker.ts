@@ -13,13 +13,20 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 
-export type DatePickerMode = 'date' | 'date-range' | 'datetime-range';
+export type DatePickerMode = 'null' | 'date' | 'date-range' | 'datetime-range';
 
 
 @Component({
   selector: 'app-date-picker',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.mode-null]': "!hasValue()",
+    '[class.mode-date]': "mode() === 'date'",
+    '[class.mode-range]': "mode() === 'date-range'",
+    '[class.mode-datetime]': "mode() === 'datetime-range'",
+    '[class.same-day]': 'isCurrentRangeSameDay()',
+  },
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -31,7 +38,7 @@ export type DatePickerMode = 'date' | 'date-range' | 'datetime-range';
     LucideAngularModule,
   ],
   providers: [
-    { provide: MAT_DATE_LOCALE, useValue: 'nl-NL' }
+    { provide: MAT_DATE_LOCALE, useValue: 'en-EN' }
   ],
   templateUrl: './date-picker.html',
   styleUrls: ['./date-picker.css'],
@@ -41,7 +48,7 @@ export class DatePicker {
   // ─── Mode ─────────────────────────────────────────────────
   mode          = input<DatePickerMode>('date');
   disabled      = input<boolean>(false);
-  displayFormat = input<'short' | 'compact'>('short');
+  displayFormat = input<'short' | 'compact'>('compact');
 
   // ─── Single date ──────────────────────────────────────────
   value       = input<Date | null>(null);
@@ -101,14 +108,14 @@ export class DatePicker {
 
   formatDate(date: Date): string {
     if (this.displayFormat() === 'compact') {
-      const day = date.toLocaleDateString('nl-NL', { weekday: 'short', timeZone: 'UTC' });
+      const day = date.toLocaleDateString('en-EN', { weekday: 'short', timeZone: 'UTC' });
       const dd  = String(date.getUTCDate()).padStart(2, '0');
       const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
       const yy  = String(date.getUTCFullYear()).slice(2);
       const result = `${day} ${dd}-${mm}-'${yy}`;
       return result;
     }
-    return date.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    return date.toLocaleDateString('en-EN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   }
 
   formatDatetime(date: Date): string {
@@ -264,4 +271,15 @@ export class DatePicker {
            d1.getUTCMonth() === d2.getUTCMonth() &&
            d1.getUTCDate() === d2.getUTCDate();
   }
+
+  isCurrentRangeSameDay = computed(() => {
+    switch (this.mode()) {
+      case 'date-range':
+        return this.isSameDay(this.start(), this.end());
+      case 'datetime-range':
+        return this.isSameDay(this.departure(), this.arrival());
+      default:
+        return false; // plain 'date' mode has no pair to compare
+    }
+  });
 }

@@ -3,19 +3,22 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import {TripService} from '../../../../services/trip';
-import {Cost} from '../../../../components/ui/cost/cost';
+// import {Cost} from '../../../../components/ui/cost/cost';
+import { Cost } from '../../../../components/ui2/cost/cost';
 import {Place} from '../../../../models/place';
 import {Activity, IActivity, UpdateActivity} from '../../../../models/activity';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
 import {NotificationService} from '../../../../services/notification';
+import {OverlayMenu} from '../../../../components/ui/overlay-menu/overlay-menu';
+import {OverlayMenuAction} from '../../../../models/overlay-menu';
 
 
 @Component({
   selector: 'app-activities',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, Cost, RichTextarea],
+  imports: [CommonModule, FormsModule, LucideAngularModule, Cost, RichTextarea, OverlayMenu],
   templateUrl: './activities.html',
   styleUrl: './activities.css'
 })
@@ -45,6 +48,28 @@ export class Activities {
     });
   }
 
+  readonly activityMenuActions: OverlayMenuAction<Activity>[] = [
+    {
+      icon: (activity) => (activity.status() === 'excluded' ? 'eye' : 'eye-off'),
+      label: (activity) =>
+        activity.status() === 'excluded' ? 'Include in trip planning' : 'Exclude from trip planning',
+      action: (activity) => this.toggleExcluded(activity),
+      hidden: (activity) => activity.status() === 'skipped',
+    },
+    {
+      icon: (activity) => (activity.status() === 'skipped' ? 'check' : 'skip-forward'),
+      label: (activity) => (activity.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'),
+      action: (activity) => this.toggleSkipped(activity),
+      hidden: (activity) => activity.status() === 'excluded',
+    },
+    {
+      icon: 'trash-2',
+      label: 'Delete activity',
+      action: (activity) => this.deleteActivity(activity),
+      className: 'delete-option',
+    },
+  ];
+
   onAddActivity(text: string) {
     const trimmedText = text.trim();
 
@@ -61,9 +86,11 @@ export class Activities {
     }
   }
 
-  updateActivity(activity: Activity, changes: UpdateActivity) {
-    console.log('Updating activity', activity, changes);
-    // const updated = { ...activity, ...changes };
+  updateActivity(activity: Activity, changes: UpdateActivity, checkExpenses: boolean = true) {
+    if (checkExpenses && 'actual_cost' in changes && changes.actual_cost === null) {
+      this.removeActual(activity);
+      return;
+    }
     this.tripService.updateActivity(activity.id, changes).subscribe({
       next: () => console.log('Updated activity successfully.'),
       error: (err) => console.error('Failed to update activity...', err)
@@ -105,6 +132,11 @@ export class Activities {
   removeActual(activity: Activity) {
     const expenses = activity.expenses();
     const hasExpenses = expenses.length > 0;
+    if (!hasExpenses) {
+      this.updateActivity(activity, { actual_cost: null }, false);
+      return;
+    }
+
     const total = expenses.reduce((s, e) => s + e.amount(), 0);
 
     const message = hasExpenses
@@ -119,8 +151,8 @@ export class Activities {
         isDanger: true
       },
       () => {
-        this.updateActivity(activity, { actual_cost: null });
         expenses.forEach(e => this.deleteExpense(e.id));
+        this.updateActivity(activity, { actual_cost: null }, false);
       }
     );
   }

@@ -1,0 +1,22 @@
+<app-cost-badge
+  [readonly]="readonly()"
+  [actualReadonly]="actualReadonly()"
+  [aggregate]="aggregate()"
+  [estimatedCost]="estimatedCost()"
+  [actualCost]="actualCost()"
+  [expenses]="expenses()"
+  [breakdown]="breakdown()"
+  [decimalPlaces]="decimalPlaces()"
+  [step]="step()"
+  [min]="min()"
+  [actualCostMode]="actualCostMode()"
+  [actualRatio]="actualRatio()"
+  (saveEstimated)="saveEstimated.emit($event)"
+  (saveActual)="saveActual.emit($event)"
+  (removeActual)="removeActual.emit()"
+  (addExpense)="addExpense.emit($event)"
+  (updateExpense)="updateExpense.emit($event)"
+  (deleteExpense)="deleteExpense.emit($event)"
+  (fetchExpenses)="fetchExpenses.emit()"
+  (toggleActualCostMode)="toggleActualCostMode.emit($event)">
+</app-cost-badge>

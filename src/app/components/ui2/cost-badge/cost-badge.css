@@ -1,0 +1,78 @@
+.cost-trigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.cost-trigger:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cost-trigger.readonly {
+  cursor: default;
+  pointer-events: none;
+}
+
+.value-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.value {
+  font-weight: 600;
+  color: white;
+  padding-bottom: 1px;
+}
+
+.underline {
+  display: flex;
+  width: 100%;
+}
+
+.underline-solid {
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.underline-dotted {
+  border-top: 1.5px dotted rgba(255, 255, 255, 0.35);
+}
+
+.diff-arrow.over  { color: #ef4444; }
+.diff-arrow.under { color: #10b981; }
+
+.diff-amount {
+  font-size: 0.78em;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.diff-amount.over  { color: #ef4444; }
+.diff-amount.under { color: #10b981; }
+
+.cost-container {
+  display: inline-flex;
+  align-items: center;
+  /* gap: 4px; */
+}
+
+/* settlement status — independent of the diff/underline styling */
+.status-dot {
+  position: absolute;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.error     { background: #ef4444; }
+.status-dot.underpaid { background: rgba(245, 158, 11, 1) }
+.status-dot.overpaid  { background: #a855f7; }
+
+::ng-deep .cdk-overlay-transparent-backdrop {
+  background: transparent;
+}

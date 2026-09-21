@@ -3,47 +3,50 @@
   <!-- Daily costs -->
   <section class="cost-section">
     <h3 class="section-title">Daily Costs</h3>
-    <div class="costs-grid daily-grid">
-      @for (cat of dailyCategories; track cat.id) {
-        <div class="cost-item">
-          <span class="cost-label">{{ cat.label }}</span>
-          <app-cost-badge
-            [estimatedCost]="estimatedCostMap()[cat.id]"
-            [actualCost]="actualCostMap()[cat.id]"
-            [isPaid]="false"
-            [actualReadonly]="true"
-            [hasExpenses]="actualCostMap()[cat.id] !== null"
-            [iconName]="cat.icon"
-            [iconColor]="getCategoryColor(cat.id)"
-            [step]="cat.step"
-            [min]="0"
-            (saveEstimated)="updateEstimatedCost(cat.id, $event)">
-          </app-cost-badge>
-        </div>
-      }
+    <div class="scroll-container">
+      <div class="ledger-rows">
+        @for (cat of dailyCategories; track cat.id) {
+          <div class="ledger-row">
+            <lucide-icon [name]="cat.icon" [size]="18" class="category-icon" [style.color]="getCategoryColor(cat.id)"></lucide-icon>
+            <span class="category-label">{{ cat.label }}</span>
+            <app-cost
+              [estimatedCost]="estimatedCostMap()[cat.id]"
+              [actualCost]="actualCostMap()[cat.id]"
+              [actualReadonly]="true"
+              [aggregate]="true"
+              [actualRatio]="actualRatioMap()[cat.id]"
+              [breakdown]="breakdownMap()[cat.id]"
+              [decimalPlaces]="0"
+              (saveEstimated)="updateEstimatedCost(cat.id, $event)">
+            </app-cost>
+          </div>
+        }
+      </div>
     </div>
   </section>
 
   <!-- One-time costs -->
   <section class="cost-section">
     <h3 class="section-title">One-time Costs</h3>
-    <div class="costs-grid daily-grid">
-      @for (cat of oneTimeCategories; track cat.id) {
-        <div class="cost-item">
-          <span class="cost-label">{{ cat.label }}</span>
-          <app-cost-badge
-            [estimatedCost]="estimatedCostMap()[cat.id]"
-            [actualCost]="actualCostMap()[cat.id]"
-            [isPaid]="false"
-            [readonly]="true"
-            [hasExpenses]="actualCostMap()[cat.id] !== null"
-            [iconName]="cat.icon"
-            [iconColor]="getCategoryColor(cat.id)"
-            [step]="cat.step"
-            [min]="0">
-          </app-cost-badge>
-        </div>
-      }
+    <div class="scroll-container">
+      <div class="ledger-rows">
+        @for (cat of oneTimeCategories; track cat.id) {
+          <div class="ledger-row">
+            <lucide-icon [name]="cat.icon" [size]="18" class="category-icon" [style.color]="getCategoryColor(cat.id)"></lucide-icon>
+            <span class="category-label">{{ cat.label }}</span>
+            <app-cost
+              [estimatedCost]="estimatedCostMap()[cat.id]"
+              [actualCost]="actualCostMap()[cat.id]"
+              [actualReadonly]="true"
+              [aggregate]="true"
+              [actualRatio]="actualRatioMap()[cat.id]"
+              [breakdown]="breakdownMap()[cat.id]"
+              [decimalPlaces]="0"
+              (saveEstimated)="updateEstimatedCost(cat.id, $event)">
+            </app-cost>
+          </div>
+        }
+      </div>
     </div>
   </section>
 </div>
@@ -71,7 +74,7 @@
 <div class="notes-container">
   <h3 class="section-title">Notes</h3>
   @for (note of notes(); track note.id) {
-    <div class="note-item bottom-right-radius"
+    <div class="note-item"
      [class.excluded]="note.status() === 'excluded'"
      [class.skipped]="note.status() === 'skipped'">
 
@@ -112,8 +115,7 @@
           <app-cost
             [actualReadonly]="note.status() === 'excluded'"
             [estimatedCost]="note.estimated_cost() ?? 0"
-            [actualTotal]="note.actual_cost()"
-            [isPaid]="note.isPaid()"
+            [actualCost]="note.actual_cost()"
             [expenses]="note.expenses()"
             [decimalPlaces]="2"
             (saveEstimated)="updateNote(note, { estimated_cost: $event })"

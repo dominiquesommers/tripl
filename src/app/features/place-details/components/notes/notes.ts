@@ -7,7 +7,7 @@ import {Place} from '../../../../models/place';
 import {PlaceNote, IPlaceNote, UpdatePlaceNote} from '../../../../models/place-note';
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
-import {Cost} from '../../../../components/ui/cost/cost';
+import {Cost} from '../../../../components/ui2/cost/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import { NotificationService } from '../../../../services/notification';
 
@@ -61,8 +61,12 @@ export class Notes {
     }
   }
 
-  updateNote(note: PlaceNote, changes: UpdatePlaceNote) {
-    console.log('Updating note', note, changes);
+  updateNote(note: PlaceNote, changes: UpdatePlaceNote, checkExpenses: boolean = true) {
+    if (checkExpenses && 'actual_cost' in changes && changes.actual_cost === null) {
+      this.removeActual(note);
+      return;
+    }
+
     this.tripService.updatePlaceNote(note.id, changes).subscribe({
       next: () => console.log('Updated place note successfully.'),
       error: (err) => console.error('Failed to update note...', err)
@@ -104,6 +108,11 @@ export class Notes {
   removeActual(note: PlaceNote) {
     const expenses = note.expenses();
     const hasExpenses = expenses.length > 0;
+    if (!hasExpenses) {
+      this.updateNote(note, { actual_cost: null }, false);
+      return;
+    }
+
     const total = expenses.reduce((s, e) => s + e.amount(), 0);
 
     const message = hasExpenses
@@ -118,8 +127,8 @@ export class Notes {
         isDanger: true
       },
       () => {
-        this.updateNote(note, { actual_cost: null });
         expenses.forEach(e => this.deleteExpense(e.id));
+        this.updateNote(note, { actual_cost: null }, false);
       }
     );
   }

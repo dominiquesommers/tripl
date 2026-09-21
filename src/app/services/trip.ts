@@ -1068,7 +1068,7 @@ export class TripService {
     const place = currentTrip.places().get(placeId);
     const payload: NewPlaceBooking = {
       place_id: placeId, trip_id: currentTrip.id,
-      check_in: null, check_out: null, final_price: null, food_pct: 0,
+      check_in: null, check_out: null, final_price: 1, food_pct: 0,
       cancel_before: null, pay_by: null, is_tentative: false,
     };
 
@@ -1146,7 +1146,7 @@ export class TripService {
     const route = currentTrip.routes().get(routeId);
     const payload: NewRouteBooking = {
       route_id: routeId, trip_id: currentTrip.id,
-      departure_at: null, arrival_at: null, final_price: null,
+      departure_at: null, arrival_at: null, final_price: 0,
       accommodation_pct: 0, food_pct: 0, activity_pct: 0,
       cancel_before: null, pay_by: null, is_tentative: false,
     };

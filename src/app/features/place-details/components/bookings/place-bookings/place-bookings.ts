@@ -9,19 +9,20 @@ import { TripService } from '../../../../../services/trip';
 import { Place } from '../../../../../models/place';
 import { PlaceBooking, UpdatePlaceBooking } from '../../../../../models/place-booking';
 import { FoodInclusion, FOOD_PCT } from '../../../../../models/place-booking';
-import { Expense, NewExpense } from '../../../../../models/expense';
+import { Expense, NewExpense, UpdateExpense } from '../../../../../models/expense';
 import {EditableBadge} from '../../../../../components/ui/editable-badge/editable-badge';
 import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
 import {PopupService} from '../../../../../services/popup';
 import {CostPopup} from '../../../../../components/ui/cost-popup/cost-popup';
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
 import { NotificationService } from '../../../../../services/notification';
+import { Cost } from '../../../../../components/ui2/cost/cost';
 
 
 @Component({
   selector: 'app-place-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge, DatePicker, RichTextarea],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DatePicker, RichTextarea, Cost],
   templateUrl: './place-bookings.html',
   styleUrls: ['./place-bookings.css'],
 })
@@ -73,7 +74,8 @@ export class PlaceBookings {
       if (targetVisit) {
         this.updateBooking(b, {
           check_in: this.toISODate(targetVisit.entryDate()!),
-          check_out: this.toISODate(targetVisit.exitDate()!)
+          check_out: this.toISODate(targetVisit.exitDate()!),
+          final_price: 0
         });
       }
     });
@@ -81,25 +83,40 @@ export class PlaceBookings {
 
   // ── Update booking ────────────────────────────────────────
   updateBooking(booking: PlaceBooking, updates: UpdatePlaceBooking) {
-    this.tripService.updatePlaceBooking(booking.id, updates).subscribe();
-    if (updates.final_price !== undefined) {
-      this.openCostPopup(booking);
+    console.log(updates);
+    if (updates.final_price === null) {
+      this.notificationService.confirmModal(
+        {
+          title: 'Remove booking',
+          message: 'Remove this booking? Any linked payments will also be removed.',
+          confirmLabel: 'Remove',
+          isDanger: true
+        },
+        () => {
+          this.tripService.removePlaceBooking(booking).subscribe();
+        }
+      );
+    } else {
+      this.tripService.updatePlaceBooking(booking.id, updates).subscribe();
     }
+    // if (updates.final_price !== undefined) {
+    //   this.openCostPopup(booking);
+    // }
   }
 
-  deleteBooking(booking: PlaceBooking) {
-    this.notificationService.confirmModal(
-      {
-        title: 'Remove booking',
-        message: 'Remove this booking? Any linked payments will also be removed.',
-        confirmLabel: 'Remove',
-        isDanger: true
-      },
-      () => {
-        this.tripService.removePlaceBooking(booking).subscribe();
-      }
-    );
-  }
+  // deleteBooking(booking: PlaceBooking) {
+  //   this.notificationService.confirmModal(
+  //     {
+  //       title: 'Remove booking',
+  //       message: 'Remove this booking? Any linked payments will also be removed.',
+  //       confirmLabel: 'Remove',
+  //       isDanger: true
+  //     },
+  //     () => {
+  //       this.tripService.removePlaceBooking(booking).subscribe();
+  //     }
+  //   );
+  // }
 
   // ── Food inclusion ────────────────────────────────────────
   foodOptions: { value: FoodInclusion; label: string }[] = [
@@ -153,6 +170,25 @@ export class PlaceBookings {
     }
   }
 
+  addExpense(booking: PlaceBooking, expense: NewExpense) {
+    console.log('Adding expense for booking', booking.id, expense);
+    this.tripService.addExpense({
+      ...expense,
+      place_booking_id: booking.id,
+      trip_id: booking.trip_id,
+      category: 'accommodation',
+    }).subscribe();
+  }
+
+  updateExpense(expense: UpdateExpense & { id: string }) {
+    this.tripService.updateExpense(expense.id, expense).subscribe();
+  }
+
+  deleteExpense(id: string) {
+    const expense = this.tripService.trip()?.expenses().get(id);
+    if (expense) this.tripService.removeExpense(expense).subscribe();
+  }
+
   // ── Cost popup ────────────────────────────────────────────
   @ViewChildren('priceCellRef') priceCellRefs!: QueryList<ElementRef>;
 
@@ -188,7 +224,7 @@ export class PlaceBookings {
 
   firstUrl(booking: PlaceBooking): string | null {
     const details = booking.details();
-    if (!details) return 'https://www.google.com';
+    if (!details) return null;
     // Match url(href, label) pattern first
     const patternMatch = details.match(/url\(([^,)]+)/);
     if (patternMatch) return patternMatch[1].trim();
@@ -222,9 +258,16 @@ export class PlaceBookings {
     return `${y}-${m}-${d}`;
   }
 
-  formatDate(iso: string | null): string {
-    if (!iso) return '';
-    const d = new Date(iso + 'T00:00:00Z');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  // ─── Format helpers ───────────────────────────────────────
+
+  formatDate(dateString: string | null): string {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00Z');
+    const day = date.toLocaleDateString('en-EN', { weekday: 'short', timeZone: 'UTC' });
+    const dd  = String(date.getUTCDate()).padStart(2, '0');
+    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getUTCFullYear()).slice(2);
+    const result = `${day} ${dd}-${mm}-'${yy}`;
+    return result;
   }
 }

@@ -21,6 +21,55 @@
   letter-spacing: 0.05em;
 }
 
+.scroll-container {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin-right: -12px;
+  margin-left: -4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+}
+
+.ledger-rows {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.ledger-row {
+  position: relative;
+  display: contents;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 4px;
+  padding: 4px 0px;
+  background: transparent;
+  transition: background 0.15s ease;
+  font-size: 12px;
+}
+.ledger-row::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0px;
+  right: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ledger-row:last-child::after {
+  display: none;
+}
+
+app-rich-textarea {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* ── Expense row ────────────────────────────────────────── */
 .expense-row {
   border-radius: 10px;
@@ -175,6 +224,5 @@
   color: rgba(255, 255, 255, 0.25);
   font-style: italic;
   text-align: center;
-  padding: 12px 0;
   margin: 0;
 }

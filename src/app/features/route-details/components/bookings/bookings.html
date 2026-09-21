@@ -1,5 +1,56 @@
 <div class="bookings-container">
+  <!-- Daily costs -->
   <section class="cost-section">
+    <h3 class="section-title">Costs</h3>
+    <div class="scroll-container">
+      <div class="ledger-rows">
+        <div class="ledger-row">
+          <lucide-icon [name]="routeIcon()" [size]="18" class="category-icon" [style.color]="routeColor()"></lucide-icon>
+          <span class="category-label">Regular</span>
+          <app-cost
+            [estimatedCost]="route().estimated_cost() ?? 0"
+            [actualCost]="actualCost()"
+            [actualReadonly]="true"
+            [aggregate]="true"
+            [actualRatio]="actualRatioMap()['regular']"
+            [breakdown]="breakdownMap()['regular']"
+            [decimalPlaces]="0"
+            (saveEstimated)="updateRoute(route(), {estimated_cost: $event})">
+          </app-cost>
+        </div>
+        <div class="ledger-row">
+          <lucide-icon [name]="routeIcon()" [size]="18" class="category-icon" [style.color]="routeColor()"></lucide-icon>
+          <span class="category-label">Daily tour</span>
+          <app-cost
+            [estimatedCost]="route().estimated_cost() ?? 0"
+            [actualCost]="actualCost()"
+            [actualReadonly]="true"
+            [aggregate]="true"
+            [actualRatio]="actualRatioMap()['daily-tour']"
+            [breakdown]="breakdownMap()['daily-tour']"
+            [decimalPlaces]="0"
+            (saveEstimated)="updateRoute(route(), {estimated_cost: $event})">
+          </app-cost>
+        </div>
+        <div class="ledger-row">
+          <lucide-icon [name]="routeIcon()" [size]="18" class="category-icon" [style.color]="routeColor()"></lucide-icon>
+          <span class="category-label">Total tour</span>
+          <app-cost
+            [estimatedCost]="route().estimated_cost() ?? 0"
+            [actualCost]="actualCost()"
+            [actualReadonly]="true"
+            [aggregate]="true"
+            [actualRatio]="actualRatioMap()['total-tour']"
+            [breakdown]="breakdownMap()['total-tour']"
+            [decimalPlaces]="0"
+            (saveEstimated)="updateRoute(route(), {estimated_cost: $event})">
+          </app-cost>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- <section class="cost-section">
     <h3 class="section-title">Costs</h3>
     <div class="costs-grid daily-grid">
       <div class="cost-item">
@@ -48,7 +99,7 @@
         </app-cost-badge>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <app-route-bookings [route]="route()"></app-route-bookings>
 </div>

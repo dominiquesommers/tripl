@@ -1,0 +1,72 @@
+<div class="cost-container">
+  <div
+    class="cost-trigger"
+    [class]="costStatus()"
+    [class.readonly]="readonly()"
+    cdkOverlayOrigin
+    #trigger="cdkOverlayOrigin"
+    (click)="$event.stopPropagation(); toggle()">
+
+    <span class="value-wrap">
+      <span class="value">{{ displayValue() }}</span>
+      @if (estimatedCost() !== null) {
+        <span class="underline">
+          @if (underlineRatio() > 0) {
+            <span class="underline-solid" [style.width.%]="underlineRatio() * 100"></span>
+          }
+          @if (underlineRatio() < 1) {
+            <span class="underline-dotted" [style.width.%]="(1 - underlineRatio()) * 100"></span>
+          }
+        </span>
+      }
+    </span>
+
+    @if (diff() !== null && diff() !== 0) {
+      <lucide-icon
+        [name]="isOver() ? 'move-up' : 'move-down'"
+        [size]="14"
+        class="diff-arrow"
+        [class.over]="isOver()"
+        [class.under]="isUnder()">
+      </lucide-icon>
+      <span class="diff-amount" [class.over]="isOver()" [class.under]="isUnder()">
+        {{ diffDisplay() }}
+      </span>
+    }
+  </div>
+  
+  @if (costStatus() === 'error' || costStatus() === 'overpaid' || costStatus() === 'underpaid') {
+    <!-- <span class="status-dot" [class]="costStatus()" [title]="costStatus() === 'error' ? 'Payment error' : (costStatus() === 'overpaid' ? 'Overpaid' : 'Payment pending')"></span> -->
+  }
+</div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="trigger"
+  [cdkConnectedOverlayOpen]="isOpen()"
+  [cdkConnectedOverlayPositions]="overlayPositions"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  (backdropClick)="close()"
+  (detach)="close()">
+  <app-cost-popup
+    [estimatedCost]="estimatedCost()"
+    [actualCost]="actualCost()"
+    [expenses]="expenses()"
+    [breakdown]="breakdown()"
+    [actualCostMode]="actualCostMode()"
+    [actualReadonly]="actualReadonly()"
+    [aggregate]="aggregate()"
+    [decimalPlaces]="decimalPlaces()"
+    [step]="step()"
+    [min]="min()"
+    (saveEstimated)="saveEstimated.emit($event)"
+    (saveActual)="saveActual.emit($event)"
+    (removeActual)="removeActual.emit()"
+    (addExpense)="addExpense.emit($event)"
+    (updateExpense)="updateExpense.emit($event)"
+    (deleteExpense)="deleteExpense.emit($event)"
+    (toggleActualCostMode)="toggleActualCostMode.emit($event)"
+    (close)="close()">
+  </app-cost-popup>
+</ng-template>

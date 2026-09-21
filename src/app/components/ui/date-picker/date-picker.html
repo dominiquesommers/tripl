@@ -1,6 +1,6 @@
 <div class="date-picker-wrapper" #triggerEl [class.disabled]="disabled()">
 
-  <div class="date-btn" (click)="open()" [class.disabled]="disabled()">
+  <div class="date-btn" (click)="$event.stopPropagation(); open()" [class.disabled]="disabled()">
     @if (!hasValue()) {
       <lucide-icon name="calendar" [size]="13" class="cal-icon"></lucide-icon>
     }

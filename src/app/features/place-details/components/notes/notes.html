@@ -1,7 +1,7 @@
 <div class="notes-container">
 <!--  <h3 class="section-title">Notes</h3>-->
   @for (note of notes(); track note.id) {
-    <div class="note-item bottom-right-radius"
+    <div class="note-item"
      [class.excluded]="note.status() === 'excluded'"
      [class.skipped]="note.status() === 'skipped'">
 
@@ -41,8 +41,7 @@
           <app-cost
             [actualReadonly]="note.status() === 'excluded'"
             [estimatedCost]="note.estimated_cost() ?? 0"
-            [actualTotal]="note.actual_cost()"
-            [isPaid]="note.isPaid()"
+            [actualCost]="note.actual_cost()"
             [expenses]="note.expenses()"
             [decimalPlaces]="2"
             (saveEstimated)="updateNote(note, { estimated_cost: $event })"

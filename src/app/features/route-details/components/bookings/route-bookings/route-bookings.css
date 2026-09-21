@@ -23,6 +23,7 @@
 
 /* ── Booking row ────────────────────────────────────────── */
 .booking-row {
+  margin: 0px -6px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid transparent;
@@ -48,14 +49,22 @@
 /* ── Collapsed row layout ───────────────────────────────── */
 /* date-range | price | status-badges | spacer */
 .row-main {
-  display: grid;
-  grid-template-columns: auto auto auto 1fr;
+  position: relative;
+  display: flex;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   column-gap: 4px;
   /*gap: 8px;*/
-  padding: 5px;
+  padding: 4px;
   cursor: pointer;
   position: relative;
+}
+
+/* cost pinned to the right; auto margin absorbs the gap
+   and pulls everything after it (badges) along with it */
+.row-main > app-cost {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .icon-stack {
@@ -66,11 +75,31 @@
   min-width: 40px;
 }
 
+
+
 .status-badges,
 .inclusion-badges {
-  display: flex;
+  display: flex; /* Keep flex layout; remove display: block */
   align-items: center;
   gap: 4px;
+  min-width: 0;
+
+  /* Enable horizontal scrolling */
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+
+  /* Hide scrollbar across all major browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+
+  /* display: flex;
+  align-items: center;
+  gap: 4px;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  overflow-x: scroll; */
 }
 
 .icon-stack .badge-icon {

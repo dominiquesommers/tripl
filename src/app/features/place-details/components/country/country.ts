@@ -7,17 +7,16 @@ import {CountryNote, ICountryNote, UpdateCountryNote} from '../../../../models/c
 import {Country as CountryModel} from '../../../../models/country';
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
-import {Cost} from '../../../../components/ui/cost/cost';
-import { CostBadge } from '../../../../components/ui/cost-badge/cost-badge';
 import { CostBreakdown } from '../../../../models/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import { NotificationService } from '../../../../services/notification';
+import { AggregateCostBreakdown, Cost } from '../../../../components/ui2/cost/cost';
 
 
 @Component({
   selector: 'app-country',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost, CostBadge],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost],
   templateUrl: './country.html',
   styleUrl: './country.css'
 })
@@ -39,7 +38,7 @@ export class Country {
   ];
 
   oneTimeCategories = [
-    { id: 'activities', label: 'Activities', icon: 'map-pin',         step: 10 },
+    { id: 'activities', label: 'Activities', icon: 'heart',           step: 10 },
     { id: 'notes',      label: 'Notes',      icon: 'notebook-pen',    step: 10 },
     { id: 'transport',  label: 'Transport',  icon: 'mouse-pointer-2', step: 10 },
   ];
@@ -69,6 +68,17 @@ export class Country {
       case 'activities':    return '#a78bfa';
       case 'notes':         return '#f87171';
       default:              return '#8e8e93';
+    }
+  }
+
+  getCategoryIcon(id: string): string {
+    switch (id) {
+      case 'accommodation': return 'hotel';
+      case 'food':          return 'utensils';
+      case 'miscellaneous': return 'shopping-bag';
+      case 'activities':    return 'heart';
+      case 'notes':         return 'notebook-pen';
+      default:              return 'help-circle';
     }
   }
 
@@ -127,7 +137,8 @@ export class Country {
     }
   });
 
-  updateEstimatedCost(id: string, newValue: number) {
+  updateEstimatedCost(id: string, newValue: number | null) {
+    if (newValue === null) newValue = 0;
     if (['accommodation', 'food', 'miscellaneous'].includes(id)) {
       this.tripService.updateCountry(this.country().id, {
         [`${id}_cost`]: newValue
@@ -151,7 +162,12 @@ export class Country {
     }
   }
 
-  updateNote(note: CountryNote, changes: UpdateCountryNote) {
+  updateNote(note: CountryNote, changes: UpdateCountryNote, checkExpenses: boolean = true) {
+    if (checkExpenses && 'actual_cost' in changes && changes.actual_cost === null) {
+      this.removeActual(note);
+      return;
+    }
+
     this.tripService.updateCountryNote(note.id, changes).subscribe({
       next: () => console.log('Updated country note successfully.'),
       error: (err) => console.error('Failed to update note...', err)
@@ -193,6 +209,11 @@ export class Country {
   removeActual(note: CountryNote) {
     const expenses = note.expenses();
     const hasExpenses = expenses.length > 0;
+    if (!hasExpenses) {
+      this.updateNote(note, { actual_cost: null }, false);
+      return;
+    }
+
     const total = expenses.reduce((s, e) => s + e.amount(), 0);
 
     const message = hasExpenses
@@ -207,8 +228,8 @@ export class Country {
         isDanger: true
       },
       () => {
-        this.updateNote(note, { actual_cost: null });
         expenses.forEach(e => this.deleteExpense(e.id));
+        this.updateNote(note, { actual_cost: null }, false);
       }
     );
   }
@@ -240,4 +261,37 @@ export class Country {
     // Example output: "ma 13-04-'26"
     return `${day} ${dd}-${mm}-'${yy}`;
   }
+
+  actualRatioMap = computed<Record<string, number | null>>(() => {
+      // TODO...
+      return {
+        accommodation: 1,
+        food: 1,
+        miscellaneous: 1,
+        activities: 1,
+        notes: 1
+      };
+      // const result: Record<string, number> = {};
+      // for (const cat of this.oneTimeCategories) {
+      //   const entries = /* your activities/notes filtered to this category */;
+      //   const total = entries.reduce((sum, e) => sum + (e.actual_cost() ?? e.estimated_cost() ?? 0), 0);
+      //   const settled = entries.reduce((sum, e) => sum + (e.actual_cost() ?? 0), 0);
+      //   result[cat.id] = total > 0 ? settled / total : 0;
+      // }
+      // return result;
+    });
+  
+    breakdownMap = computed<Record<string, AggregateCostBreakdown[]>>(() => {
+      // TODO...
+      return {
+        accommodation: [
+          {icon: this.getCategoryIcon('accommodation'), iconColor: this.getCategoryColor('accommodation'), label: 'Accommodation', value: 20},
+          {icon: this.getCategoryIcon('food'), iconColor: this.getCategoryColor('food'), label: 'Food', value: 3},
+        ],
+        food: [],
+        miscellaneous: [],
+        activities: [],
+        notes: []
+      };
+    });
 }

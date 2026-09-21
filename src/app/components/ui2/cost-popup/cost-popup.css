@@ -1,0 +1,292 @@
+.cost-popup-view {
+  border-radius: 16px;
+  width: 320px;
+  max-height: 440px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(30, 30, 35, 0.2) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(30px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+}
+
+/* ── Totals block ───────────────────────────────────────── */
+.totals {
+  padding: 8px 0px 8px 12px;
+  flex-shrink: 0;
+}
+
+/* ── Payments block ───────────────────────────────────────── */
+.payments {
+  position: relative;
+  padding: 0px 8px 4px 12px;
+  flex-shrink: 0;
+}
+
+.payments::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 6px;
+  right: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+
+.label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+}
+
+.label-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mode-toggle {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 1px;
+  display: flex;
+}
+.mode-toggle:hover { color: rgba(255, 255, 255, 0.7); }
+
+.derived-value {
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
+}
+
+/* bare actual input, no pill — mirrors editable-badge's input/stepper look */
+.actual-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.actual-input-wrap .prefix {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.actual-input {
+  border: none;
+  background: transparent;
+  color: white;
+  min-width: 3ch;
+  max-width: 8ch;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  outline: none;
+}
+.actual-input:focus { color: #93b4d4; }
+.actual-input[readonly] { cursor: default; }
+.actual-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+
+.actual-input-wrap .stepper-controls {
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.actual-input-wrap:hover .stepper-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+.actual-input-wrap .step-btn {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 11px;
+  opacity: 0.6;
+}
+.actual-input-wrap .step-btn:hover { opacity: 1; color: #3b82f6; }
+
+.row.banner {
+  padding-right: 18px;
+}
+.row.banner .label { color: rgba(245, 158, 11, 0.9); font-size: 11px; }
+.row.banner .amount { color: rgba(245, 158, 11, 0.9); font-weight: 600; font-size: 12px; }
+
+.row.banner.overspend {
+  /* background: rgba(168, 85, 247, 0.15); */
+}
+.row.banner.overspend .label,
+.row.banner.overspend .amount {
+  color: #d8b4fe;
+}
+
+.remaining-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+.remaining-wrapper.expanded {
+  grid-template-rows: 1fr;
+}
+.remaining-inner {
+  overflow: hidden;
+}
+
+/* ── Payments header ────────────────────────────────────── */
+.manager-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  padding: 6px 8px 2px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  opacity: 0.7;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-actions .icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  /* pointer-events: none; */
+}
+.header-actions .icon-btn:disabled:hover { 
+  background: transparent;
+}
+
+/* ── Scroll container / ledger rows ─────────────────────── */
+.scroll-container {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin-right: -12px;
+  margin-left: -4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+}
+
+.ledger-rows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  --date-btn-width: stretch;
+  gap: 4px;
+}
+
+.ledger-row {
+  position: relative;
+  display: contents;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 4px;
+  padding: 4px 0px;
+  background: transparent;
+  transition: background 0.15s ease;
+  font-size: 12px;
+}
+.ledger-row::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0px;
+  right: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ledger-row:last-child::after {
+  display: none;
+}
+
+.details-input {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  padding: 2px;
+  width: 100%;
+  min-width: 0;
+  border-radius: 4px;
+  /* font-style: italic; */
+  transition: all 0.15s ease;
+}
+.details-input::placeholder {
+  color: rgba(255, 255, 255, 0.12) !important;
+}
+.details-input:focus {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  font-style: normal;
+}
+
+.breakdown-label {
+  color: #efeff4;
+  font-size: 12px;
+}
+
+.delete-item { opacity: 0; padding: 2px; }
+.ledger-row:hover .delete-item { opacity: 1; }
+
+.empty-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  padding: 8px 0 4px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Icon buttons ───────────────────────────────────────── */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+.icon-btn:hover:not(:disabled) { 
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+.icon-btn.delete-item:hover {
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+}

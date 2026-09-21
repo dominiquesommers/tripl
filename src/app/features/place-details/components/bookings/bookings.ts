@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TripService } from '../../../../services/trip';
 import { LucideAngularModule } from 'lucide-angular';
 import { Place } from '../../../../models/place';
-import { CostBadge } from '../../../../components/ui/cost-badge/cost-badge';
+import { AggregateCostBreakdown, Cost } from '../../../../components/ui2/cost/cost';
 import { CostBreakdown } from '../../../../models/cost';
 import { Expenses } from './expenses/expenses'
 import { PlaceBookings } from './place-bookings/place-bookings'
@@ -12,7 +12,7 @@ import { PlaceBookings } from './place-bookings/place-bookings'
 @Component({
   selector: 'app-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, CostBadge, Expenses, PlaceBookings],
+  imports: [CommonModule, FormsModule, LucideAngularModule, Cost, Expenses, PlaceBookings],
   templateUrl: './bookings.html',
   styleUrl: './bookings.css'
 })
@@ -29,7 +29,7 @@ export class Bookings {
   ];
 
   oneTimeCategories = [
-    { id: 'activities', label: 'Activities', icon: 'map-pin',      step: 10 },
+    { id: 'activities', label: 'Activities', icon: 'heart',      step: 10 },
     { id: 'notes',      label: 'Notes',      icon: 'notebook-pen', step: 10 },
   ];
 
@@ -41,6 +41,17 @@ export class Bookings {
       case 'activities':    return '#a78bfa';
       case 'notes':         return '#f87171';
       default:              return '#8e8e93';
+    }
+  }
+
+  getCategoryIcon(id: string): string {
+    switch (id) {
+      case 'accommodation': return 'hotel';
+      case 'food':          return 'utensils';
+      case 'miscellaneous': return 'shopping-bag';
+      case 'activities':    return 'heart';
+      case 'notes':         return 'notebook-pen';
+      default:              return 'help-circle';
     }
   }
 
@@ -56,7 +67,8 @@ export class Bookings {
     }
   });
 
-  updateEstimatedCost(id: string, newValue: number) {
+  updateEstimatedCost(id: string, newValue: number | null) {
+    if (newValue === null) newValue = 0;
     if (['accommodation', 'food', 'miscellaneous'].includes(id)) {
       this.tripService.updatePlace(this.place().id, {
         [`${id}_cost`]: newValue
@@ -117,4 +129,37 @@ export class Bookings {
     activities: this.actualActivities(),
     notes: this.actualNotes()
   }));
+
+  actualRatioMap = computed<Record<string, number | null>>(() => {
+    // TODO...
+    return {
+      accommodation: 1,
+      food: 1,
+      miscellaneous: 1,
+      activities: 1,
+      notes: 1
+    };
+    // const result: Record<string, number> = {};
+    // for (const cat of this.oneTimeCategories) {
+    //   const entries = /* your activities/notes filtered to this category */;
+    //   const total = entries.reduce((sum, e) => sum + (e.actual_cost() ?? e.estimated_cost() ?? 0), 0);
+    //   const settled = entries.reduce((sum, e) => sum + (e.actual_cost() ?? 0), 0);
+    //   result[cat.id] = total > 0 ? settled / total : 0;
+    // }
+    // return result;
+  });
+
+  breakdownMap = computed<Record<string, AggregateCostBreakdown[]>>(() => {
+    // TODO...
+    return {
+      accommodation: [
+        {icon: this.getCategoryIcon('accommodation'), iconColor: this.getCategoryColor('accommodation'), label: 'Accommodation', value: 20},
+        {icon: this.getCategoryIcon('food'), iconColor: this.getCategoryColor('food'), label: 'Food', value: 3},
+      ],
+      food: [],
+      miscellaneous: [],
+      activities: [],
+      notes: []
+    };
+  });
 }

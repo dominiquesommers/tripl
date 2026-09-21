@@ -7,24 +7,16 @@
 
       @if (authService.canEdit()) {
         <div class="activity-actions-top">
-          @if (act.status() !== 'excluded') {
-            <button class="icon-btn skip"
-                    [class.active]="act.status() === 'skipped'"
-                    (click)="toggleSkipped(act)"
-                    [title]="act.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'">
-              <lucide-icon name="skip-forward" [size]="14"></lucide-icon>
-            </button>
+          @if (act.status() !== 'excluded' && act.status() === 'skipped') {
+            <lucide-icon name="skip-forward" class="icon-btn skip" [size]="14" title="Marked as skipped"></lucide-icon>
+          }
+          @if (act.status() === 'excluded') {
+            <lucide-icon name="eye-off" [size]="14" title="Exluded from trip planning"></lucide-icon>
+          }
+          @if (authService.canEdit()) {
+            <app-overlay-menu [actions]="activityMenuActions" [context]="act" triggerTooltip="Activity options" />
           }
 
-          <button class="icon-btn visibility"
-                  (click)="toggleExcluded(act)"
-                  [title]="act.status() === 'excluded' ? 'Include in trip' : 'Exclude from trip'">
-            <lucide-icon [name]="act.status() === 'excluded' ? 'eye-off' : 'eye'" [size]="14"></lucide-icon>
-          </button>
-
-          <button class="icon-btn delete" (click)="deleteActivity(act)">
-            <lucide-icon name="trash-2" [size]="14"></lucide-icon>
-          </button>
         </div>
       }
 
@@ -39,10 +31,9 @@
       @if (authService.canEdit()) {
         <div class="cost-row">
           <app-cost
-            [actualReadonly]="act.status() === 'excluded'"
+            [actualReadonly]="act.status() === 'excluded' || act.status() === 'skipped'"
             [estimatedCost]="act.estimated_cost() ?? 0"
-            [actualTotal]="act.actual_cost()"
-            [isPaid]="act.isPaid()"
+            [actualCost]="act.actual_cost()"
             [expenses]="act.expenses()"
             [decimalPlaces]="2"
             (saveEstimated)="updateActivity(act, { estimated_cost: $event })"

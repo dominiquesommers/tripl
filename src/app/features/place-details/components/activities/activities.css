@@ -104,8 +104,7 @@ textarea {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: 4px;
 }
 
@@ -215,7 +214,6 @@ textarea {
   display: flex;
   flex-direction: column;
   padding: 12px 12px 4px 12px;
-  /*padding: 12px 12px 25px 12px;*/
   min-height: 40px;
   height: auto;
   background: rgba(255, 255, 255, 0.03);
@@ -309,21 +307,19 @@ textarea {
 }
 
 .activity-actions-top {
+  align-items: center;
   position: absolute;
   top: 4px;
-  right: 4px;
+  right: 8px;
   display: flex;
-  gap: 4px;
+  gap: 2px;
   z-index: 20;
 }
 
 /* Base style for icons: hidden by default */
 .activity-actions-top .icon-btn {
   opacity: 0;
-  transform: translateY(-2px);
   transition: all 0.2s ease;
-  cursor: pointer;
-  /*background: rgba(30, 30, 35, 0.8); !* Slight backdrop for legibility *!*/
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.6);

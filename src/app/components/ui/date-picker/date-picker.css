@@ -1,13 +1,31 @@
+:host {
+  display: contents;
+}
+
+.hidden-inputs-container,
+::ng-deep mat-datepicker,
+::ng-deep mat-date-range-picker {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .date-picker-wrapper {
-  display: inline-flex;
+  display: contents;
   flex-direction: column;
   position: relative;
   z-index: 1;
 }
 
 .date-btn, .datetime-btn {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--date-btn-width, auto);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   padding: 4px;
   background: rgba(255, 255, 255, 0.06);
@@ -24,6 +42,27 @@
 .date-btn:hover:not(:disabled), .datetime-btn:hover:not(.disabled) {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.25);
+}
+
+:host.mode-null .date-btn {
+  --date-btn-width: 23px !important;
+}
+
+:host.mode-date .date-btn,
+:host.mode-range.same-day .date-btn {
+  --date-btn-width: 99px;
+}
+
+:host.mode-range:not(.same-day) .date-btn {
+  --date-btn-width: 203px;
+}
+
+:host.mode-datetime.same-day .datetime-btn {
+  --date-btn-width: 193px;
+}
+
+:host.mode-datetime:not(.same-day) .datetime-btn {
+  --date-btn-width: 265px;
 }
 
 .date-part {
@@ -307,7 +346,6 @@
 
 
 .date-btn {
-  display: flex;
   align-items: center;
   /*padding: 6px 12px;*/
   /*background: #aaaaaa;*/

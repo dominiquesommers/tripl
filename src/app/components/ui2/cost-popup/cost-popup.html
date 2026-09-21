@@ -1,0 +1,158 @@
+<div class="bubble-dropdown cost-popup-view" data-popup (click)="$event.stopPropagation()">
+
+  <!-- ── Budget + Actual ─────────────────────────────────── -->
+  <div class="totals">
+    @if (estimatedCost() !== null) {
+      <div class="row">
+        <span class="label">Budget</span>
+        <app-editable-badge
+          [value]="estimatedCost()"
+          [flat]="true"
+          [step]="step()"
+          [min]="min()"
+          [decimalPlaces]="decimalPlaces()"
+          [readonly]="readonly()"
+          prefix="€"
+          (save)="saveEstimated.emit($event)">
+        </app-editable-badge>
+      </div>
+    }
+
+    <div class="row">
+      <div class="label-group">
+        <span class="label">{{ (isDerived() || estimatedCost() === null) ? 'Total' : 'Actual' }}</span>
+        <!-- @if (!actualReadonly()) {
+          <button
+            class="mode-toggle"
+            (click)="toggleMode()"
+            type="button"
+            [title]="isDerived() ? 'Locked to paid total — click to unlock' : 'Click to lock to paid total'">
+            <lucide-icon [name]="isDerived() ? 'lock' : 'lock-open'" [size]="11"></lucide-icon>
+          </button>
+        } -->
+      </div>
+
+      @if (isDerived()) {
+        <span class="derived-value">
+          € {{ displayedTotal() !== null ? actualDisplayValue() : '0' }}
+        </span>
+      } @else {
+        <app-editable-badge
+          [value]="actualCost()"
+          [flat]="true"
+          [step]="step()"
+          [min]="min()"
+          [decimalPlaces]="decimalPlaces()"
+          [readonly]="actualReadonly()"
+          prefix="€"
+          (save)="saveActual.emit($event)">
+        </app-editable-badge>
+      }
+    </div>
+
+    <div class="remaining-wrapper" [class.expanded]="showRemainingRow()">
+      <div class="remaining-inner">
+        <div class="row banner" [class.overspend]="isOverspend()">
+          <span class="label">{{ isOverspend() ? 'Overspend' : 'Remaining' }}</span>
+          <span class="amount">€ {{ remainingAbsDisplay() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- @if (showRemainingRow()) {
+      <div class="row banner" [class.overspend]="isOverspend()">
+        <span class="label">{{ isOverspend() ? 'Overspend' : 'Remaining' }}</span>
+        <span class="amount">€ {{ remainingAbsDisplay() }}</span>
+      </div>
+    } -->
+  </div>
+
+  <!-- ── Payments ─────────────────────────────────────────── -->
+  @if (!actualReadonly() && !aggregate()) {
+    <div class="payments">
+      <div class="row">
+        <span class="label">Payments</span>
+        <div class="header-actions">
+          <button
+            class="icon-btn"
+            (click)="addFullPayment()"
+            [disabled]="remaining() == null || remaining()! <= 0"
+            title="Add remaining payment">
+            <lucide-icon name="banknote" [size]="18"></lucide-icon>
+          </button>
+          <button class="icon-btn" (click)="addNew()" title="Add payment">
+            <lucide-icon name="plus" [size]="18"></lucide-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="scroll-container">
+        @if (expensesOrdered().length > 0) {
+          <div class="ledger-rows">
+            @for (exp of expensesOrdered(); track exp.id) {
+              <div class="ledger-row">
+
+                <app-date-picker
+                  mode="date"
+                  displayFormat="compact"
+                  [value]="toDate(exp.date())"
+                  (valueChange)="updateExpenseDate(exp, $event)">
+                </app-date-picker>
+
+                <app-rich-textarea
+                  [value]="exp.details() ?? ''"
+                  placeholder="Details..."
+                  [multiline]="false"
+                  (saveValue)="updateExpenseDetails(exp, $event)">
+                </app-rich-textarea>
+
+                <app-editable-badge
+                  [value]="exp.amount()"
+                  [flat]="true"
+                  [step]="1"
+                  [min]="0"
+                  [decimalPlaces]="2"
+                  [readonly]="actualReadonly()"
+                  prefix="€"
+                  (save)="updateExpenseAmount(exp, $event)">
+                </app-editable-badge>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-hint">No payments recorded yet.</p>
+        }
+      </div>
+    </div>
+  }
+
+  @if (breakdown() !== null && breakdown()!.length > 0) {
+    <div class="payments">
+      <div class="row">
+        <span class="label">Breakdown</span>
+        <div class="header-actions"></div>
+      </div>
+      <div class="scroll-container">
+        <div class="ledger-rows">
+          @for (breakdown of breakdown()!; track breakdown.label) {
+            <div class="ledger-row">
+              @if (breakdown.icon) {
+                <lucide-icon [name]="breakdown.icon" [size]="16" [style.color]="breakdown.iconColor ?? 'white'" class="breakdown-icon"></lucide-icon>
+              } @else {
+                <div></div>
+              }
+              <span class="breakdown-label">{{ breakdown.label }}</span>
+              <app-editable-badge
+                [value]="breakdown.value"
+                [readonly]="true"
+                [flat]="true"
+                [decimalPlaces]="0"
+                prefix="€">
+              </app-editable-badge>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

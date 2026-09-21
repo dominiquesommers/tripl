@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TripService } from '../../../../services/trip';
 import { LucideAngularModule } from 'lucide-angular';
-import { CostBadge } from '../../../../components/ui/cost-badge/cost-badge';
+import { AggregateCostBreakdown, Cost } from '../../../../components/ui2/cost/cost';
 import { CostBreakdown } from '../../../../models/cost';
 import { Route, UpdateRoute } from '../../../../models/route';
 import { RouteBookings } from './route-bookings/route-bookings'
@@ -12,7 +12,7 @@ import { ROUTE_COLORS, ROUTE_ICONS } from '../../../../components/map-handler/co
 @Component({
   selector: 'app-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RouteBookings, CostBadge],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RouteBookings, Cost],
   templateUrl: './bookings.html',
   styleUrl: './bookings.css'
 })
@@ -21,6 +21,7 @@ export class Bookings {
   route = input.required<Route>();
 
   updateRoute(route: Route, patch: UpdateRoute) {
+    if ('estimated_cost' in patch && patch.estimated_cost === null) patch.estimated_cost = 0;
     this.tripService.updateRoute(route.id, patch).subscribe();
   }
 
@@ -52,6 +53,24 @@ export class Bookings {
       twowheeler: 5,
       other: 10,
     }[this.route().type() as string] ?? 10;
+  });
+
+  actualRatioMap = computed<Record<string, number | null>>(() => {
+    // TODO...
+    return {
+      regular: 1,
+      'daily-tour': 1,
+      'total-tour': 1,
+    };
+  });
+
+  breakdownMap = computed<Record<string, AggregateCostBreakdown[]>>(() => {
+    // TODO...
+    return {
+      regular: [],
+      'daily-tour': [],
+      'total-tour': []
+    };
   });
 
   // ── Aggregates from traverses ────────────────────────────────

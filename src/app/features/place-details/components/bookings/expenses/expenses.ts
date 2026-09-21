@@ -6,9 +6,12 @@ import { TripService } from '../../../../../services/trip';
 import { Place } from '../../../../../models/place';
 import { Expense, NewExpense, UpdateExpense } from '../../../../../models/expense';
 import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
-import {EditableBadge} from '../../../../../components/ui/editable-badge/editable-badge';
+import {EditableBadge} from '../../../../../components/ui2/editable-badge/editable-badge';
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
 import { formatDate } from '../../../../../utils/dates';
+import { NotificationService } from '../../../../../services/notification';
+import {OverlayMenu} from '../../../../../components/ui/overlay-menu/overlay-menu';
+import {OverlayMenuAction} from '../../../../../models/overlay-menu';
 
 
 type ExpenseCategory = 'food' | 'miscellaneous';
@@ -17,13 +20,14 @@ type ExpenseCategory = 'food' | 'miscellaneous';
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge, DatePicker, RichTextarea],
+  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge, DatePicker, RichTextarea, OverlayMenu],
   templateUrl: './expenses.html',
   styleUrls: ['./expenses.css'],
 })
 export class Expenses {
 
   tripService = inject(TripService);
+  notificationService = inject(NotificationService);
   place       = input.required<Place>();
 
   // ── Expenses sorted newest first ──────────────────────────
@@ -39,20 +43,38 @@ export class Expenses {
       if (needsFetching) {
         untracked(() => {
           this.tripService.fetchExpenseDetails(place.id, 'place').subscribe()
-          // this.tripService.fetchPlaceBookingDetails(place.id).subscribe();
         });
       }
     });
   }
 
+  readonly addExpenseActions = computed((): OverlayMenuAction[] => {
+    const actions: OverlayMenuAction[] = [
+      {
+        icon: 'utensils',
+        label: 'Add food expense',
+        action: () => this.addNew('food'),
+        className: 'food'
+      },
+      {
+        icon: 'shopping-bag',
+        label: 'Add miscellaneous expense',
+        action: () => this.addNew('miscellaneous'),
+        className: 'miscellaneous'
+      },
+    ];
+
+    return actions;
+  });
+
   // ── Add expense immediately ───────────────────────────────
-  addNew() {
+  addNew(category: string) {
     const trip = this.tripService.trip();
     if (!trip) return;
     this.tripService.addExpense({
       amount:      0,
       date:        this.toISODate(new Date()),
-      category:    'food',
+      category:    category,
       details:     null,
       place_id:    this.place().id,
       trip_id:     trip.id,
@@ -68,8 +90,22 @@ export class Expenses {
     }).subscribe();
   }
 
-  updateAmount(expense: Expense, amount: number) {
-    this.tripService.updateExpense(expense.id, { amount }).subscribe();
+  updateAmount(expense: Expense, amount: number | null) {
+    if (!amount) {
+      this.notificationService.confirmModal(
+        {
+          title: 'Remove expense',
+          message: ``,
+          confirmLabel: 'Remove',
+          isDanger: true,
+        },
+        () => {
+          this.tripService.removeExpense(expense).subscribe();
+        }
+      );
+    } else {
+      this.tripService.updateExpense(expense.id, { amount }).subscribe();
+    }
   }
 
   updateDetails(expense: Expense, details: string) {

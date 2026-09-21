@@ -154,8 +154,10 @@
 }
 
 .sub-line {
-  margin-top: -4px;
-  margin-bottom: -22px;
+  margin-top: -2px;
+  margin-bottom: -24px;
+  z-index: 2;
+  align-items: flex-start;
 }
 
 .date-range {

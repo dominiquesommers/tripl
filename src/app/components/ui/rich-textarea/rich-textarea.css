@@ -76,7 +76,7 @@
 }
 
 /* Single-line: truncate with ellipsis in display mode */
-.single-line .display-view {
+.single-line .display-view > div {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -163,6 +163,11 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  transition: all 0.15s ease;
 }
 
 /* Markdown Syntax Highlighting in Editor */

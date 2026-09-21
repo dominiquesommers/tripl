@@ -9,19 +9,20 @@ import { TripService } from '../../../../../services/trip';
 import { Route } from '../../../../../models/route';
 import { RouteBooking, UpdateRouteBooking } from '../../../../../models/route-booking';
 import { FoodInclusion, FOOD_PCT } from '../../../../../models/route-booking';
-import { Expense, NewExpense } from '../../../../../models/expense';
+import { Expense, NewExpense, UpdateExpense } from '../../../../../models/expense';
 import {EditableBadge} from '../../../../../components/ui/editable-badge/editable-badge';
 import {DatePicker} from '../../../../../components/ui/date-picker/date-picker';
 import {PopupService} from '../../../../../services/popup';
 import {CostPopup} from '../../../../../components/ui/cost-popup/cost-popup';
 import {RichTextarea} from '../../../../../components/ui/rich-textarea/rich-textarea';
 import { NotificationService } from '../../../../../services/notification';
+import { Cost } from '../../../../../components/ui2/cost/cost';
 
 
 @Component({
   selector: 'app-route-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, EditableBadge, DatePicker, RichTextarea],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DatePicker, RichTextarea, Cost],
   templateUrl: './route-bookings.html',
   styleUrls: ['./route-bookings.css'],
 })
@@ -178,6 +179,26 @@ export class RouteBookings {
   //   }
   // }
 
+
+  addExpense(booking: RouteBooking, expense: NewExpense) {
+    console.log('Adding expense for booking', booking.id, expense);
+    this.tripService.addExpense({
+      ...expense,
+      route_booking_id: booking.id,
+      trip_id: booking.trip_id,
+      category: 'transport',
+    }).subscribe();
+  }
+
+  updateExpense(expense: UpdateExpense & { id: string }) {
+    this.tripService.updateExpense(expense.id, expense).subscribe();
+  }
+
+  deleteExpense(id: string) {
+    const expense = this.tripService.trip()?.expenses().get(id);
+    if (expense) this.tripService.removeExpense(expense).subscribe();
+  }
+
   // ── Cost popup ────────────────────────────────────────────
   @ViewChildren('priceCellRef') priceCellRefs!: QueryList<ElementRef>;
 
@@ -213,7 +234,7 @@ export class RouteBookings {
 
   firstUrl(booking: RouteBooking): string | null {
     const details = booking.details();
-    if (!details) return 'https://www.google.com';
+    if (!details) return null;
     // Match url(href, label) pattern first
     const patternMatch = details.match(/url\(([^,)]+)/);
     if (patternMatch) return patternMatch[1].trim();
@@ -256,9 +277,14 @@ export class RouteBookings {
     return date.toISOString();
   }
 
-  formatDate(iso: string | null): string {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  formatDate(dateString: string | null): string {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00Z');
+    const day = date.toLocaleDateString('en-EN', { weekday: 'short', timeZone: 'UTC' });
+    const dd  = String(date.getUTCDate()).padStart(2, '0');
+    const mm  = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yy  = String(date.getUTCFullYear()).slice(2);
+    const result = `${day} ${dd}-${mm}-'${yy}`;
+    return result;
   }
 }

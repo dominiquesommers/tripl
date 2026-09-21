@@ -8,7 +8,7 @@
 .cost-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   padding-top: 16px;
 }
 
@@ -19,6 +19,69 @@
   margin: 0 0 8px 0;
   font-weight: 600;
   letter-spacing: 0.05em;
+}
+
+
+.scroll-container {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+}
+
+.ledger-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ledger-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* padding: 6px 8px 6px 0; */
+}
+
+.ledger-row::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0px;
+  right: 8px;
+  /* border-bottom: 1px solid rgba(255, 255, 255, 0.14); */
+}
+
+.ledger-row:last-child::after {
+  display: none;
+}
+
+.category-icon {
+  flex: 0 0 auto;
+}
+
+
+.category-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  border-radius: 4px;
+  /* font-style: italic; */
+  transition: all 0.15s ease;
+}
+
+.ledger-row > app-cost-badge {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 15px;
 }
 
 .note-item.excluded {

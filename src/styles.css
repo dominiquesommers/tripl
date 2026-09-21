@@ -87,11 +87,12 @@ body {
 }
 
 .mat-datepicker-content {
-  background: rgba(30, 30, 35, 0.97) !important;
+  background: rgba(30, 30, 35, 0.2) !important;
   border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-  backdrop-filter: blur(20px) !important;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(30px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
 }
 
 

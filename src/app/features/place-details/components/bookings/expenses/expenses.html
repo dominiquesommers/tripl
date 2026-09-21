@@ -3,67 +3,46 @@
   <!-- Header -->
   <div class="section-header">
     <h3 class="section-title">Expenses</h3>
-    <button class="icon-btn add-btn" (click)="addNew()" title="Add expense">
+    <app-overlay-menu triggerIcon="plus" [actions]="addExpenseActions()" triggerTooltip="Add expense" />
+    <!-- <button class="icon-btn add-btn" (click)="addNew()" title="Add expense">
       <lucide-icon name="plus" [size]="16"></lucide-icon>
-    </button>
+    </button> -->
   </div>
 
-  <!-- Expense list -->
   @if (expenses().length > 0) {
-    @for (exp of expenses(); track exp.id) {
-      <div class="expense-row">
+    <div class="scroll-container">
+      <div class="ledger-rows">
+        @for (exp of expenses(); track exp.id) {
+          <div class="ledger-row">
+            <app-date-picker
+              mode="date"
+              displayFormat="compact"
+              [value]="toDate(exp.date())"
+              (valueChange)="updateDate(exp, $event)">
+            </app-date-picker>
 
-        <div class="row-main">
+            <lucide-icon [name]="categoryIcon(exp.category())" [size]="16" class="category-icon" [style.color]="categoryColor(exp.category())"></lucide-icon>
 
-          <!-- Date picker showing formatted date -->
-          <app-date-picker
-            mode="date"
-            displayFormat="compact"
-            [value]="toDate(exp.date())"
-            (valueChange)="updateDate(exp, $event)">
-          </app-date-picker>
+            <app-rich-textarea
+              [value]="exp.details() ?? ''"
+              placeholder="Details..."
+              [multiline]="false"
+              (saveValue)="updateDetails(exp, $event)">
+            </app-rich-textarea>
 
-          <!-- Amount badge with category icon (click icon to toggle category) -->
-          <div class="badge-wrap">
             <app-editable-badge
               [value]="exp.amount()"
-              prefix="€"
+              [flat]="true"
               [step]="1"
               [min]="0"
               [decimalPlaces]="2"
-              [iconName]="categoryIcon(exp.category())"
-              [iconColor]="categoryColor(exp.category())"
-              (save)="updateAmount(exp, $event)"
-              [hasIconAction]="true"
-              (iconClick)="toggleCategory(exp)">
+              prefix="€"
+              (save)="updateAmount(exp, $event)">
             </app-editable-badge>
           </div>
-
-          <!-- Details -->
-          <app-rich-textarea
-            [value]="exp.details() ?? ''"
-            placeholder="Details..."
-            [multiline]="false"
-            (saveValue)="updateDetails(exp, $event)">
-          </app-rich-textarea>
-<!--          <input-->
-<!--            type="text"-->
-<!--            class="details-input"-->
-<!--            placeholder="Details..."-->
-<!--            [value]="exp.details() ?? ''"-->
-<!--            (blur)="updateDetails(exp, $any($event.target).value)" />-->
-
-          <!-- Delete (visible on hover) -->
-          <button class="icon-btn delete-floating"
-                  (click)="deleteExpense(exp); $event.stopPropagation()"
-                  title="Delete">
-            <lucide-icon name="trash-2" [size]="13"></lucide-icon>
-          </button>
-
-        </div>
-
+        }
       </div>
-    }
+    </div>
   } @else {
     <p class="empty-hint">No expenses recorded yet.</p>
   }
