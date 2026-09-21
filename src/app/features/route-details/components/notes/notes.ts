@@ -8,12 +8,14 @@ import {RouteNote, IRouteNote, UpdateRouteNote} from '../../../../models/route-n
 import {AuthService} from '../../../../services/auth';
 import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textarea';
 import { NotificationService } from '../../../../services/notification';
+import {OverlayMenu} from '../../../../components/ui/overlay-menu/overlay-menu';
+import {OverlayMenuAction} from '../../../../models/overlay-menu';
 
 
 @Component({
   selector: 'app-notes',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, OverlayMenu],
   templateUrl: './notes.html',
   styleUrl: './notes.css'
 })
@@ -24,7 +26,6 @@ export class Notes {
   notificationService = inject(NotificationService);
 
   // Track which note description has focus for the URL parser
-  // focusedNoteId = signal<string | null>(null);
   isAdding = signal(false);
 
   notes = computed<RouteNote[]>(() => {
@@ -44,6 +45,15 @@ export class Notes {
     });
   }
 
+  readonly noteMenuActions: OverlayMenuAction<RouteNote>[] = [
+    {
+      icon: 'trash-2',
+      label: 'Delete note',
+      action: (note) => this.deleteNote(note),
+      className: 'delete-option',
+    },
+  ];
+
   onAddNote(text: string) {
     const trimmedText = text.trim();
 
@@ -60,57 +70,8 @@ export class Notes {
     }
   }
 
-  // blurDescription(note: RouteNote, description: string) {
-  //   console.log('blur!');
-  //   this.focusedNoteId.set(null);
-  //   this.updateNote(note, { description })
-  // }
-  //
-  // startAdding() {
-  //   this.isAdding.set(true);
-  // }
-  //
-  // submitQuickAdd(event: any, routeId: string) {
-  //   const text = event.target.value.trim();
-  //   if (text) {
-  //     this.tripService.addRouteNote(routeId, text).subscribe((newNote) => {
-  //       if (newNote) {
-  //         this.isAdding.set(false);
-  //       }
-  //     });
-  //   } else {
-  //     this.isAdding.set(false);
-  //   }
-  // }
-  //
-  // handleKeyDown(event: KeyboardEvent) {
-  //   const routeId = this.route().id;
-  //   if (event.key === 'Enter' && !event.shiftKey) {
-  //     event.preventDefault();
-  //     this.submitQuickAdd(event, routeId);
-  //   } else if (event.key === 'Escape') {
-  //     this.isAdding.set(false);
-  //   }
-  // }
-  //
-  // cancelAddingIfEmpty(event: FocusEvent) {
-  //   const textarea = event.target as HTMLTextAreaElement;
-  //   if (!textarea.value.trim()) {
-  //     this.isAdding.set(false);
-  //   }
-  // }
-  //
-  // formatDescription(text: string): SafeHtml {
-  //   if (!text) return '';
-  //   // Replaces url(https://link.com, Label) with <a href="...">Label</a>
-  //   const html = text.replace(/url\(([^,]+),\s*([^)]+)\)/g,
-  //     '<a href="$1" target="_blank" style="color: #3b82f6; text-decoration: underline;">$2</a>');
-  //   return this.sanitizer.bypassSecurityTrustHtml(html);
-  // }
-
   updateNote(note: RouteNote, changes: UpdateRouteNote) {
     console.log('Updating note', note, changes);
-    // const updated = { ...note, ...changes };
     this.tripService.updateRouteNote(note.id, changes).subscribe({
       next: () => console.log('Updated route note successfully.'),
       error: (err) => console.error('Failed to update note...', err)

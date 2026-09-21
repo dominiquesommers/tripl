@@ -1,20 +1,18 @@
 <div class="notes-container">
-  @for (act of notes(); track act.id) {
+  @for (note of notes(); track note.id) {
     <div class="note-item">
 
       @if (authService.canEdit()) {
         <div class="note-actions-top">
-          <button class="icon-btn delete" (click)="deleteNote(act)">
-            <lucide-icon name="trash-2" [size]="14"></lucide-icon>
-          </button>
+          <app-overlay-menu [actions]="noteMenuActions" [context]="note" triggerTooltip="Note options" />
         </div>
       }
 
       <div class="seamless-text-container">
         <app-rich-textarea
-          [value]="act.description()"
+          [value]="note.description()"
           [placeholder]="'Add description...'"
-          (saveValue)="updateNote(act, { description: $event || undefined })">
+          (saveValue)="updateNote(note, { description: $event || undefined })">
         </app-rich-textarea>
       </div>
     </div>
@@ -34,7 +32,7 @@
       </div>
 
       @if (isAdding()) {
-        <div class="cost-corner-anchor">
+        <div class="cost-row">
            <span class="hint-text">Shift+Enter to Save • Esc to Cancel</span>
         </div>
       }

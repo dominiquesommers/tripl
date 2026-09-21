@@ -10,12 +10,14 @@ import {RichTextarea} from '../../../../components/ui/rich-textarea/rich-textare
 import {Cost} from '../../../../components/ui2/cost/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import { NotificationService } from '../../../../services/notification';
+import {OverlayMenu} from '../../../../components/ui/overlay-menu/overlay-menu';
+import {OverlayMenuAction} from '../../../../models/overlay-menu';
 
 
 @Component({
   selector: 'app-notes',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost, OverlayMenu],
   templateUrl: './notes.html',
   styleUrl: './notes.css'
 })
@@ -44,6 +46,28 @@ export class Notes {
       }
     });
   }
+
+  readonly noteMenuActions: OverlayMenuAction<PlaceNote>[] = [
+    {
+      icon: (note) => (note.status() === 'excluded' ? 'eye' : 'eye-off'),
+      label: (note) =>
+        note.status() === 'excluded' ? 'Include in trip planning' : 'Exclude from trip planning',
+      action: (note) => this.toggleExcluded(note),
+      hidden: (note) => note.status() === 'skipped',
+    },
+    {
+      icon: (note) => (note.status() === 'skipped' ? 'check' : 'skip-forward'),
+      label: (note) => (note.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'),
+      action: (note) => this.toggleSkipped(note),
+      hidden: (note) => note.status() === 'excluded',
+    },
+    {
+      icon: 'trash-2',
+      label: 'Delete note',
+      action: (note) => this.deleteNote(note),
+      className: 'delete-option',
+    },
+  ];
 
   onAddNote(text: string) {
     const trimmedText = text.trim();

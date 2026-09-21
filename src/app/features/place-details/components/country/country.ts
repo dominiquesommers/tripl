@@ -11,12 +11,14 @@ import { CostBreakdown } from '../../../../models/cost';
 import {NewExpense, UpdateExpense} from '../../../../models/expense';
 import { NotificationService } from '../../../../services/notification';
 import { AggregateCostBreakdown, Cost } from '../../../../components/ui2/cost/cost';
+import {OverlayMenu} from '../../../../components/ui/overlay-menu/overlay-menu';
+import {OverlayMenuAction} from '../../../../models/overlay-menu';
 
 
 @Component({
   selector: 'app-country',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost],
+  imports: [CommonModule, FormsModule, LucideAngularModule, RichTextarea, Cost, OverlayMenu],
   templateUrl: './country.html',
   styleUrl: './country.css'
 })
@@ -59,6 +61,28 @@ export class Country {
       }
     });
   }
+
+  readonly noteMenuActions: OverlayMenuAction<CountryNote>[] = [
+    {
+      icon: (note) => (note.status() === 'excluded' ? 'eye' : 'eye-off'),
+      label: (note) =>
+        note.status() === 'excluded' ? 'Include in trip planning' : 'Exclude from trip planning',
+      action: (note) => this.toggleExcluded(note),
+      hidden: (note) => note.status() === 'skipped',
+    },
+    {
+      icon: (note) => (note.status() === 'skipped' ? 'check' : 'skip-forward'),
+      label: (note) => (note.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'),
+      action: (note) => this.toggleSkipped(note),
+      hidden: (note) => note.status() === 'excluded',
+    },
+    {
+      icon: 'trash-2',
+      label: 'Delete note',
+      action: (note) => this.deleteNote(note),
+      className: 'delete-option',
+    },
+  ];
 
   getCategoryColor(id: string): string {
     switch (id) {

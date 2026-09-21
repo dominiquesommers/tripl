@@ -80,25 +80,13 @@
 
       @if (authService.canEdit()) {
         <div class="note-actions-top">
-          @if (note.status() !== 'excluded') {
-            <button class="icon-btn skip"
-                    [class.active]="note.status() === 'skipped'"
-                    (click)="toggleSkipped(note)"
-                    [title]="note.status() === 'skipped' ? 'Mark as planned' : 'Mark as skipped'">
-              <lucide-icon name="skip-forward" [size]="14"></lucide-icon>
-            </button>
+          @if (note.status() !== 'excluded' && note.status() === 'skipped') {
+            <lucide-icon name="skip-forward" class="icon-btn skip" [size]="14" title="Marked as skipped"></lucide-icon>
           }
-
-
-          <button class="icon-btn visibility"
-                  (click)="toggleExcluded(note)"
-                  [title]="note.status() === 'excluded' ? 'Include in trip' : 'Exclude from trip'">
-            <lucide-icon [name]="note.status() === 'excluded' ? 'eye-off' : 'eye'" [size]="14"></lucide-icon>
-          </button>
-
-          <button class="icon-btn delete" (click)="deleteNote(note)">
-            <lucide-icon name="trash-2" [size]="14"></lucide-icon>
-          </button>
+          @if (note.status() === 'excluded') {
+            <lucide-icon name="eye-off" [size]="14" title="Excluded from trip planning"></lucide-icon>
+          }
+          <app-overlay-menu [actions]="noteMenuActions" [context]="note" triggerTooltip="Note options" />
         </div>
       }
 
@@ -113,7 +101,7 @@
       @if (authService.canEdit()) {
         <div class="cost-row">
           <app-cost
-            [actualReadonly]="note.status() === 'excluded'"
+            [actualReadonly]="note.status() === 'excluded' || note.status() === 'skipped'"
             [estimatedCost]="note.estimated_cost() ?? 0"
             [actualCost]="note.actual_cost()"
             [expenses]="note.expenses()"
@@ -145,7 +133,7 @@
       </div>
 
       @if (isAdding()) {
-        <div class="cost-corner-anchor">
+        <div class="cost-row">
            <span class="hint-text">Shift+Enter to Save • Esc to Cancel</span>
         </div>
       }

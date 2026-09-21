@@ -13,10 +13,7 @@
           @if (act.status() === 'excluded') {
             <lucide-icon name="eye-off" [size]="14" title="Exluded from trip planning"></lucide-icon>
           }
-          @if (authService.canEdit()) {
-            <app-overlay-menu [actions]="activityMenuActions" [context]="act" triggerTooltip="Activity options" />
-          }
-
+          <app-overlay-menu [actions]="activityMenuActions" [context]="act" triggerTooltip="Activity options" />
         </div>
       }
 

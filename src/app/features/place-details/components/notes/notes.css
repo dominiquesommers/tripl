@@ -116,8 +116,7 @@ textarea {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: 4px;
 }
 
@@ -375,23 +374,20 @@ textarea {
   letter-spacing: 0.05em;
   padding: 0 8px;
 }
-
 .note-actions-top {
+  align-items: center;
   position: absolute;
   top: 4px;
-  right: 4px;
+  right: 8px;
   display: flex;
-  gap: 4px;
+  gap: 2px;
   z-index: 20;
 }
 
 /* Base style for icons: hidden by default */
 .note-actions-top .icon-btn {
   opacity: 0;
-  transform: translateY(-2px);
   transition: all 0.2s ease;
-  cursor: pointer;
-  /*background: rgba(30, 30, 35, 0.8); !* Slight backdrop for legibility *!*/
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.6);
