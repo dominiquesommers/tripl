@@ -1,5 +1,6 @@
-import {Component, input, output, ElementRef, ViewChild, computed, signal} from '@angular/core';
+import {Component, inject, input, output, ElementRef, ViewChild, computed, signal} from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { UiService } from '../../../services/ui';
 
 @Component({
   selector: 'app-editable-badge',
@@ -9,6 +10,8 @@ import { LucideAngularModule } from 'lucide-angular';
   styleUrl: './editable-badge.css'
 })
 export class EditableBadge {
+  uiService = inject(UiService);
+
   // Inputs
   value = input<number | null>(null);
   // isLargeValue = input<boolean>(false);

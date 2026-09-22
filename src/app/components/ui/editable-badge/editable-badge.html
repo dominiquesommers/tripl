@@ -30,7 +30,7 @@
     } @else if (postfix()) {
       <span class="postfix main-icon">{{ postfix() }}</span>
     }
-    @if (!readonly()) {
+    @if (!readonly() && !uiService.isTouchDevice()) {
       <div class="stepper-controls">
         <button class="step-btn" (click)="adjust(1)" type="button">
           <lucide-icon name="chevron-up" [size]="12"></lucide-icon>
