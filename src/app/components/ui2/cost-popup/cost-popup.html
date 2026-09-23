@@ -21,15 +21,6 @@
     <div class="row">
       <div class="label-group">
         <span class="label">{{ (isDerived() || estimatedCost() === null) ? 'Total' : 'Actual' }}</span>
-        <!-- @if (!actualReadonly()) {
-          <button
-            class="mode-toggle"
-            (click)="toggleMode()"
-            type="button"
-            [title]="isDerived() ? 'Locked to paid total — click to unlock' : 'Click to lock to paid total'">
-            <lucide-icon [name]="isDerived() ? 'lock' : 'lock-open'" [size]="11"></lucide-icon>
-          </button>
-        } -->
       </div>
 
       @if (isDerived()) {
@@ -58,13 +49,6 @@
         </div>
       </div>
     </div>
-
-    <!-- @if (showRemainingRow()) {
-      <div class="row banner" [class.overspend]="isOverspend()">
-        <span class="label">{{ isOverspend() ? 'Overspend' : 'Remaining' }}</span>
-        <span class="amount">€ {{ remainingAbsDisplay() }}</span>
-      </div>
-    } -->
   </div>
 
   <!-- ── Payments ─────────────────────────────────────────── -->
