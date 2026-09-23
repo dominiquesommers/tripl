@@ -29,7 +29,14 @@
             <span class="place-name" (click)="onVisitClick(visit)">{{ visit.place.name() }}</span>
           </div>
           @if (!authService.isPublicMode()) {
-            <span class="cost-tag">€{{ visit.cost().estimated.total }}</span>
+            <app-cost
+              [estimatedCost]="visit.place.cost().estimated.total"
+              [actualCost]="visit.place.cost().improvedEstimate.total"
+              [readonly]="true"
+              [aggregate]="true"
+              [breakdown]="breakdownFor(visit.place.cost())"
+              [decimalPlaces]="0">
+            </app-cost>
           }
         </div>
 
@@ -78,7 +85,14 @@
 
         <div class="content-column transit-details">
           @if (!authService.isPublicMode()) {
-            <span class="transit-cost">€{{ traverse.cost_().estimated.total }}</span>
+            <app-cost
+              [estimatedCost]="traverse.cost_().estimated.total"
+              [actualCost]="traverse.cost_().improvedEstimate.total"
+              [readonly]="true"
+              [aggregate]="true"
+              [breakdown]="breakdownFor(traverse.cost_())"
+              [decimalPlaces]="0">
+            </app-cost>
           }
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, computed, Component, ElementRef, inject, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TripService } from '../../../../services/trip';
 import { UiService } from '../../../../services/ui';
@@ -7,11 +7,15 @@ import {DatePicker} from '../../../../components/ui/date-picker/date-picker';
 import {ROUTE_COLORS, ROUTE_ICONS} from '../../../../components/map-handler/config/map-styles.config';
 import {AuthService} from '../../../../services/auth';
 import {take} from 'rxjs';
+import {Cost, AggregateCostBreakdown} from '../../../../components/ui2/cost/cost';
+import { CostComparison } from '../../../../models/cost';
+import { Visit } from '../../../../models/visit';
+
 
 @Component({
   selector: 'app-itinerary',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, DatePicker],
+  imports: [CommonModule, LucideAngularModule, DatePicker, Cost],
   templateUrl: './itinerary.html',
   styleUrl: './itinerary.css'
 })
@@ -30,6 +34,31 @@ export class Itinerary implements AfterViewInit {
         this.scrollToCurrentVisit();
       });
     }
+  }
+
+  private readonly categoryIcons: Record<string, string> = {
+    accommodation: 'bed',
+    food: 'utensils',
+    transport: 'car',
+    miscellaneous: 'shopping-bag'
+  };
+
+  private readonly categoryColors: Record<string, string> = {
+    accommodation: '#85C1E9',
+    food: '#82E0AA',
+    transport: '#BB8FCE',
+    miscellaneous: '#F8C471'
+  };
+
+  breakdownFor(cost: CostComparison): AggregateCostBreakdown[] {
+    // Prefer actual category values once real spend exists, else fall back to estimate.
+    const source = cost.actual.total > 0 ? cost.actual : cost.estimated;
+    return [
+      {icon: this.categoryIcons['accommodation'], iconColor: this.categoryColors['accommodation'], label: 'Accommodation', value: source.accommodation},
+      {icon: this.categoryIcons['food'], iconColor: this.categoryColors['food'], label: 'Food', value: source.food},
+      {icon: this.categoryIcons['transport'], iconColor: this.categoryColors['transport'], label: 'Transport', value: source.transport},
+      {icon: this.categoryIcons['miscellaneous'], iconColor: this.categoryColors['miscellaneous'], label: 'Misc', value: source.miscellaneous},
+    ];
   }
 
   private scrollToCurrentVisit() {
