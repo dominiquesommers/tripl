@@ -27,7 +27,7 @@ export class CostService {
         visitedCountries.add(visit.place.country);
         current = current.add(visit.place.country.oneTimeCost());
     }
-    current = current.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
+    current = current.add(visit.cost());
     total = total.add(current);
     const traverse = visit.nextTraverse();
     if (traverse) {
