@@ -46,3 +46,8 @@ app-tab-bar {
   width: 100%;
   margin-top: auto;
 }
+
+app-cost {
+  --cost-badge-value-size: 11px;
+  --cost-badge-diff-size: 10px;
+}

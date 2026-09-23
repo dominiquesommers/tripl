@@ -1,8 +1,8 @@
-import {Component, computed, effect, inject, signal} from '@angular/core';
+import {Component, computed, inject, ViewChild, TemplateRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TabBar } from '../../../components/tab-bar/tab-bar';
 import { Itinerary } from '../components/itinerary/itinerary';
-import { Cost } from '../components/cost/cost';
+import { CostOverview } from '../components/cost-overview/cost-overview';
 import { Seasonality } from '../components/seasonality/seasonality';
 import { Warnings } from '../components/warnings/warnings';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -13,6 +13,7 @@ import {TabConfig} from '../../../components/tab-bar/tab-bar';
 import { SeasonalityService } from '../../../services/seasonality';
 import { CostService } from '../../../services/cost';
 import { WarningSeverity, WarningsService } from '../../../services/warnings';
+import { Cost } from '../../../components/ui2/cost/cost';
 
 
 @Component({
@@ -23,6 +24,7 @@ import { WarningSeverity, WarningsService } from '../../../services/warnings';
     TabBar,
     Itinerary,
     Cost,
+    CostOverview,
     Seasonality,
     Warnings
   ],
@@ -30,6 +32,8 @@ import { WarningSeverity, WarningsService } from '../../../services/warnings';
   styleUrl: './overview-panel.css'
 })
 export class OverviewPanel {
+  @ViewChild('costTabBadge', { static: true }) costTabBadge!: TemplateRef<unknown>;
+
   uiService = inject(UiService);
   authService = inject(AuthService);
   tripService = inject(TripService);
@@ -61,16 +65,7 @@ export class OverviewPanel {
           id: 'cost',
           label: 'Cost',
           icon: 'wallet',
-          getValue: () => {
-            const totals = this.costService.total();
-            const format = (v: number) => (v / 1000).toFixed(1);
-
-            const diff = totals.improvedEstimate.total - totals.estimated.total;
-            const sign = diff >= 0 ? '+' : '';
-
-            // return `${format(totals.actual.total)}k/${format(totals.estimated.total)}k (${sign}${format(diff)}k)`;
-            return `${format(totals.actual.total)}k\n~${format(totals.estimated.total)}k\n(${sign}${format(diff)}k)`;
-          }
+          template: this.costTabBadge
         },
         {
           id: 'warnings',

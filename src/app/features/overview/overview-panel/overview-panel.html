@@ -1,10 +1,22 @@
+<ng-template #costTabBadge>
+  <app-cost
+    [estimatedCost]="costService.total().estimated.total"
+    [actualCost]="costService.total().improvedEstimate.total"
+    [diffLayout]="'stacked'"
+    [compact]="true"
+    [compactDecimals]="1"
+    [compactThreshold]="1000"
+    [readonly]="true">
+  </app-cost>
+</ng-template>
+
 <div class="feature-wrapper">
   @if (!isPeek()) {
     <div class="feature-content">
       @switch (uiService.activeTab()) {
         @case ('itinerary') { <app-itinerary /> }
         @case ('seasonality') { <app-seasonality /> }
-        @case ('cost') { <app-cost /> }
+        @case ('cost') { <app-cost-overview /> }
         @case ('warnings') { <app-warnings /> }
       }
     </div>

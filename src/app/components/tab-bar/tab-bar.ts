@@ -1,5 +1,5 @@
-import { computed, inject, Component, input, output } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { computed, inject, Component, input, output, TemplateRef } from '@angular/core';
+import { CommonModule, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import {LucideAngularModule} from 'lucide-angular';
 import { UiService } from '../../services/ui';
 
@@ -9,12 +9,13 @@ export interface TabConfig {
   label: string;
   icon: string;
   getValue?: () => number | string;
+  template?: TemplateRef<unknown>;
 }
 
 @Component({
   selector: 'app-tab-bar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, NgTemplateOutlet],
   templateUrl: './tab-bar.html',
   styleUrl: './tab-bar.css'
 })

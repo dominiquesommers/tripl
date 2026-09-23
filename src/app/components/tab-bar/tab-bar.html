@@ -11,7 +11,10 @@
       </div>
 
       <div class="tab-label-container">
-        @if (tab.getValue) {
+        @if (tab.template) {
+          <ng-container *ngTemplateOutlet="tab.template"></ng-container>
+        }
+        @else if (tab.getValue) {
           @let val = tab.getValue();
           @if (val !== null && val !== undefined) {
             <span class="tab-label">{{ val }}</span>

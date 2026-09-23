@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Cost } from './cost';
+import { CostOverview } from './cost-overview';
 
-describe('Cost', () => {
-  let component: Cost;
-  let fixture: ComponentFixture<Cost>;
+describe('CostOverview', () => {
+  let component: CostOverview;
+  let fixture: ComponentFixture<CostOverview>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Cost]
+      imports: [CostOverview]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Cost);
+    fixture = TestBed.createComponent(CostOverview);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

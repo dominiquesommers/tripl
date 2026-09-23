@@ -4,31 +4,33 @@
       <h4>Overview</h4>
     </div>
     <div class="table-card">
-      <div class="table-header">
+      <div class="table-header cost-row-header">
         <span></span>
-        <span>Est.</span>
-        <span>Act.</span>
-        <span>Imp.</span>
+        <span>Cost</span>
       </div>
       <div class="table-body">
         <div class="country-group">
-          <div class="country-row">
+          <div class="country-row cost-row">
             <span class="name">Total</span>
-            <span class="val">{{ costService.total().estimated.total | currency:'EUR' }}</span>
-            <span class="val actual">{{ costService.total().actual.total | currency:'EUR' }}</span>
-            <span class="val improved-estimate">{{ costService.total().improvedEstimate.total | currency:'EUR' }}</span>
+            <app-cost
+              [estimatedCost]="total2().estimated.total"
+              [actualCost]="total2().improvedEstimate.total"
+              [readonly]="true"
+              [aggregate]="true"
+              [breakdown]="totalBreakdown()"
+              [decimalPlaces]="0">
+            </app-cost>
           </div>
-<!--          <div class="country-row">-->
-<!--            <span class="name">Total2</span>-->
-<!--            <span class="val">{{ total2().estimated.total | currency:'EUR' }}</span>-->
-<!--            <span class="val actual">{{ total2().actual.total | currency:'EUR' }}</span>-->
-<!--            <span class="val improved-estimate">{{ total2().improvedEstimate.total | currency:'EUR' }}</span>-->
-<!--          </div>-->
-          <div class="country-row">
+          <div class="country-row cost-row">
             <span class="name">To date</span>
-            <span class="val">{{ toDate().estimated.total | currency:'EUR' }}</span>
-            <span class="val actual">{{ toDate().actual.total | currency:'EUR' }}</span>
-            <span class="val improved-estimate">{{ toDate().improvedEstimate.total | currency:'EUR' }}</span>
+            <app-cost
+              [estimatedCost]="toDate().estimated.total"
+              [actualCost]="toDate().improvedEstimate.total"
+              [readonly]="true"
+              [aggregate]="true"
+              [breakdown]="toDateBreakdown()"
+              [decimalPlaces]="0">
+            </app-cost>
           </div>
         </div>
       </div>
@@ -39,6 +41,36 @@
     <div class="section-header">
       <h4>Spending Trend</h4>
       <div class="header-actions">
+        <div class="country-filter">
+          <button
+            class="filter-select-btn"
+            type="button"
+            (click)="isCountryPanelOpen.set(!isCountryPanelOpen())">
+            <span>{{ countryFilterLabel() }}</span>
+            <lucide-icon name="{{ !isCountryPanelOpen() ? 'chevron-down' : 'chevron-up' }}" [size]="12"></lucide-icon>
+          </button>
+          @if (isCountryPanelOpen()) {
+            <div class="filter-panel">
+              <label class="filter-option select-all">
+                <input
+                  type="checkbox"
+                  [checked]="isAllCountriesSelected()"
+                  (change)="toggleAllCountries()">
+                <span>Select All</span>
+              </label>
+              <div class="filter-divider"></div>
+              @for (country of visitedCountries(); track country.id) {
+                <label class="filter-option">
+                  <input
+                    type="checkbox"
+                    [checked]="isCountrySelected(country)"
+                    (change)="toggleCountry(country)">
+                  <span>{{ countryFlags[country.name] || '🏳️' }} {{ country.name }}</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
         <button
           class="icon-btn toggle-btn"
           [class.is-active]="isCumulative()"
@@ -87,31 +119,35 @@
       <h4>Daily Cost per Country</h4>
     </div>
     <div class="table-card">
-      <div class="table-header">
+      <div class="table-header cost-row-header">
         <span>Country</span>
-        <span>Est.</span>
-        <span>Act.</span>
-        <span>Imp.</span>
+        <span>Cost</span>
       </div>
 
       <div class="table-body">
         @for (country of visitedCountries(); track country.id) {
           <div class="country-group">
-            <div class="country-row">
+            <div class="country-row cost-row">
               <span class="name">{{ country.name }}</span>
-              <span class="val">{{ country.cost().estimated.total | currency:'EUR' }}</span>
-              <span class="val actual">{{ country.cost().actual.total | currency:'EUR' }}</span>
-              <span class="val improved-estimate">{{ country.cost().improvedEstimate.total | currency:'EUR' }}</span>
+              <app-cost
+                [estimatedCost]="country.cost().estimated.total"
+                [actualCost]="country.cost().improvedEstimate.total"
+                [readonly]="true"
+                [aggregate]="true"
+                [breakdown]="countryBreakdown(country)"
+                [decimalPlaces]="0">
+              </app-cost>
             </div>
 
   <!--          @for (visit of country.visits(); track visit.id) {-->
   <!--            <div class="place-row">-->
   <!--              <span class="place-name">{{ visit.place.name() }}</span>-->
-  <!--              <app-editable-badge-->
-  <!--                 [value]="visit.place.accommodation_cost()"-->
-  <!--                 [prefix]="'€'"-->
-  <!--                 (save)="updateVisitCost(visit, $event)">-->
-  <!--              </app-editable-badge>-->
+  <!--              <app-cost-->
+  <!--                 [estimatedCost]="visit.place.accommodation_cost()"-->
+  <!--                 [actualCost]="visit.place.actual_accommodation_cost()"  TODO: confirm this accessor exists-->
+  <!--                 [readonly]="true"-->
+  <!--                 [decimalPlaces]="0">-->
+  <!--              </app-cost>-->
   <!--            </div>-->
   <!--          }-->
           </div>

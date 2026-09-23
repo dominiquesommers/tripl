@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, ElementRef, HostListener, inject, signal} from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartOptions, registerables, ChartType } from 'chart.js';
@@ -12,23 +12,114 @@ import {LucideAngularModule} from 'lucide-angular';
 import {Place} from '../../../../models/place';
 import {CostComparison} from '../../../../models/cost';
 import {COUNTRY_FLAGS} from '../../../../components/map-handler/config/countries.config';
+import {Cost, AggregateCostBreakdown} from '../../../../components/ui2/cost/cost';
 
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-cost',
+  selector: 'app-cost-overview',
   standalone: true,
-  imports: [BaseChartDirective, CurrencyPipe, LucideAngularModule],
-  templateUrl: './cost.html',
-  styleUrl: './cost.css'
+  imports: [BaseChartDirective, LucideAngularModule, Cost],
+  templateUrl: './cost-overview.html',
+  styleUrl: './cost-overview.css'
 })
-export class Cost {
+export class CostOverview {
   tripService = inject(TripService);
   costService = inject(CostService);
 
   private dialog = inject(Dialog);
+  private elementRef = inject(ElementRef);
+
   readonly isCumulative = signal<boolean>(true);
   readonly isBarCumulative = signal<boolean>(false);
+
+  readonly countryFlags = COUNTRY_FLAGS;
+
+  // Country filter for the Spending Trend chart
+  readonly isCountryPanelOpen = signal(false);
+  // null = "all countries" (default, untouched state)
+  private readonly selectedCountries = signal<Set<Country> | null>(null);
+
+  // ── Category icon/color mapping for app-cost breakdown tooltips ───────
+  // NOTE: guessed to match the palette already used in barChartData below.
+  // Swap for your real getCategoryIcon()/getCategoryColor() helpers if you have them.
+  private readonly categoryIcons: Record<string, string> = {
+    accommodation: 'bed',
+    food: 'utensils',
+    transport: 'car',
+    miscellaneous: 'shopping-bag'
+  };
+
+  private readonly categoryColors: Record<string, string> = {
+    accommodation: '#85C1E9',
+    food: '#82E0AA',
+    transport: '#BB8FCE',
+    miscellaneous: '#F8C471'
+  };
+
+  private breakdownFor(cost: CostComparison): AggregateCostBreakdown[] {
+    // Prefer actual category values once real spend exists, else fall back to estimate.
+    const source = cost.actual.total > 0 ? cost.actual : cost.estimated;
+    return [
+      {icon: this.categoryIcons['accommodation'], iconColor: this.categoryColors['accommodation'], label: 'Accommodation', value: source.accommodation},
+      {icon: this.categoryIcons['food'], iconColor: this.categoryColors['food'], label: 'Food', value: source.food},
+      {icon: this.categoryIcons['transport'], iconColor: this.categoryColors['transport'], label: 'Transport', value: source.transport},
+      {icon: this.categoryIcons['miscellaneous'], iconColor: this.categoryColors['miscellaneous'], label: 'Misc', value: source.miscellaneous},
+    ];
+  }
+
+  readonly totalBreakdown = computed<AggregateCostBreakdown[]>(() => this.breakdownFor(this.total2()));
+  readonly toDateBreakdown = computed<AggregateCostBreakdown[]>(() => this.breakdownFor(this.toDate()));
+
+  countryBreakdown(country: Country): AggregateCostBreakdown[] {
+    return this.breakdownFor(country.cost());
+  }
+
+  readonly isAllCountriesSelected = computed(() => {
+    const selected = this.selectedCountries();
+    return selected === null || selected.size === this.visitedCountries().length;
+  });
+
+  readonly countryFilterLabel = computed(() => {
+    const selected = this.selectedCountries();
+    const total = this.visitedCountries().length;
+    if (selected === null || selected.size === total) return 'All Countries';
+    if (selected.size === 0) return 'None selected';
+    if (selected.size === 1) return [...selected][0].name;
+    return `${selected.size} Countries`;
+  });
+
+  isCountrySelected(country: Country): boolean {
+    const selected = this.selectedCountries();
+    return selected === null || selected.has(country);
+  }
+
+  toggleCountry(country: Country): void {
+    const total = this.visitedCountries();
+    const base = new Set(this.selectedCountries() ?? total);
+    if (base.has(country)) {
+      base.delete(country);
+    } else {
+      base.add(country);
+    }
+    this.selectedCountries.set(base);
+  }
+
+  toggleAllCountries(): void {
+    if (this.isAllCountriesSelected()) {
+      this.selectedCountries.set(new Set()); // deselect all
+    } else {
+      this.selectedCountries.set(new Set(this.visitedCountries()));
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const clickedInside = this.elementRef.nativeElement.contains(event.target);
+    if (this.isCountryPanelOpen() && !clickedInside) {
+      this.isCountryPanelOpen.set(false);
+    }
+  }
 
   public total2 = computed<CostComparison>(() => {
     const trip = this.tripService.trip();
@@ -87,7 +178,7 @@ export class Cost {
     const meta: { name: string, flag: string }[] = [];
 
     let costOverTime = new CostComparison();
-    const visits = plan.itinerary();
+    const visits = plan.itinerary(); // no longer filtered here — dates must stay correct
     let currentDate = new Date(start);
     const visitedPlaces = new Set<Place>();
     const visitedCountries = new Set<Country>();
@@ -95,41 +186,36 @@ export class Cost {
     let cur = CostComparison.empty();
     let cur2 = CostComparison.empty();
     visits.forEach((visit) => {
+      const included = this.isCountrySelected(visit.place.country);
+
       if (!visitedPlaces.has(visit.place)) {
         visitedPlaces.add(visit.place);
-        if (visit.place.name() === 'Sydney') {
-          console.log('Sydney', visit.place.oneTimeCost());
-        }
-        cur = cur.add(visit.place.oneTimeCost());
-        // costOverTime = costOverTime.add(visit.place.oneTimeCost());
+        if (included) cur = cur.add(visit.place.oneTimeCost());
       }
       if (!visitedCountries.has(visit.place.country)) {
         visitedCountries.add(visit.place.country);
-        cur = cur.add(visit.place.country.oneTimeCost());
-        // costOverTime = costOverTime.add(visit.place.country.oneTimeCost());
+        if (included) cur = cur.add(visit.place.country.oneTimeCost());
       }
-      cur = cur.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
+      if (included) cur = cur.add(visit.cost());
       cur2 = isCum ? cur2.add(cur) : cur;
-      // costOverTime = costOverTime.add(visit.cost()); // Could separate this over the nights, now all paid on arrival.
-      estValues.push(cur2.estimated.total);
-      actValues.push(cur2.actual.total);
-      impEstValues.push(cur2.improvedEstimate.total);
-      savValues.push(70000 - cur2.actual.total);
 
-      meta.push({name: visit.place.name(), flag: COUNTRY_FLAGS[visit.place.country.name] || '🏳️'});
-      // meta.push({name: visit.place.name(), flag: this.countryFlags[visit.place.country.name] || '🏳️'});
-      currentDate.setDate(currentDate.getDate() + visit.nights());
+      currentDate.setUTCDate(currentDate.getUTCDate() + visit.nights()); // always advance, regardless of filter
+
+      if (included) {
+        estValues.push(cur2.estimated.total);
+        actValues.push(cur2.actual.total);
+        impEstValues.push(cur2.improvedEstimate.total);
+        savValues.push(70000 - cur2.actual.total);
+        meta.push({name: visit.place.name(), flag: COUNTRY_FLAGS[visit.place.country.name] || '🏳️'});
+        labels.push(new Date(currentDate));
+      }
 
       const traverse = visit.nextTraverse();
       if (traverse) {
-        cur = traverse.cost_(); // Could separate this over the nights, now all paid on departure.
-        currentDate.setDate(currentDate.getDate() + traverse.route.nights());
-        if (traverse.route.target.name() === 'Sydney') {
-          console.log('melsyd', traverse.cost_());
-        }
-        // costOverTime = costOverTime.add(traverse.cost_());  // Could separate this over the nights, now all paid on departure.
+        if (included) cur = traverse.cost_();
+        currentDate.setUTCDate(currentDate.getUTCDate() + (traverse.is_overnight() ? 1 : 0)); // always advance
+        // costOverTime = costOverTime.add(traverse.cost_());
       }
-      labels.push(new Date(currentDate));
     });
 
     return {
@@ -243,16 +329,6 @@ export class Cost {
         { data: impEstMisc, label: 'Imp. Est. Misc', backgroundColor: '#F8C471', stack: 'imp' },
       ]
     };
-
-    // return {
-    //   labels,
-    //   datasets: [
-    //     { data: accData, label: 'Accommodation', backgroundColor: '#5dade2', stack: 'total' },
-    //     { data: foodData, label: 'Food', backgroundColor: '#58d68d', stack: 'total' },
-    //     { data: transportData, label: 'Transport', backgroundColor: '#af7ac5', stack: 'total' },
-    //     { data: miscData, label: 'Misc', backgroundColor: '#f39c12', stack: 'total' }
-    //   ]
-    // };
   });
 
   readonly visitedCountries = computed<Country[]>(() => {
@@ -306,9 +382,9 @@ export class Cost {
             const timestamp = context[0].parsed.x;
             if (timestamp === null || timestamp === undefined) return `${meta.flag} ${meta.name}`;
             const date = new Date(timestamp);
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const year = date.getUTCFullYear();
             return `${meta.flag} ${meta.name}\n${day}-${month}-${year}`;
           },
           label: (context) => {
@@ -377,13 +453,25 @@ export class Cost {
     }
   };
 
+  readonly spendingTrendLabel = computed(() => {
+    const selected = this.selectedCountries();
+    const all = this.visitedCountries();
+    const total = all.length;
+
+    if (selected === null || selected.size === total) {
+      return 'Spending trend over full itinerary';
+    }
+    if (selected.size === 1) {
+      return `Spending trend over ${[...selected][0].name}`;
+    }
+    return `Spending trend over ${selected.size}/${total} countries`;
+  });
+
   openFullscreen(type: 'line' | 'bar') {
     const isLine = type === 'line';
-    console.log(isLine);
-
     this.dialog.open(ChartModal, {
       data: {
-        title: isLine ? 'Spending Forecast' : 'Daily Costs by Country',
+        title: isLine ? this.spendingTrendLabel() : 'Daily Costs by Country',
         chartData: isLine ? this.lineChartData() : this.barChartData(),
         chartType: isLine ? 'line' : 'bar',
         chartOptions: {
