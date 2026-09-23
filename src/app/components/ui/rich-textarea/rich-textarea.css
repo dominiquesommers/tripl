@@ -87,7 +87,9 @@
 
 /* ── Editor ──────────────────────────────────────────────── */
 .editor {
-  font-size: 14px;
+  font-size: 16px;
+  transform: scale(0.875);
+  transform-origin: left;
   line-height: 1.6;
   color: #efeff4;
   outline: none;
