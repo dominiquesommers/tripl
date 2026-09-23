@@ -10,6 +10,14 @@
   </app-cost>
 </ng-template>
 
+<ng-template #warningsTabBadge>
+  <app-warnings-badge
+    [errorCount]="warningsCounts().error"
+    [warnCount]="warningsCounts().warn"
+    [infoCount]="warningsCounts().info">
+  </app-warnings-badge>
+</ng-template>
+
 <div class="feature-wrapper">
   @if (!isPeek()) {
     <div class="feature-content">
