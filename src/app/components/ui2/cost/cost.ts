@@ -31,7 +31,11 @@ export class Cost {
   step           = input<number>(1);
   min            = input<number>(0);
   actualCostMode = input<'manual' | 'derived'>('manual');
-  actualRatio    = input<number | null>(null);
+  actualRatio      = input<number | null>(null);
+  diffLayout       = input<'inline' | 'stacked'>('inline');
+  compact          = input<boolean>(false);
+  compactDecimals  = input<number>(1);
+  compactThreshold = input<number>(1000);
 
   // ─── Outputs — passed straight through to CostBadge ────────
   saveEstimated = output<number | null>();
