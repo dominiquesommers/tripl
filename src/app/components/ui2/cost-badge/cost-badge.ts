@@ -30,7 +30,11 @@ export class CostBadge {
   // actualized entries vs. still-budgeted ones — tells you how much of the
   // diff could still move as more entries get an actual cost. Leave unset
   // for a single entry — it falls back to the plain has-actual-or-not case.
-  actualRatio    = input<number | null>(null);
+  actualRatio      = input<number | null>(null);
+  diffLayout       = input<'inline' | 'stacked'>('inline');
+  compact          = input<boolean>(false);
+  compactDecimals  = input<number>(1);
+  compactThreshold = input<number>(1000);
 
   // ─── Outputs ──────────────────────────────────────────────
   saveEstimated = output<number | null>();
@@ -115,6 +119,19 @@ export class CostBadge {
   private formatValue(value: number | null): string {
     if (value === null) return '';
     if (value === 0) return 'Free';
+
+    const absValue = Math.abs(value);
+
+    // Apply compact 'k' formatting when compact mode is active and threshold is met
+    if (this.compact() && absValue >= this.compactThreshold()) {
+      const thousandValue = value / 1000;
+      const formattedK = thousandValue.toFixed(this.compactDecimals());
+
+      // Trim trailing zeros after decimal (e.g., 72.0k -> 72k, 2.3k -> 2.3k)
+      const cleaned = formattedK.replace(/\.0+$/, '').replace('.', ',');
+      return `€ ${cleaned}k`;
+    }
+
     const formatted = this.decimalPlaces() > 0
       ? value.toFixed(this.decimalPlaces())
       : Math.round(value).toString();

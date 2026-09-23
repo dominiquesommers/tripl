@@ -2,6 +2,7 @@
   <div
     class="cost-trigger"
     [class]="costStatus()"
+    [class.stacked]="diffLayout() === 'stacked'"
     [class.readonly]="readonly()"
     cdkOverlayOrigin
     #trigger="cdkOverlayOrigin"
@@ -22,16 +23,18 @@
     </span>
 
     @if (diff() !== null && diff() !== 0) {
-      <lucide-icon
-        [name]="isOver() ? 'move-up' : 'move-down'"
-        [size]="14"
-        class="diff-arrow"
-        [class.over]="isOver()"
-        [class.under]="isUnder()">
-      </lucide-icon>
-      <span class="diff-amount" [class.over]="isOver()" [class.under]="isUnder()">
-        {{ diffDisplay() }}
-      </span>
+      <div class="diff-wrap" [class.stacked]="diffLayout() === 'stacked'">
+        <lucide-icon
+          [name]="isOver() ? 'move-up' : 'move-down'"
+          [size]="14"
+          class="diff-arrow"
+          [class.over]="isOver()"
+          [class.under]="isUnder()">
+        </lucide-icon>
+        <span class="diff-amount" [class.over]="isOver()" [class.under]="isUnder()">
+          {{ diffDisplay() }}
+        </span>
+      </div>
     }
   </div>
   
