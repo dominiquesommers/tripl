@@ -55,9 +55,7 @@ export class TripBubble {
     if (!trip) return 'Select Trip';
     const owner = trip.owner();
     const isOwner = !!user && owner?.id === user.uid;
-    console.log('isOwner', isOwner, owner?.id, user?.uid);
     const suffix = (!isOwner && owner) ? ` (${this.getInitials(owner.display_name)})` : '';
-    console.log('selectedTripName', trip.name(), suffix);
     return trip.name() + suffix;
   });
 

@@ -69,7 +69,6 @@ export class TripService {
         return this.loadTrips().pipe(
           map((rawTrips: IUserTrip[]) => {
             const trips = rawTrips.map(t => new UserTrip(t));
-            console.log(trips);
             return trips;
           })
         );
@@ -87,7 +86,7 @@ export class TripService {
       toObservable(this.navigationService.tripId),
       toObservable(this.trips)
     ]).pipe(
-      tap(() => this.triggerReset()),
+      // tap(() => this.triggerReset()),
       switchMap(([id, tripsSummary]) => {
         if (!id || !tripsSummary) return of(null);
         const tripExists = tripsSummary.some((t: any) => t.id === id);
@@ -106,7 +105,7 @@ export class TripService {
     { initialValue: null as Trip | null }
   );
 
-  // plan RAW data fetch — fires independently, no longer waits on `trip`
+  // plan RAW data fetch
   private readonly planRaw$ = toObservable(this.navigationService.planId).pipe(
     switchMap(planId => {
       if (!planId) return of(null);
@@ -124,7 +123,7 @@ export class TripService {
   // plan CONSTRUCTION — waits for both raw plan data AND constructed trip
   readonly plan: Signal<Plan | null> = toSignal(
     combineLatest([toObservable(this.trip), this.planRaw$]).pipe(
-      tap(() => this.triggerReset()),
+      // tap(() => this.triggerReset()),
       map(([trip, planData]) => {
         if (!trip || !planData) return null;
         const visits    = planData.visits.map(v => new Visit(v, this)); // resolves place from trip via `this`
@@ -192,7 +191,7 @@ export class TripService {
   refreshTrips() { this.refreshTripsTrigger.update(n => n + 1); }
 
   private resetState() {
-    console.log('User logged out - resetting ID sources');
+    console.info('User logged out - resetting ID sources');
     this.navigationService.setTripId(null);
     this.navigationService.setPlanId(null);
   }
@@ -200,7 +199,6 @@ export class TripService {
   // ── LOAD ─────────────────────────────────────────────────────────────────
 
   loadTrips(): Observable<IUserTrip[]> {
-    console.log('load trips data!!')
     const tripId = this.navigationService.tripId() ?? '';
     const dataSource$: Observable<TripsDataPackage> = !environment.useMock
       ? this.apiService.get<TripsDataPackage>(`trips/${tripId}/meta`)
@@ -208,7 +206,6 @@ export class TripService {
 
     return dataSource$.pipe(
       map(data => {
-        console.log(data);
         return data.trips.map(trip => ({
           id: trip.id.toString(),
           name: trip.name,
@@ -231,7 +228,6 @@ export class TripService {
 
   loadTrip(tripId: string): Observable<Trip> {
     if (this.loadingTripId() === tripId) return EMPTY;
-    console.log('load trip', tripId);
     this.loadingTripId.set(tripId);
 
     const dataSource$: Observable<TripDataPackage> = !environment.useMock
@@ -240,7 +236,6 @@ export class TripService {
 
     return dataSource$.pipe(
       map(data => {
-        console.log('Started mapping', data);
         const members       = (data.members ?? []).map(m => new TripMember(m, this));
         const countries     = data.countries.map(c => new Country(c, this));
         const countryNotes  = data.countryNotes.map(n => new CountryNote(n, this));
@@ -272,7 +267,6 @@ export class TripService {
 
     return dataSource$.pipe(
       map(data => {
-        console.log('Started mapping', data);
         const visits    = data.visits.map(v => new Visit(v, this));
         const traverses = data.traverses.map(t => new Traverse(t, this));
         return new Plan(data.plan, visits, traverses, this);
@@ -334,7 +328,7 @@ export class TripService {
     const userId = parts[1];
     const userTrip = this.trips().find(t => t.id === tripId);
     if (!userTrip) {
-      console.log('no user trip found for id', id);
+      console.warn('no user trip found for id', id);
       return of(null);
     }
 
@@ -666,21 +660,16 @@ export class TripService {
   }
 
   updateRoute(id: string, updates: UpdateRoute): Observable<IRoute | null> {
-    console.log('hallooo', id, updates)
     const route = this.trip()?.routes().get(id);
-    console.log(route);
     if (!route) return of(null);
 
     const needsEnrichment = !!(updates.type && LAND_MODES.includes(updates.type) && !LAND_MODES.includes(route.type()));
-    console.log(needsEnrichment);
     const enrichment$: Observable<UpdateRoute> = needsEnrichment
       ? this.enrichRouteUpdates(route, updates)
       : of(updates);
-    console.log(enrichment$);
 
     return enrichment$.pipe(
       switchMap(finalUpdates => {
-        console.log(finalUpdates);
         return this.patchAndPersist<IRoute, UpdateRoute>(
             `routes/${id}`,
             finalUpdates,

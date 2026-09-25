@@ -13,13 +13,13 @@ export class App {
   private router = inject(Router);
 
   constructor() {
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationStart) {
-        console.log('🚀 Navigation Start:', event.url);
-      }
-      if (event instanceof RoutesRecognized) {
-        console.log('✅ Route Recognized:', event.state.url);
-      }
-    });
+    // this.router.events.subscribe(event => {
+    //   if (event instanceof NavigationStart) {
+    //     console.log('🚀 Navigation Start:', event.url);
+    //   }
+    //   if (event instanceof RoutesRecognized) {
+    //     console.log('✅ Route Recognized:', event.state.url);
+    //   }
+    // });
   }
 }

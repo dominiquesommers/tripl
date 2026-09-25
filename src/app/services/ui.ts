@@ -1,7 +1,7 @@
 import {Injectable, inject, signal, WritableSignal, computed, effect, untracked} from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
-import {map, Subject} from 'rxjs';
+import {takeUntilDestroyed, toSignal, toObservable} from '@angular/core/rxjs-interop';
+import {map, Subject, pairwise, filter} from 'rxjs';
 import {TripService} from './trip';
 import {Visit} from '../models/visit';
 import {Place} from '../models/place';
@@ -9,6 +9,7 @@ import {Route} from '../models/route';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {LngLatLike} from 'mapbox-gl';
 import {AuthService} from './auth';
+import { NavigationService } from './navigation';
 
 export interface FlyToRequest {
   center: [number, number];
@@ -30,6 +31,7 @@ export class UiService {
   private breakpointObserver = inject(BreakpointObserver);
   private tripService = inject(TripService);
   private authService = inject(AuthService);
+  private navigationService = inject(NavigationService);
 
   // --- Layout State ---
   readonly isSidebarOpen: WritableSignal<boolean> = signal(true);
@@ -79,11 +81,17 @@ export class UiService {
   flyToRequested$ = this.flyToSubject.asObservable();
 
   constructor() {
-    this.tripService.resetInteraction$
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => {
-        this.resetInteractionState();
-      });
+    toObservable(this.navigationService.tripId).pipe(
+      pairwise(),
+      filter(([prev, curr]) => prev !== null && prev !== curr),
+      takeUntilDestroyed()
+    ).subscribe(() => this.resetInteractionState());
+
+    toObservable(this.navigationService.planId).pipe(
+      pairwise(),
+      filter(([prev, curr]) => prev !== null && prev !== curr),
+      takeUntilDestroyed()
+    ).subscribe(() => this.resetInteractionState());
 
     this.route.queryParams.subscribe(params => {
       const vId = params['visitId'] ?? null;
@@ -93,13 +101,6 @@ export class UiService {
       if (this.selectedRouteId() !== rId) this.selectedRouteId.set(rId);
       if (this.activeTab() !== tab) this.activeTab.set(tab);
     });
-
-    const route = inject(ActivatedRoute);
-    const router = inject(Router);
-
-    const params = route.snapshot.queryParamMap;
-    const tab = params.get('tab');
-    if (tab) this.activeTab.set(tab);
 
     effect(() => {
       const mobile = this.isMobile();
@@ -111,18 +112,20 @@ export class UiService {
     });
 
     effect(() => {
-      const queryParams: any = { tab: this.activeTab() };
-      if (this.selectedVisitId()) queryParams.visitId = this.selectedVisitId();
-      if (this.selectedRouteId()) queryParams.routeId = this.selectedRouteId();
+      const queryParams = {
+        tab: this.activeTab() !== 'itinerary' ? this.activeTab() : null,
+        visitId: this.selectedVisitId() ?? null,
+        routeId: this.selectedRouteId() ?? null,
+      };
 
-      // untracked(() => {
-      //   this.router.navigate([], {
-      //     relativeTo: this.route,
-      //     queryParams,
-      //     queryParamsHandling: 'merge',
-      //     replaceUrl: true
-      //   });
-      // });
+      untracked(() => {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams,
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      });
     });
   }
 
@@ -188,5 +191,11 @@ export class UiService {
     this.selectedRouteId.set(null);
     this.hoveredRoute.set(null);
     this.drawingState.set({ active: false, sourceVisit: null });
+    this.activeTab.set('itinerary');
+    // this.selectedVisitId.set(null);
+    // this.hoveredPlace.set(null);
+    // this.selectedRouteId.set(null);
+    // this.hoveredRoute.set(null);
+    // this.drawingState.set({ active: false, sourceVisit: null });
   }
 }
