@@ -1,6 +1,6 @@
-import {Injectable, inject, signal, effect, computed, untracked} from '@angular/core';
+import {Injectable, inject, signal, effect, computed, untracked, Signal} from '@angular/core';
 import {
-  Observable, tap, forkJoin, switchMap, catchError, throwError,
+  Observable, tap, forkJoin, switchMap, catchError, throwError, shareReplay,
   finalize, EMPTY, of, filter, distinctUntilChanged, combineLatest, Subject
 } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -106,27 +106,31 @@ export class TripService {
     { initialValue: null as Trip | null }
   );
 
-  readonly plan = toSignal(
-    combineLatest([
-      toObservable(this.trip),
-      toObservable(this.navigationService.planId),
-      toObservable(this.trips)
-    ]).pipe(
+  // plan RAW data fetch — fires independently, no longer waits on `trip`
+  private readonly planRaw$ = toObservable(this.navigationService.planId).pipe(
+    switchMap(planId => {
+      if (!planId) return of(null);
+      if (this.loadingPlanId() === planId) return EMPTY;
+      this.loadingPlanId.set(planId);
+      const dataSource$: Observable<PlanDataPackage> = !environment.useMock
+        ? this.apiService.get<PlanDataPackage>(`plans/${planId}`)
+        : this.mockService.fetchPlanMockAggregate(planId);
+      return dataSource$.pipe(finalize(() => this.loadingPlanId.set(null)));
+    }),
+    catchError(() => of(null)),
+    shareReplay(1)
+  );
+
+  // plan CONSTRUCTION — waits for both raw plan data AND constructed trip
+  readonly plan: Signal<Plan | null> = toSignal(
+    combineLatest([toObservable(this.trip), this.planRaw$]).pipe(
       tap(() => this.triggerReset()),
-      switchMap(([trip, planId, tripsSummary]) => {
-        console.log('planId', planId, trip, trip?.id);
-        if (!trip || !planId) return of(null);
-        const planExists = tripsSummary.some(t => 
-          t.id === trip.id && t.plans().some((p: UserPlan) => p.id === planId)
-        );
-        if (!planExists && !environment.useMock) {
-          console.warn(`Plan ${planId} does not belong to Trip ${trip.id}`);
-          this.notifierService.notify("This plan doesn't exist in this trip.", true);
-          return of(null);
-        }
-        return this.loadPlan(planId);
-      }),
-      catchError(() => of(null))
+      map(([trip, planData]) => {
+        if (!trip || !planData) return null;
+        const visits    = planData.visits.map(v => new Visit(v, this)); // resolves place from trip via `this`
+        const traverses = planData.traverses.map(t => new Traverse(t, this));
+        return new Plan(planData.plan, visits, traverses, this);
+      })
     ),
     { initialValue: null }
   );
