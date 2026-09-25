@@ -61,47 +61,7 @@ export class TripView implements OnInit {
         }
       }
     });
-
-    // effect(() => this.syncTripWithUrl());
-    // effect(() => this.syncPlanWithUrl());
   }
-
-  // syncTripWithUrl() {
-  //   const tripId = this.tripId();
-  //   if (!tripId) {
-  //     this.tripService.clearTrip();
-  //     return;
-  //   }
-  //   const currentTrip = untracked(() => this.tripService.trip());
-  //   if (!currentTrip || currentTrip.id !== tripId) {
-  //     console.log('Loading trip', tripId);
-  //     this.tripService.loadTrip(tripId).subscribe();
-  //   }
-  // }
-
-  // syncPlanWithUrl() {
-  //   const tripId = this.tripId();
-  //   const planId = this.planId();
-  //   const currentTrip = this.tripService.trip();
-  //   const availableTrips = this.tripService.trips();
-  //
-  //   if (!tripId || !currentTrip || currentTrip.id !== tripId) return;
-  //
-  //   // Redirect to first plan if none in URL
-  //   if (!planId && availableTrips) {
-  //     const firstPlanId = availableTrips.find(t => t.id === tripId)?.plans[0]?.id;
-  //     if (firstPlanId) {
-  //       this.router.navigate(['trip', tripId, firstPlanId], { replaceUrl: true });
-  //     }
-  //     return;
-  //   }
-  //
-  //   // Load plan if it exists and isn't loaded yet
-  //   if (planId && this.tripService.plan()?.id !== planId) {
-  //     console.log('Trip ready, loading plan:', planId);
-  //     this.tripService.loadPlan(planId).subscribe();
-  //   }
-  // }
 
   ngOnInit(): void {
   }

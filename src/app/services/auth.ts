@@ -81,26 +81,6 @@ export class AuthService {
         (user as any).photoURL = cleanUrl;
       }
       this._user.set(user);
-
-      // if (user) {
-      //   const tripId = this.navigationService.tripId() ?? '';
-      //   this.apiService.get<{ canEdit: boolean }>(`auth/${tripId}/permissions`)
-      //     .subscribe({
-      //       next: (result) => this.canEdit.set(result.canEdit),
-      //       error: (err) => {
-      //         console.error("Permissions fetch failed", err);
-      //         this.canEdit.set(false);
-      //       }
-      //     });
-      //   // const token = await user.getIdToken();
-      //   // this.http.get<{ canEdit: boolean }>(`${environment.apiUrl}/auth/permissions`, {
-      //   //   headers: { Authorization: `Bearer ${token}` }
-      //   // }).subscribe(result => {
-      //   //   this.canEdit.set(result.canEdit);
-      //   // });
-      // } else {
-      //   this.canEdit.set(false);
-      // }
     });
   }
 
@@ -131,13 +111,6 @@ export class AuthService {
     if (!environment.production) {
       (window as any).toggleDevMode = () => {
         this.isDevMode.update(prev => !prev);
-
-        // const newState = !this.isDevMode();
-        // this.isDevMode.set(newState);
-
-        // if (!newState) {
-        //   this.initFirebaseAuthListener();
-        // }
 
         console.log(
           `%c Dev Mode (Mock Data): ${this.isDevMode() ? 'ON' : 'OFF'} `,
