@@ -22,8 +22,14 @@ export class OverlayMenu<T = void> {
   triggerIcon = input('ellipsis');
   triggerTooltip = input('Options');
   overlayPositions = input<ConnectedPosition[]>([
-    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
-    { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 },
+    // Preferred: bottom-right aligned
+    { originX: 'end', originY: 'bottom', overlayX: 'end', offsetX: 2, overlayY: 'top', offsetY: 2 },
+    // Fallback 1: top-right aligned
+    { originX: 'end', originY: 'top', overlayX: 'end', offsetX: 2, overlayY: 'bottom', offsetY: -2 },
+    // Fallback 2: bottom-left aligned (if right side overflows)
+    { originX: 'start', originY: 'bottom', overlayX: 'start', offsetX: -2, overlayY: 'top', offsetY: 2 },
+    // Fallback 3: top-left aligned
+    { originX: 'start', originY: 'top', overlayX: 'start', offsetX: -2, overlayY: 'bottom', offsetY: -2 },
   ]);
 
   isOpen = signal(false);

@@ -50,8 +50,14 @@ export class CostBadge {
   isOpen = signal(false);
 
   overlayPositions: ConnectedPosition[] = [
-    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 6 },
-    { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -6 },
+    // Preferred: bottom-right aligned
+    { originX: 'end', originY: 'bottom', overlayX: 'end', offsetX: 2, overlayY: 'top', offsetY: 2 },
+    // Fallback 1: top-right aligned
+    { originX: 'end', originY: 'top', overlayX: 'end', offsetX: 2, overlayY: 'bottom', offsetY: -2 },
+    // Fallback 2: bottom-left aligned (if right side overflows)
+    { originX: 'start', originY: 'bottom', overlayX: 'start', offsetX: -2, overlayY: 'top', offsetY: 2 },
+    // Fallback 3: top-left aligned
+    { originX: 'start', originY: 'top', overlayX: 'start', offsetX: -2, overlayY: 'bottom', offsetY: -2 },
   ];
 
   // ─── Derived display ──────────────────────────────────────
