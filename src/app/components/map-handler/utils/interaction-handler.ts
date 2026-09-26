@@ -243,17 +243,20 @@ export class MapInteractionManager {
 
   private syncRoutePopup(route: Route | null, popupElement: ElementRef | undefined) {
     if (route && popupElement) {
-      if (this.activeVisitPopup && route.popupCoords) {
-         this.activeVisitPopup.setLngLat(route.popupCoords);
-         return;
+      const coords = route.popupCoords ?? route.middlePoint();
+
+      if (this.activeVisitPopup) {
+        this.activeVisitPopup.setLngLat(coords);
+        return;
       }
+
       this.activeRoutePopup = new this.mapbox.Popup({
         maxWidth: '320px',
         offset: 25,
         closeButton: false,
         className: 'apple-glass-popup'
       }).setDOMContent(popupElement.nativeElement)
-        .setLngLat(route.popupCoords)
+        .setLngLat(coords)
         .addTo(this.map);
 
       this.activeRoutePopup?.on('close', () => {
@@ -267,7 +270,6 @@ export class MapInteractionManager {
 
   public closeActiveVisitPopup() {
     if (this.activeVisitPopup) {
-      console.log('close visit popup.')
       this.activeVisitPopup.remove();
       this.activeVisitPopup = undefined;
       this.handleMarkerUnhover();
