@@ -1139,7 +1139,7 @@ export class TripService {
     const route = currentTrip.routes().get(routeId);
     const payload: NewRouteBooking = {
       route_id: routeId, trip_id: currentTrip.id,
-      departure_at: null, arrival_at: null, final_price: 0,
+      departure_at: null, arrival_at: null, final_price: 1,
       accommodation_pct: 0, food_pct: 0, activity_pct: 0,
       cancel_before: null, pay_by: null, is_tentative: false,
     };

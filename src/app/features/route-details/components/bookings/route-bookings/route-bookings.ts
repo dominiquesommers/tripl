@@ -75,7 +75,8 @@ export class RouteBookings {
       if (targetTraverse) {
         this.updateBooking(b, {
           departure_at: this.toISODateTimeAtMidnight(targetTraverse.entryDate()!),
-          arrival_at: this.toISODateTimeAtMidnight(targetTraverse.exitDate()!)
+          arrival_at: this.toISODateTimeAtMidnight(targetTraverse.exitDate()!),
+          final_price: 0
         });
       }
     });
