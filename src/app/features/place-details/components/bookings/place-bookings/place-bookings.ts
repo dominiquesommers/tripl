@@ -83,7 +83,6 @@ export class PlaceBookings {
 
   // ── Update booking ────────────────────────────────────────
   updateBooking(booking: PlaceBooking, updates: UpdatePlaceBooking) {
-    console.log(updates);
     if (updates.final_price === null) {
       this.notificationService.confirmModal(
         {
@@ -99,24 +98,7 @@ export class PlaceBookings {
     } else {
       this.tripService.updatePlaceBooking(booking.id, updates).subscribe();
     }
-    // if (updates.final_price !== undefined) {
-    //   this.openCostPopup(booking);
-    // }
   }
-
-  // deleteBooking(booking: PlaceBooking) {
-  //   this.notificationService.confirmModal(
-  //     {
-  //       title: 'Remove booking',
-  //       message: 'Remove this booking? Any linked payments will also be removed.',
-  //       confirmLabel: 'Remove',
-  //       isDanger: true
-  //     },
-  //     () => {
-  //       this.tripService.removePlaceBooking(booking).subscribe();
-  //     }
-  //   );
-  // }
 
   // ── Food inclusion ────────────────────────────────────────
   foodOptions: { value: FoodInclusion; label: string }[] = [
@@ -187,39 +169,6 @@ export class PlaceBookings {
   deleteExpense(id: string) {
     const expense = this.tripService.trip()?.expenses().get(id);
     if (expense) this.tripService.removeExpense(expense).subscribe();
-  }
-
-  // ── Cost popup ────────────────────────────────────────────
-  @ViewChildren('priceCellRef') priceCellRefs!: QueryList<ElementRef>;
-
-  openCostPopup(booking: PlaceBooking) {
-    const index = this.bookings().findIndex(b => b.id === booking.id);
-    const el    = this.priceCellRefs.get(index)?.nativeElement;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    this.popupSvc.open(CostPopup, {
-      position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
-      inputs: { expenses: computed(() => this.bookingExpenses(booking)), actualCost: computed(() => booking.final_price()) },
-      outputs: {
-        addExpense: (e: NewExpense) => {
-          const trip = this.tripService.trip();
-          if (!trip) return;
-          this.tripService.addExpense({
-            ...e,
-            place_booking_id: booking.id,
-            trip_id: trip.id,
-            category: 'accommodation',
-          } as NewExpense).subscribe();
-        },
-        updateExpense: (e: any) =>
-          this.tripService.updateExpense(e.id, e).subscribe(),
-        deleteExpense: (id: string) => {
-          const exp = this.tripService.trip()?.expenses().get(id);
-          if (exp) this.tripService.removeExpense(exp).subscribe();
-        },
-        close: () => this.popupSvc.close(),
-      },
-    });
   }
 
   firstUrl(booking: PlaceBooking): string | null {

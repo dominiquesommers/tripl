@@ -90,9 +90,20 @@ export class RouteBookings {
 
   // ── Update booking ────────────────────────────────────────
   updateBooking(booking: RouteBooking, updates: UpdateRouteBooking) {
-    this.tripService.updateRouteBooking(booking.id, updates).subscribe();
-    if (updates.final_price !== undefined) {
-      this.openCostPopup(booking);
+    if (updates.final_price === null) {
+      this.notificationService.confirmModal(
+        {
+          title: 'Remove booking',
+          message: 'Remove this booking? Any linked payments will also be removed.',
+          confirmLabel: 'Remove',
+          isDanger: true
+        },
+        () => {
+          this.tripService.removeRouteBooking(booking).subscribe();
+        }
+      );
+    } else {
+      this.tripService.updateRouteBooking(booking.id, updates).subscribe();
     }
   }
 
@@ -172,15 +183,6 @@ export class RouteBookings {
     }
   }
 
-  // toggleFoodInclusion(booking: RouteBooking) {
-  //   if (booking.foodInclusion() === 'excluded') {
-  //     this.setFoodInclusion(booking, 'breakfast');
-  //   } else {
-  //     this.setFoodInclusion(booking, 'excluded');
-  //   }
-  // }
-
-
   addExpense(booking: RouteBooking, expense: NewExpense) {
     console.log('Adding expense for booking', booking.id, expense);
     this.tripService.addExpense({
@@ -198,39 +200,6 @@ export class RouteBookings {
   deleteExpense(id: string) {
     const expense = this.tripService.trip()?.expenses().get(id);
     if (expense) this.tripService.removeExpense(expense).subscribe();
-  }
-
-  // ── Cost popup ────────────────────────────────────────────
-  @ViewChildren('priceCellRef') priceCellRefs!: QueryList<ElementRef>;
-
-  openCostPopup(booking: RouteBooking) {
-    const index = this.bookings().findIndex(b => b.id === booking.id);
-    const el    = this.priceCellRefs.get(index)?.nativeElement;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    this.popupSvc.open(CostPopup, {
-      position: { top: rect.bottom + 8, left: rect.left + rect.width / 2 },
-      inputs: { expenses: computed(() => this.bookingExpenses(booking)), actualCost: computed(() => booking.final_price()) },
-      outputs: {
-        addExpense: (e: NewExpense) => {
-          const trip = this.tripService.trip();
-          if (!trip) return;
-          this.tripService.addExpense({
-            ...e,
-            route_booking_id: booking.id,
-            trip_id: trip.id,
-            category: 'transport',
-          } as NewExpense).subscribe();
-        },
-        updateExpense: (e: any) =>
-          this.tripService.updateExpense(e.id, e).subscribe(),
-        deleteExpense: (id: string) => {
-          const exp = this.tripService.trip()?.expenses().get(id);
-          if (exp) this.tripService.removeExpense(exp).subscribe();
-        },
-        close: () => this.popupSvc.close(),
-      },
-    });
   }
 
   firstUrl(booking: RouteBooking): string | null {
